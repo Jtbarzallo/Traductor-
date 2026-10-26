@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Traductor de Conversación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Mesa de dos lados: panel superior (persona de enfrente, girable) / franja de control / panel inferior (yo) */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#15202b; --muted:#5d6b78;
+  --me:#0b6e69; --them:#b4472c; --line:#d5dbe1; --live:#7a8794;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1418; --panel:#182028; --ink:#e8edf1; --muted:#93a1ad;
+  --me:#3cc0b7; --them:#f08a6c; --line:#2a3540; --live:#7f8c97; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;
+  display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+.side{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;background:var(--panel);
+  border:1px solid var(--line);border-radius:18px;padding:12px;margin-block:10px}
+.side.flip{transform:rotate(180deg)}
+.head{display:flex;align-items:center;gap:10px}
+.tag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+#A .tag{color:var(--me)} #B .tag{color:var(--them)}
+select{flex:1;min-width:0;font:inherit;font-size:15px;padding:8px 10px;border-radius:10px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.feed{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px}
+.msg{max-width:92%;line-height:1.35}
+.msg.in{font-family:var(--display);font-weight:500;font-size:clamp(20px,5.2vw,28px);align-self:flex-start}
+.msg.out{font-size:15px;color:var(--muted);align-self:flex-end;text-align:right}
+.msg .sub{display:block;font-family:var(--body);font-size:12px;color:var(--muted);margin-top:2px}
+.live{min-height:1.4em;color:var(--live);font-style:italic;font-size:16px}
+.empty{color:var(--muted);font-size:15px;margin:auto 0}
+.mic{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:14px;
+  padding:16px;font-family:var(--display);font-weight:700;font-size:18px;color:#fff;cursor:pointer}
+#A .mic{background:var(--me)} #B .mic{background:var(--them)}
+.mic.on{animation:pulse 1.2s ease-in-out infinite}
+.mic:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dot{width:12px;height:12px;border-radius:50%;background:#fff;opacity:.85}
+.mic.on .dot{background:#ff3b30;opacity:1}
+@keyframes pulse{50%{filter:brightness(1.18)}}
+@media (prefers-reduced-motion:reduce){.mic.on{animation:none}}
+.bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.bar button{font:inherit;font-size:14px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);cursor:pointer}
+.bar button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#warn{background:var(--them);color:#fff;padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="warn" hidden></div>
+
+<section class="side flip" id="B">
+  <div class="head"><span class="tag">Invitado</span><select id="langB" aria-label="Idioma del invitado"></select></div>
+  <div class="feed" id="feedB"><p class="empty">Tap the button and speak.</p></div>
+  <div class="live" id="liveB"></div>
+  <button class="mic" id="micB"><span class="dot"></span><span class="lbl">Speak</span></button>
+</section>
+
+<div class="bar">
+  <button id="tFlip" aria-pressed="true">Girar panel de arriba</button>
+  <button id="tVoice" aria-pressed="true">Leer en voz alta</button>
+  <button id="tSwap">Intercambiar idiomas</button>
+  <button id="tClear">Borrar</button>
+</div>
+
+<section class="side" id="A">
+  <div class="head"><span class="tag">Yo</span><select id="langA" aria-label="Mi idioma"></select></div>
+  <div class="feed" id="feedA"><p class="empty">Toca el botón y habla.</p></div>
+  <div class="live" id="liveA"></div>
+  <button class="mic" id="micA"><span class="dot"></span><span class="lbl">Hablar</span></button>
+</section>
+
+<script>
+const LANGS=[
+ ["es-EC","es","Español","Hablar","Escuchando… toca para parar","Toca el botón y habla."],
+ ["en-US","en","English","Speak","Listening… tap to stop","Tap the button and speak."],
+ ["pt-BR","pt","Português","Falar","Ouvindo… toque para parar","Toque no botão e fale."],
+ ["fr-FR","fr","Français","Parler","J'écoute… touchez pour arrêter","Touchez le bouton et parlez."],
+ ["it-IT","it","Italiano","Parla","Ascolto… tocca per fermare","Tocca il pulsante e parla."],
+ ["de-DE","de","Deutsch","Sprechen","Ich höre zu… tippen zum Stoppen","Tippen und sprechen."],
+ ["zh-CN","zh-CN","中文","说话","正在听…点击停止","点击按钮开始说话。"],
+ ["ja-JP","ja","日本語","話す","聞いています…タップで停止","ボタンを押して話してください。"],
+ ["ko-KR","ko","한국어","말하기","듣는 중… 탭하여 중지","버튼을 누르고 말하세요."],
+ ["ru-RU","ru","Русский","Говорить","Слушаю… нажмите, чтобы остановить","Нажмите кнопку и говорите."]
+];
+const $=id=>document.getElementById(id);
+const side={A:{lang:$("langA"),feed:$("feedA"),live:$("liveA"),mic:$("micA")},
+            B:{lang:$("langB"),feed:$("feedB"),live:$("liveB"),mic:$("micB")}};
+for(const k of["A","B"]){for(const l of LANGS){const o=document.createElement("option");o.value=l[0];o.textContent=l[2];side[k].lang.append(o)}}
+let saved={};try{saved=JSON.parse(localStorage.getItem("trad_cfg")||"{}")}catch(e){}
+side.A.lang.value=saved.A||"es-EC"; side.B.lang.value=saved.B||"en-US";
+let speakOn=saved.voice!==false, flipOn=saved.flip!==false;
+const L=code=>LANGS.find(l=>l[0]===code);
+const other=k=>k==="A"?"B":"A";
+function save(){try{localStorage.setItem("trad_cfg",JSON.stringify({A:side.A.lang.value,B:side.B.lang.value,voice:speakOn,flip:flipOn}))}catch(e){}}
+function labels(){
+  for(const k of["A","B"]){const l=L(side[k].lang.value);
+    side[k].mic.querySelector(".lbl").textContent=(active===k)?l[4]:l[3];
+    const e=side[k].feed.querySelector(".empty"); if(e)e.textContent=l[5];}
+  $("tVoice").setAttribute("aria-pressed",speakOn); $("tFlip").setAttribute("aria-pressed",flipOn);
+  $("B").classList.toggle("flip",flipOn);
+}
+
+async function translate(text,from,to){
+  if(from===to)return text;
+  try{
+    const r=await fetch("https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl="+encodeURIComponent(from)+"&tl="+encodeURIComponent(to)+"&q="+encodeURIComponent(text));
+    if(!r.ok)throw 0; const j=await r.json(); return j[0].map(p=>p[0]).join("");
+  }catch(e){
+    const r=await fetch("https://api.mymemory.translated.net/get?langpair="+from+"|"+to+"&q="+encodeURIComponent(text));
+    const j=await r.json(); if(!j.responseData)throw new Error("sin traducción"); return j.responseData.translatedText;
+  }
+}
+function add(k,cls,text,sub){
+  const f=side[k].feed; f.querySelector(".empty")?.remove();
+  const p=document.createElement("p"); p.className="msg "+cls; p.textContent=text;
+  if(sub){const s=document.createElement("span");s.className="sub";s.textContent=sub;p.append(s)}
+  f.append(p); f.scrollTop=f.scrollHeight; return p;
+}
+function say(text,code){
+  if(!speakOn||!window.speechSynthesis)return;
+  const u=new SpeechSynthesisUtterance(text); u.lang=code;
+  const v=speechSynthesis.getVoices().find(v=>v.lang.replace("_","-").startsWith(code.split("-")[0])); if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+async function handle(k,text){
+  text=text.trim(); if(!text)return;
+  const o=other(k), from=L(side[k].lang.value), to=L(side[o].lang.value);
+  add(k,"out",text);
+  const pending=add(o,"in","…");
+  try{const t=await translate(text,from[1],to[1]); pending.textContent=t;
+      const s=document.createElement("span");s.className="sub";s.textContent=text;pending.append(s);
+      side[o].feed.scrollTop=side[o].feed.scrollHeight; say(t,to[0]);}
+  catch(e){pending.textContent="⚠ No se pudo traducir. Revisa tu conexión a internet.";}
+}
+
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, active=null;
+if(!SR){$("warn").hidden=false;$("warn").textContent="Este navegador no reconoce voz. Abre el archivo en Google Chrome (PC o Android) o en Microsoft Edge.";}
+function stop(){const r=rec;active=null;rec=null;if(r)try{r.stop()}catch(e){}
+  for(const k of["A","B"]){side[k].mic.classList.remove("on");side[k].live.textContent=""} labels();}
+function start(k){
+  if(!SR)return; stop(); if(window.speechSynthesis)speechSynthesis.cancel();
+  active=k; const r=new SR(); rec=r;
+  r.lang=side[k].lang.value; r.interimResults=true; r.continuous=true;
+  r.onresult=e=>{let interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];
+      if(res.isFinal)handle(k,res[0].transcript); else interim+=res[0].transcript;}
+    side[k].live.textContent=interim;};
+  r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+      $("warn").hidden=false;$("warn").textContent="Permite el uso del micrófono para esta página (ícono del candado en la barra de direcciones).";stop();}};
+  r.onend=()=>{if(rec===r&&active===k){try{r.start()}catch(e){stop()}}};
+  try{r.start()}catch(e){stop();return}
+  side[k].mic.classList.add("on"); labels();
+}
+for(const k of["A","B"]){
+  side[k].mic.onclick=()=>active===k?stop():start(k);
+  side[k].lang.onchange=()=>{save();if(active===k)start(k);labels()};
+}
+$("tVoice").onclick=()=>{speakOn=!speakOn;if(!speakOn&&window.speechSynthesis)speechSynthesis.cancel();save();labels()};
+$("tFlip").onclick=()=>{flipOn=!flipOn;save();labels()};
+$("tSwap").onclick=()=>{const a=side.A.lang.value;side.A.lang.value=side.B.lang.value;side.B.lang.value=a;stop();save();labels()};
+$("tClear").onclick=()=>{for(const k of["A","B"]){side[k].feed.innerHTML='<p class="empty"></p>'}labels()};
+if(window.speechSynthesis)speechSynthesis.onvoiceschanged=()=>{};
+labels();
+</script>
+</body>
+</html>
