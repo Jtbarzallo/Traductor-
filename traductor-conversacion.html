@@ -148,18 +148,44 @@ let rec=null, active=null;
 if(!SR){$("warn").hidden=false;$("warn").textContent="Este navegador no reconoce voz. Abre el archivo en Google Chrome (PC o Android) o en Microsoft Edge.";}
 function stop(){const r=rec;active=null;rec=null;if(r)try{r.stop()}catch(e){}
   for(const k of["A","B"]){side[k].mic.classList.remove("on");side[k].live.textContent=""} labels();}
+/* Una frase por sesión de escucha (continuous=false) y se reinicia sola al terminar.
+   Así se evita el error de Chrome en Android que repite la frase acumulada. */
+const norm=s=>s.toLowerCase().replace(/[^\p{L}\p{N} ]/gu,"").replace(/\s+/g," ").trim();
+let lastSent="", lastTime=0;
 function start(k){
   if(!SR)return; stop(); if(window.speechSynthesis)speechSynthesis.cancel();
-  active=k; const r=new SR(); rec=r;
-  r.lang=side[k].lang.value; r.interimResults=true; r.continuous=true;
-  r.onresult=e=>{let interim="";
-    for(let i=e.resultIndex;i<e.results.length;i++){const res=e.results[i];
-      if(res.isFinal)handle(k,res[0].transcript); else interim+=res[0].transcript;}
-    side[k].live.textContent=interim;};
-  r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){
-      $("warn").hidden=false;$("warn").textContent="Permite el uso del micrófono para esta página (ícono del candado en la barra de direcciones).";stop();}};
-  r.onend=()=>{if(rec===r&&active===k){try{r.start()}catch(e){stop()}}};
-  try{r.start()}catch(e){stop();return}
+  active=k; lastSent="";
+  const listen=()=>{
+    if(active!==k)return;
+    const r=new SR(); rec=r; let done=false;
+    r.lang=side[k].lang.value; r.interimResults=true; r.continuous=false; r.maxAlternatives=1;
+    r.onresult=e=>{
+      if(done)return;
+      if(window.speechSynthesis&&speechSynthesis.speaking)return; // no escuchar la propia voz del traductor
+      let finalTxt="", interim="";
+      for(let i=0;i<e.results.length;i++){const res=e.results[i];
+        if(res.isFinal)finalTxt=res[0].transcript; else interim=res[0].transcript;}
+      if(finalTxt){
+        done=true; side[k].live.textContent="";
+        let t=finalTxt.trim(), n=norm(t), prev=norm(lastSent);
+        if(!n)return;
+        if(prev&&Date.now()-lastTime<4000){
+          if(n===prev)return;                       // repetida exacta
+          if(n.startsWith(prev+" ")){                // trae otra vez el inicio
+            t=t.split(/\s+/).slice(lastSent.trim().split(/\s+/).length).join(" ");}
+        }
+        lastSent=finalTxt; lastTime=Date.now(); handle(k,t);
+      } else side[k].live.textContent=interim;
+    };
+    r.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){
+        $("warn").hidden=false;$("warn").textContent="Permite el uso del micrófono para esta página (ícono del candado en la barra de direcciones).";stop();}};
+    r.onend=()=>{if(rec===r&&active===k){
+        const wait=()=>{if(active!==k)return;
+          if(window.speechSynthesis&&speechSynthesis.speaking)setTimeout(wait,250); else listen();};
+        setTimeout(wait,150);}};
+    try{r.start()}catch(e){stop()}
+  };
+  listen();
   side[k].mic.classList.add("on"); labels();
 }
 for(const k of["A","B"]){
