@@ -145,7 +145,9 @@ async function handle(k,text){
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null, active=null;
-if(!SR){$("warn").hidden=false;$("warn").textContent="Este navegador no reconoce voz. Abre el archivo en Google Chrome (PC o Android) o en Microsoft Edge.";}
+const URL_OK="https://jtbarzallo.github.io/Traductor-/traductor-conversacion.html";
+if(location.protocol!=="https:"&&location.hostname!=="localhost"){$("warn").hidden=false;$("warn").innerHTML='Este archivo está abierto desde el teléfono y así el micrófono no funciona. Ábrelo desde internet: <a style="color:#fff;font-weight:700" href="'+URL_OK+'">'+URL_OK+'</a>';}
+else if(!SR){$("warn").hidden=false;$("warn").textContent="Este navegador no reconoce voz. Abre el archivo en Google Chrome (PC o Android) o en Microsoft Edge.";}
 function stop(){const r=rec;active=null;rec=null;if(r)try{r.stop()}catch(e){}
   for(const k of["A","B"]){side[k].mic.classList.remove("on");side[k].live.textContent=""} labels();}
 /* Una frase por sesión de escucha (continuous=false) y se reinicia sola al terminar.
