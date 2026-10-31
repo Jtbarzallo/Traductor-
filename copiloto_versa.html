@@ -117,6 +117,8 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
   <div class="card">
     <h2>Voz</h2>
     <label class="chk"><input type="checkbox" id="voiceOn"> Avisos por voz</label>
+    <label class="chk"><input type="checkbox" id="beepOn"> Pitidos (1 agudo = sube · 2 graves = baja · 3 cortos = cuesta adelante)</label>
+    <button id="testBeep" class="btn sec">🔔 Probar pitidos</button>
     <button id="testVoice" class="btn sec">🔊 Probar voz</button>
   </div>
   <div class="card">
@@ -151,7 +153,7 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
 const KEY='copiloto_versa_v1';
 const NOMBRES=['Primera','Segunda','Tercera','Cuarta','Quinta'];
 const FABRICA=[15.5,28.1,41.4,56.0,70.2]; // Versa 1.6 manual 5M, llanta 185/65 R15, km/h a 2.000 rpm
-const DEF={ref:2000,v:FABRICA.slice(),voice:true,invert:false,
+const DEF={ref:2000,v:FABRICA.slice(),voice:true,beep:true,invert:false,
   thMod:3,thSteep:7,thDown:-4,minFlat:1700,minMod:2500,minSteep:3000,maxRpm:4500,
   zero:null,sign:1};
 let cfg=load();
@@ -277,6 +279,24 @@ function pickVoice(){
   voz=vs.find(v=>/^es[-_](EC|CO|MX|US|419)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null;
 }
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+/* ---------- Pitidos ---------- */
+let actx=null;
+function audioListo(){try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}}
+function tonos(lista){ // [[frecuencia, inicio, duración],...]
+  if(!cfg.beep||!actx)return 0;let fin=0;
+  try{lista.forEach(([f,t0,d])=>{const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+t0;
+    o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.6,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+d+0.05);fin=Math.max(fin,t0+d);});}catch(e){}
+  return fin;
+}
+// 1 agudo = sube · 2 graves = baja · 3 cortos = cuesta adelante
+function avisar(tipo,texto){
+  let dur=0;
+  if(tipo==='sube')dur=tonos([[1400,0,0.25]]);
+  else if(tipo==='baja')dur=tonos([[500,0,0.22],[500,0.32,0.22]]);
+  else if(tipo==='anticipa')dur=tonos([[900,0,0.12],[900,0.2,0.12],[900,0.4,0.12]]);
+  if(texto)setTimeout(()=>say(texto),dur?dur*1000+250:0);
+}
 function say(t){
   if(!cfg.voice||!('speechSynthesis' in window))return;
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';if(voz)u.voice=voz;u.rate=1.05;speechSynthesis.speak(u);}catch(e){}
@@ -347,12 +367,16 @@ function render(){
     const now=Date.now();
     if(r.g!==cand.g||ter!==cand.ter)cand={g:r.g,ter:ter,t:now};
     else if(now-cand.t>2500&&now-lastSpeak>6000&&(r.g!==lastSaidG||ter!==lastSaidTer)&&kmh>10){
-      let t='';
+      let t='',tono=null;
       if(ter!==lastSaidTer&&ter!=='plano')t+=MSG[ter][0].toLowerCase()+'. ';
-      if(r.g!==lastSaidG&&r.g>=0)t+=NOMBRES[r.g]+'.';
-      if(ter!==lastSaidTer&&(ter==='subida'||ter==='fuerte'))t+=rangoVoz(ter);
-      if(ter==='bajada'&&ter!==lastSaidTer)t+=' Suelta el acelerador.';
-      if(t)say(t);
+      if(r.g!==lastSaidG&&r.g>=0){
+        if(lastSaidG>=0&&r.g>lastSaidG){tono='sube';t+='Sube a '+NOMBRES[r.g].toLowerCase()+'.';}
+        else if(lastSaidG>=0&&r.g<lastSaidG){tono='baja';t+='Baja a '+NOMBRES[r.g].toLowerCase()+'.';}
+        else t+=NOMBRES[r.g]+'.';
+      }
+      if(ter==='bajada'){if(ter!==lastSaidTer)t+=' Suelta el acelerador.';}
+      else if(r.g!==lastSaidG||ter!==lastSaidTer)t+=rangoVoz(ter);
+      if(t)avisar(tono,t);
       lastSaidG=r.g;lastSaidTer=ter;lastSpeak=now;
     }
     for(let i=0;i<5;i++){
@@ -452,7 +476,7 @@ function routeOnPos(c,slopeNow){
       let t=nom+' en '+(Math.round(ahead.dist/50)*50)+' metros.';
       if(ahead.ter==='bajada')t+=' Prepárate para soltar el acelerador.';
       else if(ahead.g>=0)t+=' Baja a '+NOMBRES[ahead.g].toLowerCase()+' antes de llegar.'+rangoVoz(ahead.ter);
-      say(t);lastSpeak=Date.now();
+      avisar('anticipa',t);lastSpeak=Date.now();
     }
   }
   // grabar solo tramos que aún no conoce
@@ -491,7 +515,7 @@ $('startBtn').onclick=async()=>{
     try{wakeLock&&wakeLock.release();}catch(e){}
     $('startBtn').textContent='▶ Iniciar copiloto';$('status').textContent='GPS apagado';return;
   }
-  running=true;grabando=null;match=null;ultimoPunto=null;$('startBtn').textContent='⏹ Detener';
+  audioListo();running=true;grabando=null;match=null;ultimoPunto=null;$('startBtn').textContent='⏹ Detener';
   startGPS();await startMotion();keepAwake();
   say('Copiloto listo');
 };
@@ -531,6 +555,9 @@ const bindNum=(id,key)=>{$(id).value=cfg[key];$(id).oninput=()=>{const x=parseFl
 [['thMod','thMod'],['thSteep','thSteep'],['thDown','thDown'],['minFlat','minFlat'],['minMod','minMod'],['minSteep','minSteep'],['maxRpm','maxRpm']].forEach(a=>bindNum(a[0],a[1]));
 $('voiceOn').checked=cfg.voice;$('voiceOn').onchange=()=>{cfg.voice=$('voiceOn').checked;save();};
 $('invert').checked=cfg.invert;$('invert').onchange=()=>{cfg.invert=$('invert').checked;save();};
+if(cfg.beep===undefined)cfg.beep=true;
+$('beepOn').checked=cfg.beep;$('beepOn').onchange=()=>{cfg.beep=$('beepOn').checked;save();};
+$('testBeep').onclick=()=>{audioListo();const b=cfg.beep;cfg.beep=true;tonos([[1400,0,0.25]]);tonos([[500,1.2,0.22],[500,1.52,0.22]]);tonos([[900,2.6,0.12],[900,2.8,0.12],[900,3.0,0.12]]);cfg.beep=b;};
 $('testVoice').onclick=()=>{const was=cfg.voice;cfg.voice=true;say('Subida fuerte. Tercera.');cfg.voice=was;};
 $('grabar').checked=cfg.grabar;$('grabar').onchange=()=>{cfg.grabar=$('grabar').checked;save();};
 $('rutaInfo').textContent=infoRutas();setInterval(()=>{$('rutaInfo').textContent=infoRutas();},5000);
