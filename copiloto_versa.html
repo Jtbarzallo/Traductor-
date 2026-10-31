@@ -93,7 +93,10 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
 <!-- ===== CALIBRAR ===== -->
 <section id="cal" class="tab">
   <div class="card">
-    <h2>Cómo calibrar (una sola vez)</h2>
+    <h2>Ya viene calibrado</h2>
+    <p>Los valores de abajo son los de fábrica de tu Versa 1.6 manual (llanta 185/65 R15). No necesitas hacer nada.</p>
+    <button id="factBtn" class="btn sec">↺ Restaurar valores de fábrica</button>
+    <h2 style="margin-top:12px">Afinar (opcional)</h2>
     <p>Con un acompañante, en un tramo plano: pon cada marcha y mantén la aguja del tacómetro <b>fija en 2.000 rpm</b>. El acompañante pulsa <b>Capturar</b> y el programa guarda la velocidad del GPS. También puedes escribir el número a mano.</p>
     <p>Con esos 5 datos, el programa calcula tus revoluciones a cualquier velocidad.</p>
   </div>
@@ -136,13 +139,14 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
 "use strict";
 const KEY='copiloto_versa_v1';
 const NOMBRES=['Primera','Segunda','Tercera','Cuarta','Quinta'];
-const DEF={ref:2000,v:[null,null,null,null,null],voice:true,invert:false,
+const FABRICA=[15.5,28.1,41.4,56.0,70.2]; // Versa 1.6 manual 5M, llanta 185/65 R15, km/h a 2.000 rpm
+const DEF={ref:2000,v:FABRICA.slice(),voice:true,invert:false,
   thMod:3,thSteep:7,thDown:-4,minFlat:1700,minMod:2500,minSteep:3000,maxRpm:4500,
   zero:null,sign:1};
 let cfg=load();
 
 function load(){
-  try{const s=JSON.parse(localStorage.getItem(KEY));if(s)return Object.assign({},DEF,s,{v:(s.v||DEF.v).slice()});}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s){const v=(s.v||[]).slice(0,5);for(let i=0;i<5;i++)if(!(v[i]>0))v[i]=FABRICA[i];return Object.assign({},DEF,s,{v:v});}}catch(e){}
   return JSON.parse(JSON.stringify(DEF));
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}}
@@ -384,6 +388,7 @@ function calCheck(){
   $('calCheck').innerHTML=!ok?'<span class="bad">'+msg+'</span>':n===5?'<span class="ok">✅ Calibración completa</span>':'Marchas calibradas: '+n+' de 5';
 }
 buildCal();
+$('factBtn').onclick=()=>{cfg.v=FABRICA.slice();cfg.ref=2000;save();buildCal();};
 
 /* ---------- Ajustes ---------- */
 const bindNum=(id,key)=>{$(id).value=cfg[key];$(id).oninput=()=>{const x=parseFloat($(id).value);if(!isNaN(x)){cfg[key]=x;save();}};};
