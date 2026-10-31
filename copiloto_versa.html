@@ -49,6 +49,8 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
 .chk{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:15px}
 .chk input{width:22px;height:22px}
 .status{font-size:13px;color:var(--mut);text-align:center;margin-top:6px}
+.ahead{display:none;text-align:center;font-size:19px;padding:12px;border-radius:12px;margin:-4px 0 12px;background:#21262d;border:2px solid var(--line)}
+.ahead.fuerte{border-color:var(--bad);color:#ffb3ad}.ahead.subida{border-color:var(--warn);color:#f2cc60}.ahead.bajada{border-color:var(--acc);color:#a5d6ff}
 .warn{color:var(--warn)}.bad{color:var(--bad)}.ok{color:var(--ok)}
 </style>
 </head>
@@ -80,6 +82,8 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
     <div class="msg" id="recMsg">Pulsa Iniciar</div>
   </div>
 
+  <div class="ahead" id="ahead"></div>
+  <div class="status" id="rutaEstado" style="margin:-4px 0 10px"></div>
   <div class="card">
     <h2>Revoluciones en cada marcha a esta velocidad</h2>
     <table id="gearTbl"></table>
@@ -129,6 +133,13 @@ input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid v
     <div class="set"><span>Subida moderada</span><input type="number" id="minMod" step="100"></div>
     <div class="set"><span>Subida fuerte</span><input type="number" id="minSteep" step="100"></div>
     <div class="set"><span>Máximo (pide subir marcha)</span><input type="number" id="maxRpm" step="100"></div>
+  </div>
+  <div class="card">
+    <h2>Memoria de rutas (sin internet)</h2>
+    <p>Mientras manejas, el programa guarda dónde están las subidas y bajadas. La próxima vez que pases por ahí, te avisa antes de llegar. Solo usa el GPS, no necesita señal de celular.</p>
+    <label class="chk"><input type="checkbox" id="grabar"> Grabar rutas nuevas</label>
+    <div class="status" id="rutaInfo"></div>
+    <button id="borrarRutas" class="btn sec">🗑 Borrar rutas memorizadas</button>
   </div>
   <button id="resetBtn" class="btn red">Borrar todo y empezar de cero</button>
 </section>
@@ -204,6 +215,7 @@ function onPos(p){
       if(den>0)gpsSlope=(n*sxy-sx*sy)/den*100;
     }
   }
+  const sNow=sensorSlope();routeOnPos(c,sNow!=null?sNow:gpsSlope);
   $('status').textContent='GPS activo · precisión ±'+Math.round(c.accuracy||0)+' m';
   $('calGps').textContent='Velocidad GPS: '+kmh.toFixed(1)+' km/h';
 }
@@ -344,6 +356,120 @@ function render(){
 }
 setInterval(render,400);
 
+
+/* ---------- Memoria de rutas (funciona sin internet) ---------- */
+const RKEY='copiloto_versa_rutas_v1';
+let rutas=[];           // [{p:[[lat5,lon5,slope10,hdg2],...]}]
+let grid=new Map();     // celda ~110 m -> [[ruta,idx],...]
+let grabando=null, ultimoPunto=null, rutasSucias=false;
+let match=null, noMatchDist=0, avisado={};
+let ahead=null;         // {ter,dist,g}
+try{const r=JSON.parse(localStorage.getItem(RKEY));if(Array.isArray(r))rutas=r;}catch(e){}
+if(cfg.grabar===undefined)cfg.grabar=true;
+
+function celda(lat,lon){return Math.floor(lat*900)+':'+Math.floor(lon*900);}
+function indexar(ri,pi){
+  const q=rutas[ri].p[pi],k=celda(q[0]/1e5,q[1]/1e5);
+  let a=grid.get(k);if(!a){a=[];grid.set(k,a);}a.push([ri,pi]);
+}
+function reindexar(){grid=new Map();rutas.forEach((r,ri)=>r.p.forEach((_,pi)=>indexar(ri,pi)));}
+reindexar();
+function distM(la1,lo1,la2,lo2){
+  const x=(lo2-lo1)*Math.cos((la1+la2)*Math.PI/360)*111320,y=(la2-la1)*110540;
+  return Math.sqrt(x*x+y*y);
+}
+function rumbo(la1,lo1,la2,lo2){
+  const x=(lo2-lo1)*Math.cos((la1+la2)*Math.PI/360),y=la2-la1;
+  return (Math.atan2(x,y)*180/Math.PI+360)%360;
+}
+function difAng(a,b){let d=Math.abs(a-b)%360;return d>180?360-d:d;}
+function guardarRutas(){
+  if(!rutasSucias)return;
+  try{localStorage.setItem(RKEY,JSON.stringify(rutas));rutasSucias=false;}
+  catch(e){$('rutaInfo').innerHTML='<span class="bad">Memoria llena: borra rutas viejas</span>';}
+}
+setInterval(guardarRutas,20000);
+window.addEventListener('pagehide',guardarRutas);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')guardarRutas();});
+
+function buscarMatch(lat,lon,hdg){
+  const cx=Math.floor(lat*900),cy=Math.floor(lon*900);let best=null,bd=40;
+  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){
+    const a=grid.get((cx+i)+':'+(cy+j));if(!a)continue;
+    for(const [ri,pi] of a){
+      if(grabando&&rutas[ri]===grabando&&pi>=grabando.p.length-8)continue; // no compararse con lo recién grabado
+      const q=rutas[ri].p[pi];
+      const d=distM(lat,lon,q[0]/1e5,q[1]/1e5);
+      if(d<bd&&(hdg==null||difAng(hdg,q[3]*2)<60)){bd=d;best={ri:ri,pi:pi};}
+    }
+  }
+  return best;
+}
+// mira hacia adelante siguiendo la ruta guardada
+function mirarAdelante(m,curTer){
+  const p=rutas[m.ri].p;let dist=0;
+  const pend=j=>{let s=0,n=0;for(let k=j;k<Math.min(p.length,j+4);k++){s+=p[k][2]/10;n++;}return n?s/n:0;};
+  for(let j=m.pi+1;j<p.length&&dist<800;j++){
+    dist+=distM(p[j-1][0]/1e5,p[j-1][1]/1e5,p[j][0]/1e5,p[j][1]/1e5);
+    if(dist<40)continue;
+    const s=pend(j),t=terrain(s);
+    const sube=x=>x==='subida'||x==='fuerte';
+    if(sube(curTer)&&sube(t))continue; // ya vas subiendo
+    if((t==='subida'||t==='fuerte'||t==='bajada')&&t!==curTer){
+      // la peor pendiente en los siguientes ~150 m decide si es fuerte
+      let peor=t;for(let k=j;k<Math.min(p.length,j+6);k++)if(terrain(pend(k))==='fuerte')peor='fuerte';
+      return {ter:peor,dist:dist,key:m.ri+':'+j};
+    }
+  }
+  return null;
+}
+function routeOnPos(c,slopeNow){
+  if(!running||kmh<10){ahead=null;return;}
+  const lat=c.latitude,lon=c.longitude;
+  let hdg=(c.heading!=null&&!isNaN(c.heading)&&kmh>5)?c.heading:null;
+  if(hdg==null&&ultimoPunto)hdg=rumbo(ultimoPunto[0],ultimoPunto[1],lat,lon);
+  const m=buscarMatch(lat,lon,hdg);
+  if(m){match=m;noMatchDist=0;}else if(match){noMatchDist+=ultimoPunto?distM(ultimoPunto[0],ultimoPunto[1],lat,lon):0;if(noMatchDist>150)match=null;}
+  // anticipación
+  ahead=match?mirarAdelante(match,terrain(slopeNow)):null;
+  if(ahead){
+    ahead.g=recommend(kmh,ahead.ter).g;
+    const umbral=Math.min(600,Math.max(200,kmh/3.6*15));
+    const yaAvisado=avisado.ter===ahead.ter&&Date.now()-avisado.t<45000;
+    if(ahead.dist<=umbral&&ahead.dist>=60&&!yaAvisado){
+      avisado={ter:ahead.ter,t:Date.now()};
+      const nom=ahead.ter==='fuerte'?'Subida fuerte':ahead.ter==='subida'?'Subida':'Bajada';
+      let t=nom+' en '+(Math.round(ahead.dist/50)*50)+' metros.';
+      if(ahead.ter==='bajada')t+=' Prepárate para soltar el acelerador.';
+      else if(ahead.g>=0)t+=' Baja a '+NOMBRES[ahead.g].toLowerCase()+' antes de llegar.';
+      say(t);lastSpeak=Date.now();
+    }
+  }
+  // grabar solo tramos que aún no conoce
+  if(!ultimoPunto||distM(ultimoPunto[0],ultimoPunto[1],lat,lon)>=25){
+    if(cfg.grabar&&!match&&slopeNow!=null){
+      if(!grabando){grabando={p:[]};rutas.push(grabando);}
+      grabando.p.push([Math.round(lat*1e5),Math.round(lon*1e5),Math.round(Math.max(-30,Math.min(30,slopeNow))*10),Math.round((hdg||0)/2)]);
+      indexar(rutas.length-1,grabando.p.length-1);rutasSucias=true;
+    }else if(grabando){grabando=null;}
+    ultimoPunto=[lat,lon];
+  }
+}
+function infoRutas(){
+  let km=0,n=0;rutas.forEach(r=>{n+=r.p.length;});km=n*25/1000;
+  return km.toFixed(1)+' km de vía memorizados';
+}
+function renderAhead(){
+  const el=$('ahead');
+  const estado=!running?'':match?'🧭 Ruta conocida':grabando?'⏺ Grabando ruta nueva':(cfg.grabar?'Buscando ruta…':'');
+  $('rutaEstado').textContent=estado;
+  if(!ahead||!running){el.style.display='none';return;}
+  const nom=ahead.ter==='fuerte'?'SUBIDA FUERTE':ahead.ter==='subida'?'SUBIDA':'BAJADA';
+  el.className='ahead '+ahead.ter;el.style.display='block';
+  el.innerHTML='Próximo: <b>'+nom+'</b> en <b>'+Math.round(ahead.dist/10)*10+' m</b>'+(ahead.ter!=='bajada'&&ahead.g>=0?' → pon <b>'+(ahead.g+1)+'ª</b>':' → suelta el acelerador');
+}
+setInterval(renderAhead,500);
+
 /* ---------- Iniciar ---------- */
 async function keepAwake(){
   try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen');}}catch(e){}
@@ -355,7 +481,7 @@ $('startBtn').onclick=async()=>{
     try{wakeLock&&wakeLock.release();}catch(e){}
     $('startBtn').textContent='▶ Iniciar copiloto';$('status').textContent='GPS apagado';return;
   }
-  running=true;$('startBtn').textContent='⏹ Detener';
+  running=true;grabando=null;match=null;ultimoPunto=null;$('startBtn').textContent='⏹ Detener';
   startGPS();await startMotion();keepAwake();
   say('Copiloto listo');
 };
@@ -396,6 +522,10 @@ const bindNum=(id,key)=>{$(id).value=cfg[key];$(id).oninput=()=>{const x=parseFl
 $('voiceOn').checked=cfg.voice;$('voiceOn').onchange=()=>{cfg.voice=$('voiceOn').checked;save();};
 $('invert').checked=cfg.invert;$('invert').onchange=()=>{cfg.invert=$('invert').checked;save();};
 $('testVoice').onclick=()=>{const was=cfg.voice;cfg.voice=true;say('Subida fuerte. Tercera.');cfg.voice=was;};
+$('grabar').checked=cfg.grabar;$('grabar').onchange=()=>{cfg.grabar=$('grabar').checked;save();};
+$('rutaInfo').textContent=infoRutas();setInterval(()=>{$('rutaInfo').textContent=infoRutas();},5000);
+$('borrarRutas').onclick=()=>{if(confirm('¿Borrar todas las rutas memorizadas?')){rutas=[];grabando=null;match=null;reindexar();rutasSucias=true;guardarRutas();$('rutaInfo').textContent=infoRutas();}};
+if('serviceWorker' in navigator){navigator.serviceWorker.register('copiloto_sw.js').catch(()=>{});}
 $('resetBtn').onclick=()=>{if(confirm('¿Borrar calibración y ajustes?')){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}};
 if(cfg.zero!=null)$('zeroBtn').textContent='✅ Pendiente calibrada (pulsa para repetir)';
 checkCal();render();
