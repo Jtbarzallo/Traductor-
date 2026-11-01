@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frases Fluidas</title>
+<meta name="theme-color" content="#0f1720">
+<style>
+:root{
+  --bg:#0f1720; --card:#17212c; --card2:#1e2a37; --line:#2b3a4a;
+  --txt:#eef3f8; --muted:#9fb0c2; --accent:#4cc3a6; --accent2:#3a9e86;
+  --ok:#3ecf7a; --bad:#ff6b6b; --warn:#ffc857; --chip:#223040;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:18px;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+h1{font-size:1.45rem;margin:0}
+.prog{font-size:.9rem;color:var(--muted);text-align:right}
+.prog b{color:var(--accent);font-size:1.1rem}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin:0 -16px 10px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--chip);color:var(--txt);
+  padding:9px 14px;border-radius:999px;font-size:.92rem;cursor:pointer}
+.chip.on{background:var(--accent);color:#06221b;border-color:var(--accent);font-weight:700}
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tog{border:1px solid var(--line);background:transparent;color:var(--muted);padding:7px 12px;border-radius:10px;font-size:.85rem;cursor:pointer}
+.tog.on{color:var(--txt);border-color:var(--accent);background:#1b3a33}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px}
+.cat{font-size:.8rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.num{float:right;color:var(--muted);font-size:.8rem}
+.chunk{font-size:2rem;font-weight:800;margin:6px 0 6px;line-height:1.2}
+.uso{color:var(--muted);font-size:1rem;margin-bottom:14px}
+.uso b{color:var(--txt);font-weight:600}
+.ejbox{background:var(--card2);border-radius:12px;padding:14px;font-size:1.25rem;margin-bottom:14px}
+.ejbox .hl{color:var(--accent);font-weight:700}
+.ejlbl{font-size:.75rem;color:var(--muted);display:block;margin-bottom:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1 1 auto;border:none;border-radius:14px;padding:14px 12px;font-size:1rem;font-weight:700;cursor:pointer;
+  background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+.btn:active{transform:scale(.98)}
+.target{display:flex;gap:6px;margin:16px 0 10px;background:var(--card2);padding:4px;border-radius:12px}
+.target button{flex:1;border:none;background:transparent;color:var(--muted);padding:10px;border-radius:9px;font-size:.9rem;font-weight:600;cursor:pointer}
+.target button.on{background:var(--accent);color:#06221b}
+.mic{width:100%;margin-top:4px;padding:20px;font-size:1.25rem;border-radius:16px;border:none;
+  background:var(--accent);color:#06221b;font-weight:800;cursor:pointer}
+.mic.rec{background:var(--bad);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.75}}
+.result{margin-top:16px;display:none}
+.words{font-size:1.35rem;line-height:1.7}
+.w{display:inline-block;padding:0 4px;border-radius:6px;margin:1px}
+.w.ok{background:rgba(62,207,122,.18);color:var(--ok)}
+.w.bad{background:rgba(255,107,107,.18);color:var(--bad);text-decoration:underline wavy}
+.heard{color:var(--muted);font-size:.95rem;margin-top:8px}
+.heard i{color:var(--txt);font-style:normal}
+.score{font-size:1.1rem;font-weight:800;margin-top:8px}
+.tip{margin-top:8px;font-size:.92rem;color:var(--warn)}
+.streak{display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted);font-size:.85rem}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--line)}
+.dot.on{background:var(--ok)}
+.badge{display:inline-block;background:var(--ok);color:#06221b;font-weight:800;font-size:.75rem;padding:3px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.libre{margin-top:16px;border-top:1px dashed var(--line);padding-top:16px}
+.libre h3{margin:0 0 4px;font-size:1.05rem}
+.libre p{margin:0 0 10px;color:var(--muted);font-size:.92rem}
+.btn.lib{background:#2a2350;border-color:#463c86}
+.btn.lib.rec{background:var(--bad);color:#fff;animation:pulse 1.2s infinite}
+.libout{margin-top:10px;font-size:1.15rem;display:none}
+.nav{display:flex;gap:10px;margin-top:16px}
+.warn{background:#3a2b12;border:1px solid #6b5020;color:#ffd99a;padding:12px;border-radius:12px;font-size:.92rem;margin-bottom:12px;display:none}
+.help{margin-top:18px;color:var(--muted);font-size:.85rem}
+.help summary{cursor:pointer;color:var(--txt)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🗣️ Frases Fluidas</h1>
+    <div class="prog">Dominadas<br><b id="pDom">0</b> / <span id="pTot">0</span></div>
+  </header>
+
+  <div class="warn" id="warn">Tu navegador no permite reconocer la voz. Abre esta página en <b>Google Chrome</b> (Android o PC) o en Safari (iPhone).</div>
+
+  <div class="chips" id="chips"></div>
+  <div class="filters">
+    <button class="tog" id="fPend">Solo pendientes</button>
+    <button class="tog" id="fRand">🔀 Aleatoria</button>
+  </div>
+
+  <div class="card" id="card"></div>
+
+  <details class="help">
+    <summary>¿Cómo se usa?</summary>
+    <p>1) Escucha la frase (🔊). 2) Toca <b>🎤 Dilo</b> y repítela en voz alta. 3) Las palabras en <b style="color:var(--ok)">verde</b> se entendieron; las <b style="color:var(--bad)">rojas</b> hay que pronunciarlas mejor. 4) Con 3 aciertos de 90% o más, la frase queda <b>dominada</b>. 5) En <b>“Ahora con tu idea”</b> di una frase tuya usando el molde: así entrenas a encontrar las palabras.</p>
+    <p>Si una palabra sale “mal” pero suena igual (write / right), se cuenta como correcta.</p>
+  </details>
+</div>
+
+<script>
+const CATS = [
+ {id:"op",  n:"💬 Dar opinión"},
+ {id:"con", n:"🔗 Conectar ideas"},
+ {id:"tie", n:"⏳ Ganar tiempo"},
+ {id:"acl", n:"💡 Explicar"},
+ {id:"acu", n:"🤝 Acuerdo / desacuerdo"},
+ {id:"res", n:"🆘 No encuentro la palabra"},
+ {id:"his", n:"📖 Contar algo"},
+ {id:"fin", n:"🏁 Cerrar / resumir"}
+];
+// c=categoría, f=frase molde, u=cuándo se usa, e=ejemplo completo
+const P = [
+ {c:"op",f:"In my opinion,",u:"Para dar tu opinión de forma clara y algo formal.",e:"In my opinion, this plan is too expensive."},
+ {c:"op",f:"I think that",u:"La forma más común y sencilla de opinar.",e:"I think that we need more time."},
+ {c:"op",f:"The way I see it,",u:"“Así lo veo yo”. Suena natural en conversación.",e:"The way I see it, the problem is the price."},
+ {c:"op",f:"I'm pretty sure that",u:"Cuando estás bastante seguro de algo.",e:"I'm pretty sure that the order arrived yesterday."},
+ {c:"op",f:"I feel like",u:"Opinión informal, como “siento que…”.",e:"I feel like this is a good idea."},
+ {c:"op",f:"If you ask me,",u:"“Si me preguntas a mí…”. Para opinar con confianza.",e:"If you ask me, we should wait."},
+ {c:"op",f:"Personally, I prefer",u:"Para decir lo que tú prefieres.",e:"Personally, I prefer to work in the morning."},
+
+ {c:"con",f:"On top of that,",u:"“Además de eso…”. Para sumar otra razón.",e:"On top of that, the price is lower."},
+ {c:"con",f:"And another thing,",u:"Para agregar un punto más en la conversación.",e:"And another thing, we need to check the invoice."},
+ {c:"con",f:"But the thing is,",u:"“Pero el problema es…”. Para poner una objeción.",e:"But the thing is, we don't have time."},
+ {c:"con",f:"That's why",u:"“Por eso…”. Para explicar una consecuencia.",e:"That's why I called you."},
+ {c:"con",f:"Because of that,",u:"“Debido a eso…”. Causa → efecto.",e:"Because of that, the delivery was late."},
+ {c:"con",f:"Even though",u:"“Aunque…”. Para contrastar dos ideas.",e:"Even though it was expensive, I bought it."},
+ {c:"con",f:"On the other hand,",u:"“Por otro lado…”. Para mostrar la otra cara.",e:"On the other hand, it is very fast."},
+
+ {c:"tie",f:"Well, let me think.",u:"Cuando necesitas unos segundos para pensar. En vez de “bueno…”.",e:"Well, let me think. Maybe tomorrow is better."},
+ {c:"tie",f:"How can I put this?",u:"“¿Cómo lo digo?”. Mientras buscas las palabras.",e:"How can I put this? It's not ready yet."},
+ {c:"tie",f:"Let me see.",u:"“A ver…”. Mientras revisas o piensas.",e:"Let me see. I think it's in the second box."},
+ {c:"tie",f:"The thing is,",u:"“Lo que pasa es que…”. Para empezar a explicar.",e:"The thing is, I'm not sure."},
+ {c:"tie",f:"Give me a second.",u:"“Dame un segundo”.",e:"Give me a second. I need to find the file."},
+ {c:"tie",f:"Actually,",u:"“En realidad…”. Para corregirte o aclarar. ¡No significa “actualmente”!",e:"Actually, I meant next week."},
+ {c:"tie",f:"You know what I mean?",u:"“¿Me entiendes?”. Para confirmar que te siguen.",e:"It's a little complicated, you know what I mean?"},
+
+ {c:"acl",f:"What I mean is",u:"“Lo que quiero decir es…”. Para aclarar lo que dijiste.",e:"What I mean is that we need more help."},
+ {c:"acl",f:"In other words,",u:"“En otras palabras…”. Para decirlo más fácil.",e:"In other words, we have to start again."},
+ {c:"acl",f:"Let me explain.",u:"“Déjame explicarte”.",e:"Let me explain how it works."},
+ {c:"acl",f:"To put it simply,",u:"“Para decirlo fácil…”.",e:"To put it simply, it doesn't work."},
+ {c:"acl",f:"For example,",u:"Para dar un ejemplo concreto.",e:"For example, yesterday we sent many boxes."},
+ {c:"acl",f:"Does that make sense?",u:"“¿Tiene sentido?”. Para comprobar que te entendieron.",e:"We do it step by step. Does that make sense?"},
+ {c:"acl",f:"Let me put it another way.",u:"“Déjame decirlo de otra forma”. Cuando no te entendieron.",e:"Let me put it another way. We need more people."},
+
+ {c:"acu",f:"I totally agree.",u:"“Estoy totalmente de acuerdo”.",e:"I totally agree. It's a great idea."},
+ {c:"acu",f:"That's a good point.",u:"“Buen punto”. Reconocer lo que dijo el otro.",e:"That's a good point. I didn't think about that."},
+ {c:"acu",f:"That makes sense.",u:"“Tiene sentido”. Entiendes y aceptas la idea.",e:"Okay, that makes sense to me."},
+ {c:"acu",f:"Fair enough.",u:"“Está bien, es justo”. Aceptar sin discutir más.",e:"Fair enough. We can do it on Monday."},
+ {c:"acu",f:"I see what you mean, but",u:"“Entiendo lo que dices, pero…”. Desacuerdo educado.",e:"I see what you mean, but it's too risky."},
+ {c:"acu",f:"I'm not so sure about that.",u:"“No estoy tan seguro de eso”. Dudar con suavidad.",e:"I'm not so sure about that. Let's check first."},
+ {c:"acu",f:"I don't see it that way.",u:"“Yo no lo veo así”. Desacuerdo claro.",e:"Sorry, but I don't see it that way."},
+
+ {c:"res",f:"How do you say this in English?",u:"Cuando no sabes una palabra. Señalas o describes el objeto.",e:"Sorry, how do you say this in English?"},
+ {c:"res",f:"I don't know the word, but",u:"“No sé la palabra, pero…”. Y la describes.",e:"I don't know the word, but it's like a small box."},
+ {c:"res",f:"It's like a",u:"“Es como un…”. Describir comparando.",e:"It's like a big truck for many people."},
+ {c:"res",f:"It's something you use to",u:"“Es algo que usas para…”. Describir por su uso.",e:"It's something you use to open bottles."},
+ {c:"res",f:"What's the word?",u:"“¿Cómo se dice?”. Mientras la palabra no te sale.",e:"It's a, what's the word, a receipt."},
+ {c:"res",f:"Sorry, can you repeat that?",u:"Cuando no entendiste lo que te dijeron.",e:"Sorry, can you repeat that, please?"},
+ {c:"res",f:"Could you speak more slowly?",u:"Pedir que hablen más despacio.",e:"Could you speak more slowly, please?"},
+
+ {c:"his",f:"So, what happened was",u:"“Lo que pasó fue…”. Para empezar a contar algo.",e:"So, what happened was the truck broke down."},
+ {c:"his",f:"At first,",u:"“Al principio…”.",e:"At first, I didn't understand the problem."},
+ {c:"his",f:"After that,",u:"“Después de eso…”. Para seguir la historia.",e:"After that, we went back to the office."},
+ {c:"his",f:"Suddenly,",u:"“De repente…”.",e:"Suddenly, the lights went off."},
+ {c:"his",f:"The funny thing is",u:"“Lo gracioso es que…”.",e:"The funny thing is, nobody noticed."},
+ {c:"his",f:"In the end,",u:"“Al final…”. Cómo terminó la historia.",e:"In the end, everything was fine."},
+
+ {c:"fin",f:"To sum up,",u:"“En resumen…”. Para cerrar una explicación.",e:"To sum up, the project is on time."},
+ {c:"fin",f:"Anyway,",u:"“En fin…”. Para volver al tema o cambiarlo.",e:"Anyway, let's talk about the invoice."},
+ {c:"fin",f:"At the end of the day,",u:"“Al final de cuentas…”. Lo que realmente importa.",e:"At the end of the day, the client is happy."},
+ {c:"fin",f:"That's all I wanted to say.",u:"“Eso es todo lo que quería decir”.",e:"Thank you. That's all I wanted to say."},
+ {c:"fin",f:"Let's leave it there.",u:"“Dejémoslo ahí”. Terminar una conversación.",e:"Okay, let's leave it there for today."}
+];
+
+/* ---------- estado ---------- */
+const KEY="frasesFluidas.v1";
+let st={cat:"op",idx:0,pend:false,rand:false,mode:"f",prog:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) st=Object.assign(st,s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+const pid=p=>p.f;
+const rec0=p=>st.prog[pid(p)]||(st.prog[pid(p)]={s:0,d:false});
+
+/* ---------- normalizar texto ---------- */
+const CONTR={"i'm":"i am","you're":"you are","we're":"we are","they're":"they are","it's":"it is","that's":"that is","what's":"what is","there's":"there is","here's":"here is","let's":"let us","don't":"do not","doesn't":"does not","didn't":"did not","can't":"can not","cannot":"can not","won't":"will not","isn't":"is not","aren't":"are not","wasn't":"was not","i'll":"i will","we'll":"we will","you'll":"you will","i've":"i have","i'd":"i would","couldn't":"could not","shouldn't":"should not","okay":"ok"};
+const HOMO={write:"right",here:"hear",no:"know",by:"buy",bye:"buy",sun:"son",weight:"wait",too:"to",two:"to",four:"for",their:"there",won:"one",whole:"hole",meet:"meat",see:"sea",week:"weak",would:"wood",new:"knew",our:"hour",ate:"eight"};
+function norm(t){
+  t=t.toLowerCase().replace(/[’‘`]/g,"'").replace(/[^a-z0-9' ]+/g," ");
+  let out=[];
+  t.split(/\s+/).filter(Boolean).forEach(w=>{
+    const x=CONTR[w]; (x?x.split(" "):[w.replace(/'/g,"")]).forEach(y=>{ if(y) out.push(HOMO[y]||y); });
+  });
+  return out;
+}
+// palabras visibles del objetivo, cada una con su forma normalizada
+function targetWords(t){
+  return t.split(/\s+/).filter(Boolean).map(raw=>({raw,n:norm(raw)}));
+}
+
+/* ---------- voz ---------- */
+let voice=null;
+function pickVoice(){
+  const vs=speechSynthesis.getVoices().filter(v=>/^en[-_]US/i.test(v.lang));
+  voice=vs.find(v=>/google|samantha|natural|aria|jenny/i.test(v.name))||vs[0]||null;
+}
+if("speechSynthesis" in window){pickVoice(); speechSynthesis.onvoiceschanged=pickVoice;}
+function speak(text,rate){
+  if(!("speechSynthesis" in window)) return alert("Este navegador no puede leer en voz alta.");
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=rate; if(voice) u.voice=voice;
+  speechSynthesis.speak(u);
+}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR) document.getElementById("warn").style.display="block";
+let recog=null;
+function listen(onInterim,onFinal,btn,label){
+  if(!SR) return;
+  if(recog){try{recog.abort();}catch(e){} recog=null; btn.classList.remove("rec"); btn.textContent=label; return;}
+  speechSynthesis&&speechSynthesis.cancel();
+  const r=new SR(); recog=r;
+  r.lang="en-US"; r.interimResults=true; r.maxAlternatives=5; r.continuous=false;
+  btn.classList.add("rec"); btn.textContent="⏹ Escuchando… (toca para parar)";
+  let got=false;
+  r.onresult=e=>{
+    const res=e.results[e.results.length-1];
+    if(res.isFinal){got=true; const alts=[]; for(let i=0;i<res.length;i++) alts.push(res[i].transcript); onFinal(alts);}
+    else onInterim(res[0].transcript);
+  };
+  r.onerror=e=>{ if(e.error==="not-allowed") alert("Permite el uso del micrófono para esta página."); else if(e.error==="no-speech") onInterim("(no te escuché, intenta otra vez)"); };
+  r.onend=()=>{ recog=null; btn.classList.remove("rec"); btn.textContent=label; if(!got) {} };
+  try{r.start();}catch(e){recog=null;}
+}
+
+/* ---------- lista visible ---------- */
+function list(){
+  let L=P.filter(p=>p.c===st.cat);
+  if(st.pend) L=L.filter(p=>!rec0(p).d);
+  return L;
+}
+function updProg(){
+  document.getElementById("pTot").textContent=P.length;
+  document.getElementById("pDom").textContent=P.filter(p=>(st.prog[pid(p)]||{}).d).length;
+}
+
+/* ---------- UI ---------- */
+const chips=document.getElementById("chips");
+function drawChips(){
+  chips.innerHTML="";
+  CATS.forEach(c=>{
+    const tot=P.filter(p=>p.c===c.id).length, dom=P.filter(p=>p.c===c.id&&(st.prog[pid(p)]||{}).d).length;
+    const b=document.createElement("button"); b.className="chip"+(st.cat===c.id?" on":"");
+    b.textContent=`${c.n} ${dom}/${tot}`;
+    b.onclick=()=>{st.cat=c.id; st.idx=0; save(); render(); b.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});};
+    chips.appendChild(b);
+  });
+}
+const fPend=document.getElementById("fPend"), fRand=document.getElementById("fRand");
+fPend.onclick=()=>{st.pend=!st.pend; st.idx=0; save(); render();};
+fRand.onclick=()=>{st.rand=!st.rand; save(); render();};
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function hlEj(p){
+  const core=p.f.replace(/[,.?!]+$/,"");
+  const i=p.e.toLowerCase().indexOf(core.toLowerCase());
+  if(i<0) return esc(p.e);
+  return esc(p.e.slice(0,i))+'<span class="hl">'+esc(p.e.slice(i,i+core.length))+'</span>'+esc(p.e.slice(i+core.length));
+}
+
+function render(){
+  drawChips(); updProg();
+  fPend.classList.toggle("on",st.pend); fRand.classList.toggle("on",st.rand);
+  const L=list(), card=document.getElementById("card");
+  if(!L.length){card.innerHTML='<div class="empty">🎉 ¡Dominaste todas las frases de esta categoría!<br><br>Desactiva “Solo pendientes” para repasarlas.</div>'; return;}
+  if(st.idx>=L.length) st.idx=0;
+  const p=L[st.idx], r=rec0(p), cat=CATS.find(c=>c.id===p.c).n;
+  const tgt= st.mode==="f" ? p.f.replace(/[,]+$/,"") : p.e;
+  card.innerHTML=`
+    <span class="num">${st.idx+1} / ${L.length}</span>
+    <div class="cat">${cat}</div>
+    <div class="chunk">${esc(p.f)}${r.d?'<span class="badge">✓ dominada</span>':''}</div>
+    <div class="uso"><b>Cuándo usarla:</b> ${esc(p.u)}</div>
+    <div class="ejbox"><span class="ejlbl">EJEMPLO</span>${hlEj(p)}</div>
+    <div class="row">
+      <button class="btn" id="bPlay">🔊 Escuchar</button>
+      <button class="btn" id="bSlow">🐢 Lento</button>
+    </div>
+    <div class="target">
+      <button data-m="f" class="${st.mode==="f"?"on":""}">Practicar la frase</button>
+      <button data-m="e" class="${st.mode==="e"?"on":""}">Practicar el ejemplo</button>
+    </div>
+    <button class="mic" id="bMic">🎤 Dilo</button>
+    <div class="result" id="res">
+      <div class="words" id="words"></div>
+      <div class="heard" id="heard"></div>
+      <div class="score" id="score"></div>
+      <div class="tip" id="tip"></div>
+    </div>
+    <div class="streak">Aciertos seguidos:
+      ${[0,1,2].map(i=>`<span class="dot ${i<r.s?"on":""}"></span>`).join("")}
+      <span>${r.d?"Dominada":"(3 = dominada)"}</span>
+    </div>
+    <div class="libre">
+      <h3>✍️ Ahora con tu idea</h3>
+      <p>Di una frase <b>tuya</b> que empiece con <b>“${esc(p.f.replace(/[,.?!]+$/,""))}…”</b>. Habla de tu trabajo, tu familia o tu día.</p>
+      <button class="btn lib" id="bLib" style="width:100%">🎙️ Decir mi frase</button>
+      <div class="libout" id="libout"></div>
+    </div>
+    <div class="nav">
+      <button class="btn" id="bPrev">◀ Anterior</button>
+      <button class="btn" id="bNext">Siguiente ▶</button>
+    </div>`;
+  document.getElementById("bPlay").onclick=()=>speak(tgt,0.95);
+  document.getElementById("bSlow").onclick=()=>speak(tgt,0.6);
+  card.querySelectorAll(".target button").forEach(b=>b.onclick=()=>{st.mode=b.dataset.m; save(); render();});
+  document.getElementById("bPrev").onclick=()=>{st.idx=(st.idx-1+L.length)%L.length; save(); render();};
+  document.getElementById("bNext").onclick=()=>{
+    if(st.rand && L.length>1){let n; do{n=Math.floor(Math.random()*L.length);}while(n===st.idx); st.idx=n;}
+    else st.idx=(st.idx+1)%L.length;
+    save(); render(); window.scrollTo({top:0,behavior:"smooth"});
+  };
+  const bMic=document.getElementById("bMic");
+  bMic.onclick=()=>listen(
+    t=>{ show(); document.getElementById("words").innerHTML=""; document.getElementById("heard").innerHTML="Escuchando: <i>"+esc(t)+"</i>"; document.getElementById("score").textContent=""; document.getElementById("tip").textContent=""; },
+    alts=>grade(p,tgt,alts),
+    bMic,"🎤 Dilo");
+  const bLib=document.getElementById("bLib");
+  bLib.onclick=()=>listen(
+    t=>{ const o=document.getElementById("libout"); o.style.display="block"; o.innerHTML="<span style='color:var(--muted)'>"+esc(t)+"</span>"; },
+    alts=>libre(p,alts),
+    bLib,"🎙️ Decir mi frase");
+}
+function show(){document.getElementById("res").style.display="block";}
+
+function grade(p,tgt,alts){
+  show();
+  const pool=new Set(); alts.forEach(a=>norm(a).forEach(w=>pool.add(w)));
+  const tw=targetWords(tgt); let ok=0,tot=0; const bad=[];
+  const html=tw.map(w=>{
+    if(!w.n.length) return esc(w.raw);
+    tot++; const good=w.n.every(x=>pool.has(x));
+    if(good) ok++; else bad.push(w.raw.replace(/[,.?!]/g,""));
+    return `<span class="w ${good?"ok":"bad"}">${esc(w.raw)}</span>`;
+  }).join(" ");
+  const pct=tot?Math.round(ok*100/tot):0;
+  document.getElementById("words").innerHTML=html;
+  document.getElementById("heard").innerHTML="Entendí: <i>"+esc(alts[0])+"</i>";
+  const sc=document.getElementById("score");
+  const r=rec0(p);
+  if(pct>=90){
+    r.s=Math.min(3,r.s+1); if(r.s>=3 && !r.d){r.d=true; sc.textContent=`✅ ${pct}% — ¡Frase dominada! 🎉`;}
+    else sc.textContent=`✅ ${pct}% — ¡Muy bien!`;
+    sc.style.color="var(--ok)";
+  } else {
+    r.s=0; sc.textContent=`${pct}% — Inténtalo otra vez`; sc.style.color=pct>=60?"var(--warn)":"var(--bad)";
+  }
+  document.getElementById("tip").textContent= bad.length ? `Escucha en 🐢 Lento y fíjate en: ${bad.join(", ")}` : "";
+  save(); updProg(); drawChips();
+  // actualizar puntos de racha sin redibujar todo
+  document.querySelectorAll(".streak .dot").forEach((d,i)=>d.classList.toggle("on",i<r.s));
+}
+
+function libre(p,alts){
+  const o=document.getElementById("libout"); o.style.display="block";
+  const said=alts[0], core=norm(p.f), sn=norm(said);
+  // ¿usó la frase molde (en orden) dentro de lo que dijo?
+  let used=false;
+  for(let i=0;i+core.length<=sn.length;i++){ if(core.every((w,j)=>sn[i+j]===w)){used=true;break;} }
+  const extra=sn.length-core.length;
+  let msg;
+  if(used && extra>=3) msg=`<div style="color:var(--ok);font-weight:800">✅ ¡Usaste la frase y armaste tu idea!</div>`;
+  else if(used) msg=`<div style="color:var(--warn);font-weight:700">👍 Usaste la frase. Ahora agrega más: di la idea completa.</div>`;
+  else msg=`<div style="color:var(--bad);font-weight:700">No detecté “${esc(p.f.replace(/[,.?!]+$/,""))}”. Empieza tu frase con ella.</div>`;
+  o.innerHTML=`<div style="color:var(--muted);font-size:.9rem">Dijiste:</div><div>“${esc(said)}”</div>${msg}
+    <button class="btn" style="margin-top:8px;width:100%" onclick='speak(${JSON.stringify(said)},0.9)'>🔊 Escuchar cómo suena bien</button>`;
+}
+
+render();
+</script>
+</body>
+</html>
