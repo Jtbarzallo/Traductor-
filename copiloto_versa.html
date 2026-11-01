@@ -341,8 +341,9 @@ function rango(ter){
   return null;
 }
 const fmt=n=>n.toLocaleString('es-EC');
-const rangoTxt=ter=>{const r=rango(ter);return r?fmt(r[0])+' – '+fmt(r[1])+' rpm':'';};
-const rangoVoz=ter=>{const r=rango(ter);return r?' Mantén entre '+r[0]+' y '+r[1]+' revoluciones.':'';};
+const kmhDe=(g,rpm)=>Math.round(cfg.v[g]*rpm/cfg.ref);
+const rangoTxt=(ter,g)=>{const r=rango(ter);if(!r)return'';let t=fmt(r[0])+' – '+fmt(r[1])+' rpm';if(g>=0&&cfg.v[g]>0)t+='<br>'+kmhDe(g,r[0])+' – '+kmhDe(g,r[1])+' km/h';return t;};
+const rangoVoz=(ter,g)=>{const r=rango(ter);if(!r)return'';let t=' Mantén entre '+r[0]+' y '+r[1]+' revoluciones';if(g>=0&&cfg.v[g]>0)t+=', o sea entre '+kmhDe(g,r[0])+' y '+kmhDe(g,r[1])+' kilómetros por hora';return t+'.';};
 let lastSaidG=-1,lastSaidTer='',cand={g:-1,ter:'',t:0},lastSpeak=0;
 
 function render(){
@@ -362,7 +363,7 @@ function render(){
     const r=recommend(kmh,ter);
     $('recLbl').textContent=MSG[ter][0];
     $('recG').textContent=r.g>=0?(r.g+1):'?';
-    $('recMsg').innerHTML=ter==='bajada'?MSG[ter][1]:'Mantén <b>'+rangoTxt(ter)+'</b>';
+    $('recMsg').innerHTML=ter==='bajada'?MSG[ter][1]:'Mantén <b>'+rangoTxt(ter,r.g)+'</b>';
     // voz: solo si el cambio se mantiene 2,5 s
     const now=Date.now();
     if(r.g!==cand.g||ter!==cand.ter)cand={g:r.g,ter:ter,t:now};
@@ -375,7 +376,7 @@ function render(){
         else t+=NOMBRES[r.g]+'.';
       }
       if(ter==='bajada'){if(ter!==lastSaidTer)t+=' Suelta el acelerador.';}
-      else if(r.g!==lastSaidG||ter!==lastSaidTer)t+=rangoVoz(ter);
+      else if(r.g!==lastSaidG||ter!==lastSaidTer)t+=rangoVoz(ter,r.g);
       if(t)avisar(tono,t);
       lastSaidG=r.g;lastSaidTer=ter;lastSpeak=now;
     }
@@ -475,7 +476,7 @@ function routeOnPos(c,slopeNow){
       const nom=ahead.ter==='fuerte'?'Subida fuerte':ahead.ter==='subida'?'Subida':'Bajada';
       let t=nom+' en '+(Math.round(ahead.dist/50)*50)+' metros.';
       if(ahead.ter==='bajada')t+=' Prepárate para soltar el acelerador.';
-      else if(ahead.g>=0)t+=' Baja a '+NOMBRES[ahead.g].toLowerCase()+' antes de llegar.'+rangoVoz(ahead.ter);
+      else if(ahead.g>=0)t+=' Baja a '+NOMBRES[ahead.g].toLowerCase()+' antes de llegar.'+rangoVoz(ahead.ter,ahead.g);
       avisar('anticipa',t);lastSpeak=Date.now();
     }
   }
@@ -500,7 +501,7 @@ function renderAhead(){
   if(!ahead||!running){el.style.display='none';return;}
   const nom=ahead.ter==='fuerte'?'SUBIDA FUERTE':ahead.ter==='subida'?'SUBIDA':'BAJADA';
   el.className='ahead '+ahead.ter;el.style.display='block';
-  el.innerHTML='Próximo: <b>'+nom+'</b> en <b>'+Math.round(ahead.dist/10)*10+' m</b>'+(ahead.ter!=='bajada'&&ahead.g>=0?' → pon <b>'+(ahead.g+1)+'ª</b><br>y mantén <b>'+rangoTxt(ahead.ter)+'</b>':' → suelta el acelerador');
+  el.innerHTML='Próximo: <b>'+nom+'</b> en <b>'+Math.round(ahead.dist/10)*10+' m</b>'+(ahead.ter!=='bajada'&&ahead.g>=0?' → pon <b>'+(ahead.g+1)+'ª</b><br>y mantén <b>'+rangoTxt(ahead.ter,ahead.g)+'</b>':' → suelta el acelerador');
 }
 setInterval(renderAhead,500);
 
