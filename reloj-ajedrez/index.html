@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+<title>Reloj de Ajedrez</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Saira+Condensed:wght@600&display=swap">
+<style>
+/* Layout: dos mitades enfrentadas sobre la mesa, con una barra de latón al centro. La mitad superior va girada para el rival. */
+:root {
+  color-scheme: dark;
+  --walnut: #21160f;
+  --walnut-2: #33241a;
+  --ivory: #f2e8d5;
+  --ink: #21160f;
+  --muted: #bda98f;
+  --brass: #c9a24d;
+  --brass-dim: #5f4a22;
+  --danger: #c62f22;
+  --danger-fg: #fff5ef;
+  --clock: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+  --ui: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+}
+html, body { height: 100%; }
+html { background: var(--walnut); }
+body {
+  background: var(--walnut); color: var(--ivory); font-family: var(--ui);
+  overflow: hidden; -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.board { height: 100%; display: grid; grid-template-rows: 1fr auto 1fr; }
+
+.side {
+  appearance: none; border: 0; margin: 0; width: 100%; min-height: 0; font: inherit; cursor: pointer;
+  background: var(--walnut-2); color: var(--muted); touch-action: manipulation;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  transition: background-color .12s linear, color .12s linear;
+}
+.side.top { transform: rotate(180deg); }
+.side:focus-visible { outline: 3px solid var(--brass); outline-offset: -6px; }
+.side.active { background: var(--ivory); color: var(--ink); }
+.side.low { background: var(--danger); color: var(--danger-fg); }
+.side.lost { background: var(--danger); color: var(--danger-fg); }
+.side.won { background: var(--walnut-2); color: var(--brass); }
+
+.who { font-size: clamp(16px, 4.6vmin, 24px); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.time {
+  font-family: var(--clock); font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums;
+  font-size: min(31vw, 25vh);
+}
+.time.long { font-size: min(25vw, 22vh); }
+.hint { font-size: clamp(17px, 4.8vmin, 26px); font-weight: 500; text-align: center; text-wrap: balance; }
+.moves { font-size: clamp(15px, 4vmin, 21px); font-weight: 500; font-variant-numeric: tabular-nums; opacity: .8; }
+
+.bar {
+  background: var(--walnut); border-block: 2px solid var(--brass-dim);
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-block: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bar button, .panel button {
+  appearance: none; font: inherit; font-weight: 600; cursor: pointer; touch-action: manipulation;
+  min-height: 48px; border-radius: 4px; color: var(--ivory);
+  background: transparent; border: 1px solid var(--brass-dim);
+}
+.bar button { font-size: clamp(16px, 4.4vmin, 22px); padding: 4px 2px; min-width: 0; }
+.bar button:disabled { opacity: .4; cursor: default; }
+.bar #pauseBtn:not(:disabled) { background: var(--brass); border-color: var(--brass); color: var(--ink); }
+.bar #resetBtn.confirm { background: var(--danger); border-color: var(--danger); color: var(--danger-fg); }
+button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 5; background: var(--walnut); overflow-y: auto;
+  padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.panel { max-width: 480px; margin-inline: auto; display: flex; flex-direction: column; gap: 18px; }
+.panel h2 { margin: 0; font-family: var(--clock); font-size: 36px; font-weight: 600; line-height: 1.1; }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group h3 { margin: 0; color: var(--brass); font-size: 18px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.presets button { font-family: var(--clock); font-size: 26px; font-variant-numeric: tabular-nums; }
+.presets button.current { background: var(--ivory); color: var(--ink); border-color: var(--ivory); }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fields label { display: flex; flex-direction: column; gap: 4px; font-size: 18px; color: var(--muted); min-width: 0; }
+.fields input {
+  width: 100%; box-sizing: border-box; min-height: 48px; padding: 6px 10px; border-radius: 4px;
+  background: var(--walnut-2); color: var(--ivory); border: 1px solid var(--brass-dim);
+  font-family: var(--clock); font-size: 26px; -webkit-user-select: text; user-select: text;
+}
+.fields input:focus-visible { outline: 3px solid var(--brass); outline-offset: 1px; }
+.err { margin: 0; color: #ff9d8f; font-size: 18px; }
+.apply { background: var(--brass) !important; border-color: var(--brass) !important; color: var(--ink) !important; font-size: 21px; }
+.close { font-size: 20px; }
+
+@media (orientation: landscape) {
+  .board { grid-template-rows: 1fr auto; grid-template-columns: 1fr 1fr; }
+  .side.top { transform: none; grid-column: 1; grid-row: 1; }
+  .side.bottom { grid-column: 2; grid-row: 1; }
+  .bar { grid-column: 1 / -1; grid-row: 2; }
+  .time { font-size: min(19vw, 46vh); }
+  .time.long { font-size: min(15vw, 40vh); }
+  .side.top { border-right: 2px solid var(--brass-dim); }
+}
+@media (prefers-reduced-motion: reduce) { .side { transition: none; } }
+</style>
+
+</head>
+<body>
+<main class="board">
+  <button class="side top" id="side0" type="button" aria-label="Lado del Jugador 2">
+    <span class="who">Jugador 2</span>
+    <span class="time" id="time0">10:00</span>
+    <span class="hint" id="hint0"></span>
+    <span class="moves" id="moves0"></span>
+  </button>
+
+  <nav class="bar" aria-label="Controles del reloj">
+    <button id="pauseBtn" type="button" disabled>Pausar</button>
+    <button id="resetBtn" type="button">Reiniciar</button>
+    <button id="setBtn" type="button">10+0</button>
+    <button id="soundBtn" type="button" aria-pressed="true">Sonido sí</button>
+  </nav>
+
+  <button class="side bottom" id="side1" type="button" aria-label="Lado del Jugador 1">
+    <span class="who">Jugador 1</span>
+    <span class="time" id="time1">10:00</span>
+    <span class="hint" id="hint1"></span>
+    <span class="moves" id="moves1"></span>
+  </button>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="panel" role="dialog" aria-labelledby="setTitle">
+    <h2 id="setTitle">Tiempo de la partida</h2>
+    <div id="groups"></div>
+    <form class="group" id="customForm" novalidate>
+      <h3>Personalizado</h3>
+      <div class="fields">
+        <label for="customMin">Minutos por jugador
+          <input id="customMin" type="number" inputmode="numeric" min="0" max="300" value="10">
+        </label>
+        <label for="customInc">Segundos por jugada
+          <input id="customInc" type="number" inputmode="numeric" min="0" max="60" value="0">
+        </label>
+      </div>
+      <p class="err" id="customErr" hidden></p>
+      <button class="apply" id="customApply" type="submit">Usar este tiempo</button>
+    </form>
+    <button class="close" id="closeBtn" type="button">Volver sin cambiar</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var GROUPS = [
+    { name: 'Bala', items: [[1, 0], [1, 1], [2, 1]] },
+    { name: 'Blitz', items: [[3, 0], [3, 2], [5, 0]] },
+    { name: 'Rápida', items: [[10, 0], [15, 10], [25, 10]] },
+    { name: 'Clásica', items: [[30, 0], [60, 0], [90, 30]] }
+  ];
+  var LOW_MS = 20000;
+  var $ = function (id) { return document.getElementById(id); };
+  var sides = [$('side0'), $('side1')];
+  var timeEls = [$('time0'), $('time1')];
+  var hints = [$('hint0'), $('hint1')];
+  var moveEls = [$('moves0'), $('moves1')];
+
+  function load(key, fallback) {
+    try { var v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); }
+    catch (e) { return fallback; }
+  }
+  function save(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  var config = load('reloj.config', { min: 10, inc: 0 });
+  var soundOn = load('reloj.sound', true);
+  var state, active, times, moves, last, resetTimer, wakeLock, audio;
+
+  function newGame() {
+    state = 'ready'; active = null;
+    times = [config.min * 60000, config.min * 60000];
+    moves = [0, 0];
+    render();
+  }
+
+  function fmt(ms) {
+    var clamped = Math.max(0, ms);
+    if (clamped < LOW_MS) {
+      var tenths = Math.floor(clamped / 100);
+      return '0:' + String(Math.floor(tenths / 10)).padStart(2, '0') + '.' + (tenths % 10);
+    }
+    var s = Math.ceil(clamped / 1000);
+    var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+    var ss = String(r).padStart(2, '0');
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + ss : m + ':' + ss;
+  }
+
+  function hintFor(i) {
+    if (state === 'ready') return 'Quien juega con negras toca su lado para empezar';
+    if (state === 'paused') return 'En pausa';
+    if (state === 'over') return active === i ? 'Se acabó tu tiempo' : 'Ganaste por tiempo';
+    return active === i ? 'Tu turno: toca al terminar' : 'Espera tu turno';
+  }
+
+  function renderTimes() {
+    [0, 1].forEach(function (i) {
+      var text = fmt(times[i]);
+      if (timeEls[i].textContent !== text) timeEls[i].textContent = text;
+      timeEls[i].classList.toggle('long', text.length > 6);
+      var isActive = active === i && state === 'running';
+      sides[i].classList.toggle('active', isActive || (active === i && state === 'paused'));
+      sides[i].classList.toggle('low', active === i && (state === 'running' || state === 'paused') && times[i] < LOW_MS);
+    });
+  }
+
+  function render() {
+    [0, 1].forEach(function (i) {
+      hints[i].textContent = hintFor(i);
+      moveEls[i].textContent = 'Jugadas: ' + moves[i];
+      sides[i].classList.toggle('lost', state === 'over' && active === i);
+      sides[i].classList.toggle('won', state === 'over' && active !== i);
+    });
+    renderTimes();
+    var pause = $('pauseBtn');
+    pause.disabled = state === 'ready' || state === 'over';
+    pause.textContent = state === 'paused' ? 'Seguir' : 'Pausar';
+    $('setBtn').textContent = config.min + '+' + config.inc;
+    $('soundBtn').textContent = soundOn ? 'Sonido sí' : 'Sonido no';
+    $('soundBtn').setAttribute('aria-pressed', String(soundOn));
+  }
+
+  function tone(freq, ms, gain) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+      var o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+      o.frequency.value = freq; o.type = 'square';
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+      o.connect(g); g.connect(audio.destination);
+      o.start(t); o.stop(t + ms / 1000);
+    } catch (e) {}
+  }
+
+  function keepAwake() {
+    try {
+      if (navigator.wakeLock && !wakeLock) {
+        navigator.wakeLock.request('screen').then(function (l) {
+          wakeLock = l;
+          l.addEventListener('release', function () { wakeLock = null; });
+        }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+  function letSleep() {
+    if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
+  }
+
+  function press(i) {
+    if (state === 'ready') {
+      active = 1 - i; state = 'running'; last = performance.now();
+      keepAwake(); tone(900, 40, 0.08); render();
+    } else if (state === 'running' && active === i) {
+      tick();
+      if (state !== 'running') return;
+      moves[i]++; times[i] += config.inc * 1000;
+      active = 1 - i; last = performance.now();
+      tone(900, 40, 0.08);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+      render();
+    }
+  }
+
+  function tick() {
+    if (state !== 'running') return;
+    var now = performance.now();
+    times[active] -= now - last; last = now;
+    if (times[active] <= 0) {
+      times[active] = 0; state = 'over'; letSleep();
+      tone(520, 700, 0.14);
+      try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+      render();
+    } else renderTimes();
+  }
+
+  function togglePause() {
+    if (state === 'running') { tick(); if (state === 'running') { state = 'paused'; letSleep(); } }
+    else if (state === 'paused') { state = 'running'; last = performance.now(); keepAwake(); }
+    render();
+  }
+
+  function pauseIfRunning() { if (state === 'running') togglePause(); }
+
+  /* Respuesta inmediata con el dedo; el click solo cuenta si viene del teclado. */
+  sides.forEach(function (el, i) {
+    el.addEventListener('pointerdown', function (e) { if (e.button === 0) press(i); });
+    el.addEventListener('click', function (e) { if (e.detail === 0) press(i); });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.code !== 'Space' || !$('overlay').hidden || e.repeat) return;
+    if (e.target.tagName === 'BUTTON') return;
+    e.preventDefault();
+    press(active === null ? 0 : active);
+  });
+
+  $('pauseBtn').addEventListener('click', togglePause);
+
+  function clearReset() {
+    clearTimeout(resetTimer); resetTimer = null;
+    $('resetBtn').classList.remove('confirm');
+    $('resetBtn').textContent = 'Reiniciar';
+  }
+  $('resetBtn').addEventListener('click', function () {
+    if (state === 'ready') return;
+    if (state === 'over' || resetTimer) { clearReset(); letSleep(); newGame(); return; }
+    pauseIfRunning();
+    $('resetBtn').classList.add('confirm');
+    $('resetBtn').textContent = '¿Seguro?';
+    resetTimer = setTimeout(clearReset, 3000);
+  });
+
+  $('soundBtn').addEventListener('click', function () {
+    soundOn = !soundOn; save('reloj.sound', soundOn); render();
+  });
+
+  function applyConfig(min, inc) {
+    config = { min: min, inc: inc };
+    save('reloj.config', config);
+    clearReset(); letSleep(); newGame(); closeSettings();
+  }
+
+  function drawPresets() {
+    var box = $('groups');
+    box.textContent = '';
+    box.style.cssText = 'display:flex;flex-direction:column;gap:18px';
+    GROUPS.forEach(function (group) {
+      var wrap = document.createElement('section'); wrap.className = 'group';
+      var title = document.createElement('h3'); title.textContent = group.name;
+      var grid = document.createElement('div'); grid.className = 'presets';
+      group.items.forEach(function (p) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.textContent = p[0] + '+' + p[1];
+        b.setAttribute('aria-label', p[0] + ' minutos más ' + p[1] + ' segundos por jugada');
+        if (p[0] === config.min && p[1] === config.inc) b.className = 'current';
+        b.addEventListener('click', function () { applyConfig(p[0], p[1]); });
+        grid.appendChild(b);
+      });
+      wrap.appendChild(title); wrap.appendChild(grid); box.appendChild(wrap);
+    });
+  }
+
+  function closeSettings() { $('overlay').hidden = true; }
+  $('setBtn').addEventListener('click', function () {
+    pauseIfRunning();
+    drawPresets();
+    $('customMin').value = config.min; $('customInc').value = config.inc;
+    $('customErr').hidden = true;
+    $('overlay').hidden = false;
+  });
+  $('closeBtn').addEventListener('click', closeSettings);
+
+  $('customForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var min = Number($('customMin').value), inc = Number($('customInc').value);
+    var err = $('customErr');
+    if (!Number.isInteger(min) || min < 1 || min > 300) {
+      err.textContent = 'Escribe de 1 a 300 minutos, sin decimales.'; err.hidden = false; return;
+    }
+    if (!Number.isInteger(inc) || inc < 0 || inc > 60) {
+      err.textContent = 'Escribe de 0 a 60 segundos por jugada, sin decimales.'; err.hidden = false; return;
+    }
+    applyConfig(min, inc);
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && state === 'running') keepAwake();
+  });
+
+  newGame();
+  setInterval(tick, 50);
+})();
+</script>
+</body>
+</html>
