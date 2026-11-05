@@ -163,10 +163,10 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
     </div>
   </div>
   <div class="grp">
-    <h2>Alcance o encuentro</h2>
+    <h2>Alcance y encuentro</h2>
     <div class="f">
       <div class="eq">d<sub>1</sub> = d<sub>2</sub></div>
-      <p class="when">Si salen del mismo punto, en el alcance recorrieron la misma distancia. Si uno salió antes, su tiempo es mayor: <span class="m">t + retraso</span>. Si dan un tiempo negativo, nunca se alcanzan.</p>
+      <p class="when">Si salen del mismo punto, en el alcance recorrieron la misma distancia. Si uno salió antes, su tiempo es mayor: <span class="m">t + retraso</span>. Si los tiempos salen negativos, o si en la cuadrática <span class="m">b² − 4ac</span> es negativo, nunca se alcanzan.</p>
     </div>
   </div>
   <div class="grp">
@@ -246,7 +246,7 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
 <section class="view" id="problemas" hidden>
   <div class="grp">
     <h2>Problemas resueltos</h2>
-    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Los del cuaderno ya tienen la redacción revisada.</p>
+    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Del 14 al 18 usan el enunciado oficial; el 8 y el 9 tienen la redacción revisada.</p>
     <div id="ppick"></div>
   </div>
   <div class="grp" id="pbody"></div>
@@ -302,24 +302,6 @@ drawPick();
 /* ---------- Problemas ---------- */
 const c=s=>`<div class="calc">${s}</div>`;
 const P=[
-{g:'c',n:'9',name:'Robot Fred',fix:'Ajustada',orig:'Un robot llamado Fred se mueve inicialmente a 2,20 m/s por un pasillo en una terminal espacial. Después acelera a 4,80 m/s en un tiempo de 0,20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',why:'"Acelera a 4,80 m/s" confunde velocidad con aceleración.',
- txt:'Un robot llamado Fred se mueve en línea recta a 2,20 m/s por un pasillo de una terminal espacial. Luego aumenta su velocidad a 4,80 m/s en 0,20 s, sin cambiar de dirección. Determine la magnitud de su aceleración media.',
- s:[['Datos',c(`${m(V0)} = 2,20 m/s<br>${m(VF)} = 4,80 m/s<br>${m('t')} = 0,20 s<br>Buscas: ${m('a')}`)],
-    ['¿Qué fórmula?',`La aceleración mide cuánto cambia la velocidad en cada segundo. Usa la <b>fórmula A</b> despejada.`+c(m(`a = ${fr(VF+' − '+V0,'t')}`))],
-    ['Cambio de velocidad',c('4,80 − 2,20 = 2,60 m/s')],
-    ['Divide por el tiempo',c(m(`a = ${fr('2,60','0,20')}`)+' = 13 m/s²')],
-    ['Respuesta','<b>a = 13 m/s²</b>','final']]},
-{g:'c',n:'14',name:'Motociclista',fix:'Corregida',orig:'Un motociclista que hace domicilios sale detenido en un semáforo y acelera uniformemente hasta alcanzar 108 km/h en 6 s. Determina: a) Aceleración en m/s². b) La distancia de frenado en metros. c) La distancia que recorre el bus durante el quinto segundo de frenado.',why:'Dice que acelera, pero pregunta por el frenado, y cambia de motociclista a bus. Confirma esta versión con la docente.',
- txt:'Un motociclista que hace domicilios viaja a 108 km/h y frena de manera uniforme hasta detenerse en 6 s. Determina: a) Su aceleración en m/s². b) La distancia de frenado en metros. c) La distancia que recorre durante el quinto segundo de frenado.',
- s:[['Datos y conversión',`Frenar hasta detenerse significa ${m(VF+' = 0')}.`+c(`${m(V0)} = 108 ÷ 3,6 = 30 m/s<br>${m(VF)} = 0<br>${m('t')} = 6 s`)],
-    ['a) Aceleración: fórmula A',c(m(`a = ${fr('0 − 30','6')}`)+' = <b>−5 m/s²</b>')+'El signo negativo indica que la velocidad baja 5 m/s cada segundo.'],
-    ['b) Distancia: fórmula D','Conoces las dos velocidades y el tiempo, así que usas la velocidad promedio.'+c(m(`d = ${fr('30 + 0','2')}·6`)+' = <b>90 m</b>')],
-    ['c) ¿Qué es el quinto segundo?',`Es el tramo de ${m('t = 4')} a ${m('t = 5')}. No son los primeros 5 s.`],
-    ['c) Velocidades del tramo',c(`A los 4 s: 30 − 5·4 = 10 m/s<br>A los 5 s: 30 − 5·5 = 5 m/s`)],
-    ['c) Distancia del tramo',c(m(`d = ${fr('10 + 5','2')}·1`)+' = <b>7,5 m</b>')+`Con la fórmula directa: ${m('d<sub>5</sub> = 30 − 5(5 − ½)')} = 7,5 m.`],
-    ['Comprobación','Metros de cada segundo: 27,5 + 22,5 + 17,5 + 12,5 + 7,5 + 2,5 = 90 m. Coincide con el literal b.'],
-    ['Respuesta','<b>a) −5 m/s² &nbsp; b) 90 m &nbsp; c) 7,5 m</b>','final'],
-    ['Si la docente quería que acelerara','Partiría del reposo hasta 108 km/h en 6 s: a = 5 m/s², d = 90 m y el quinto segundo mide 22,5 m.','warn']]},
 {g:'c',n:'8',name:'Camila y su mamá',fix:'Ajustada',orig:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a velocidad constante de 15 km/h. Diez minutos después, su mamá se da cuenta de que olvidó el almuerzo y sale en moto por la misma ruta, en el mismo sentido, a 45 km/h. Determina (en unidades SI): a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa se produce el alcance?',why:'"Olvidó" no aclara quién olvidó el almuerzo, y falta decir que la velocidad de la moto es constante.',
  txt:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a una velocidad constante de 15 km/h. Diez minutos después, su mamá nota que Camila olvidó el almuerzo y sale en moto por la misma ruta y en el mismo sentido, a una velocidad constante de 45 km/h. Determina: a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? (en segundos) b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa ocurre? (en metros)',
  s:[['Tipo de problema','Velocidades constantes: <b>MRU</b>. La palabra "alcanza" indica que debes <b>igualar distancias</b>.'],
@@ -331,17 +313,57 @@ const P=[
     ['c) Distancia: d = v · t',c(m('d = 12,5 · 300')+' = <b>3750 m</b>')],
     ['Comprobación',`Camila viaja 900 s: ${m(fr('25','6')+'· 900')} = 3750 m. Coincide.`],
     ['Respuesta','<b>a) 300 s &nbsp; b) 7:15 a.m. &nbsp; c) 3750 m</b>','final']]},
-{g:'c',n:'18',name:'Automóvil y motocicleta',fix:'Corregida',orig:'Un automóvil pasa por un punto A con una velocidad inicial de 54 mi/h y continúa acelerando uniformemente a razón de 6 ft/s². 10 segundos después, una motocicleta pasa por el mismo punto A, con una velocidad inicial de 36 mi/h, manteniendo una aceleración constante de 4 ft/s². ¿Cuánto tiempo después de que parte la motocicleta alcanza el automóvil y qué distancia ha recorrido la motocicleta hasta ese instante?',why:'La moto, más lenta y con menor aceleración, nunca alcanza al auto: los dos tiempos salen negativos. Aquí se intercambiaron los datos de los vehículos. Confirma esta versión con la docente.',
- txt:'Un automóvil pasa por un punto A a 36 mi/h y continúa acelerando uniformemente a razón de 4 ft/s². Diez segundos después, una motocicleta pasa por el mismo punto A a 54 mi/h, con una aceleración constante de 6 ft/s². ¿Cuánto tiempo después de pasar por A alcanza la motocicleta al automóvil, y qué distancia ha recorrido desde A hasta ese instante?',
- s:[['Conversión',c(`Auto: 36 × 22/15 = 52,8 ft/s<br>Moto: 54 × 22/15 = 79,2 ft/s`)],
-    ['Plantea los tiempos',`Si la moto viaja durante ${m('t')}, el auto viaja durante ${m('t + 10')}. Usa la <b>fórmula B</b> para cada uno.`+c('Moto: '+m('d = 79,2·t + 3t²')+'<br>Auto: '+m('d = 52,8(t + 10) + 2(t + 10)²'))],
-    ['Desarrolla la distancia del auto',`Recuerda que ${m('(t + 10)² = t² + 20t + 100')}.`+c(m('d = 52,8t + 528 + 2t² + 40t + 200')+'<br>'+m('d = 2t² + 92,8t + 728'))],
-    ['Iguala las distancias',c(m('79,2t + 3t² = 2t² + 92,8t + 728')+'<br>'+m('t² − 13,6t − 728 = 0'))],
-    ['Fórmula cuadrática',c(m(`t = ${fr('13,6 ± √(13,6² + 4·728)','2')}`)+'<br>'+m(`t = ${fr('13,6 ± 55,65','2')}`))],
-    ['Elige la raíz válida',c(m('t ≈ 34,6 s')+' &nbsp;y&nbsp; '+m('t ≈ −21,0 s'))+'Se descarta la negativa, porque el alcance ocurre después de que la moto pasa por A.'],
-    ['Distancia de la moto',c(m('d = 79,2(34,63) + 3(34,63)²')+' ≈ <b>6339 ft</b>')],
-    ['Comprobación',c('Auto, 44,63 s: '+m('52,8(44,63) + 2(44,63)²')+' ≈ 6339 ft')+'Coincide.'],
-    ['Respuesta','<b>t ≈ 34,6 s &nbsp; d ≈ 6339 ft</b> (≈ 1,2 mi)','final']]},
+{g:'c',n:'9',name:'Robot Fred',fix:'Ajustada',orig:'Un robot llamado Fred se mueve inicialmente a 2,20 m/s por un pasillo en una terminal espacial. Después acelera a 4,80 m/s en un tiempo de 0,20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',why:'"Acelera a 4,80 m/s" confunde velocidad con aceleración.',
+ txt:'Un robot llamado Fred se mueve en línea recta a 2,20 m/s por un pasillo de una terminal espacial. Luego aumenta su velocidad a 4,80 m/s en 0,20 s, sin cambiar de dirección. Determine la magnitud de su aceleración media.',
+ s:[['Datos',c(`${m(V0)} = 2,20 m/s<br>${m(VF)} = 4,80 m/s<br>${m('t')} = 0,20 s<br>Buscas: ${m('a')}`)],
+    ['¿Qué fórmula?',`La aceleración mide cuánto cambia la velocidad en cada segundo. Usa la <b>fórmula A</b> despejada.`+c(m(`a = ${fr(VF+' − '+V0,'t')}`))],
+    ['Cambio de velocidad',c('4,80 − 2,20 = 2,60 m/s')],
+    ['Divide por el tiempo',c(m(`a = ${fr('2,60','0,20')}`)+' = 13 m/s²')],
+    ['Respuesta','<b>a = 13 m/s²</b>','final']]},
+{g:'c',n:'14',name:'Motociclista',fix:'Oficial',
+ txt:'Un motociclista que hace domicilios sale detenido en un semáforo y acelera uniformemente hasta alcanzar 108 km/h en 6 s. Determina: a) La aceleración en m/s². b) La distancia recorrida durante esos 6 segundos, en metros. c) ¿Qué rapidez lleva (expresada en km/h) cuando ha recorrido 40 m desde el semáforo?',
+ s:[['Datos y conversión',`"Sale detenido" significa ${m(V0+' = 0')}.`+c(`${m(VF)} = 108 ÷ 3,6 = 30 m/s<br>${m('t')} = 6 s`)],
+    ['a) Aceleración: fórmula A',c(m(`a = ${fr('30 − 0','6')}`)+' = <b>5 m/s²</b>')],
+    ['b) Distancia: fórmula D',c(m(`d = ${fr('0 + 30','2')}·6`)+' = <b>90 m</b>')],
+    ['c) ¿Qué fórmula?',`Tienes ${m(V0)}, ${m('a')} y ${m('d = 40 m')}, pero no el tiempo. Usa la <b>fórmula C</b>.`],
+    ['c) Velocidad',c(m(VF+'² = 0² + 2·5·40 = 400')+'<br>'+m(VF+' = √400')+' = 20 m/s')],
+    ['c) Vuelve a km/h',c('20 × 3,6 = <b>72 km/h</b>')],
+    ['Respuesta','<b>a) 5 m/s² &nbsp; b) 90 m &nbsp; c) 72 km/h</b>','final']]},
+{g:'c',n:'15',name:'Patrulla de tránsito',fix:'Oficial',
+ txt:'Un motociclista que circula a 72 km/h en zona escolar pasa justo al lado de una patrulla de tránsito detenida en ese instante. El agente arranca inmediatamente en persecución acelerando uniformemente a 2 m/s², mientras el motociclista mantiene su velocidad constante. Determina: a) ¿Cuánto tiempo tarda la patrulla en alcanzar al motociclista? b) ¿A qué distancia del punto inicial ocurre el alcance? c) ¿Qué velocidad lleva la patrulla en ese instante? Exprésala en km/h.',
+ s:[['Tipo de problema','Moto en MRU y patrulla en MRUV desde el reposo. Salen del mismo punto y al mismo tiempo, así que ambas usan el mismo '+m('t')+'.'],
+    ['Conversión',c('72 ÷ 3,6 = 20 m/s')],
+    ['Iguala distancias',c('Moto: '+m('d = 20t')+'<br>Patrulla: '+m('d = ½·2·t² = t²')+'<br>'+m('20t = t²'))],
+    ['a) Tiempo',`Divide entre ${m('t')}, porque ${m('t = 0')} es solo el momento de partida.`+c(m('t')+' = <b>20 s</b>')],
+    ['b) Distancia',c(m('d = 20 · 20')+' = <b>400 m</b>')],
+    ['c) Velocidad de la patrulla',c(m(VF+' = 0 + 2·20')+' = 40 m/s<br>40 × 3,6 = <b>144 km/h</b>')],
+    ['Respuesta','<b>a) 20 s &nbsp; b) 400 m &nbsp; c) 144 km/h</b>','final']]},
+{g:'c',n:'16',name:'Moto 80 m detrás',fix:'Oficial',
+ txt:'Un automóvil se desplaza por una carretera con una velocidad constante de 20 m/s. En el instante en que pasa por un punto A, una motocicleta se encuentra 80 m detrás y parte del reposo con una aceleración constante de 4 m/s². ¿Después de cuánto tiempo la motocicleta alcanza al automóvil y a qué distancia del punto A ocurre el encuentro?',
+ s:[['Plantea','Mide las posiciones desde A. La moto empieza en −80 m, porque está detrás. Ambos usan el mismo '+m('t')+'.'+c('Auto: '+m('x = 20t')+'<br>Moto: '+m('x = −80 + ½·4·t² = −80 + 2t²'))],
+    ['Iguala posiciones',c(m('2t² − 80 = 20t')+'<br>'+m('2t² − 20t − 80 = 0')+'<br>Divide entre 2: '+m('t² − 10t − 40 = 0'))],
+    ['Fórmula cuadrática',c(m(`t = ${fr('10 ± √(100 + 160)','2')} = ${fr('10 ± 16,12','2')}`)+'<br>'+m('t')+' ≈ <b>13,06 s</b>')+'La raíz negativa, −3,06 s, se descarta.'],
+    ['Distancia desde A',c(m('x = 20 · 13,06')+' ≈ <b>261,2 m</b>')+'La moto recorre 80 m más que eso, unos 341,2 m.'],
+    ['Comprobación',c(m('−80 + 2(13,06)²')+' ≈ 261,2 m. Coincide.')],
+    ['Respuesta','<b>t ≈ 13,06 s &nbsp; a ≈ 261,2 m de A</b>','final']]},
+{g:'c',n:'17',name:'Dos ciudades',fix:'Oficial',
+ txt:'A las 8:00 a. m., un automóvil sale de la ciudad A hacia B con una velocidad inicial de 20 mi/h y acelera uniformemente a razón de 4 mi/h². A las 8:30 a. m., otro automóvil sale de B hacia A con una velocidad inicial de 30 mi/h y acelera uniformemente a razón de 2 mi/h². ¿A qué hora se encuentran los dos vehículos y a qué distancia de la ciudad A ocurre el encuentro?',
+ s:[['Falta un dato','El enunciado no da la distancia entre A y B. Sin ella no hay un resultado numérico. Pídele ese dato a la docente.','warn'],
+    ['Tipo de problema','Van en sentidos opuestos, así que sus distancias <b>suman</b> la distancia entre ciudades, '+m('D')+'.'],
+    ['Plantea los tiempos',`Trabaja en horas. Si el segundo viaja durante ${m('t')}, el primero viaja durante ${m('t + 0,5')}.`+c('Primero: '+m('d<sub>1</sub> = 20(t + 0,5) + 2(t + 0,5)²')+'<br>Segundo: '+m('d<sub>2</sub> = 30t + t²'))],
+    ['Ecuación general',c(m('d<sub>1</sub> + d<sub>2</sub> = D')+'<br>'+m('3t² + 52t + 10,5 = D'))],
+    ['Ejemplo si D = 100 mi','Este valor es solo un ejemplo, no un dato del problema.'+c(m('3t² + 52t − 89,5 = 0')+'<br>'+m('t')+' ≈ 1,58 h ≈ 1 h 35 min<br>Hora: 8:30 + 1:35 ≈ 10:05 a. m.<br>'+m('d<sub>1</sub> = 20(2,08) + 2(2,08)²')+' ≈ 50,2 mi')],
+    ['Respuesta','<b>Falta la distancia entre A y B.</b> Con ella, resuelve '+m('3t² + 52t + 10,5 = D')+' y suma '+m('t')+' a las 8:30.','final']]},
+{g:'c',n:'18',name:'Automóvil y motocicleta',fix:'Oficial',
+ txt:'Un automóvil pasa por un punto A con una velocidad inicial de 36 mi/h y continúa acelerando uniformemente a razón de 6 ft/s². 10 segundos después, una motocicleta pasa por el mismo punto A, con una velocidad inicial de 54 mi/h, manteniendo una aceleración constante de 4 ft/s². ¿Cuánto tiempo después de que parte la motocicleta alcanza al automóvil y qué distancia ha recorrido la motocicleta hasta ese instante?',
+ s:[['Conversión',c('Auto: 36 × 22/15 = 52,8 ft/s<br>Moto: 54 × 22/15 = 79,2 ft/s')],
+    ['Plantea los tiempos',`Si la moto viaja durante ${m('t')}, el auto viaja durante ${m('t + 10')}.`+c('Moto: '+m('d = 79,2t + 2t²')+'<br>Auto: '+m('d = 52,8(t + 10) + 3(t + 10)²'))],
+    ['Desarrolla la distancia del auto',c(m('d = 52,8t + 528 + 3t² + 60t + 300')+'<br>'+m('d = 3t² + 112,8t + 828'))],
+    ['Iguala las distancias',c(m('79,2t + 2t² = 3t² + 112,8t + 828')+'<br>'+m('t² + 33,6t + 828 = 0'))],
+    ['Fórmula cuadrática: mira la raíz',c(m('b² − 4ac = 33,6² − 4·828')+'<br>'+m('= 1128,96 − 3312 = −2183,04'))+'No existe la raíz cuadrada real de un número negativo, así que la ecuación no tiene solución.'],
+    ['Interpreta','Cuando la moto pasa por A, el auto ya le lleva 828 ft y va a 112,8 ft/s (52,8 + 6·10), contra 79,2 ft/s de la moto. Además, el auto acelera más. La moto <b>nunca lo alcanza</b>.','warn'],
+    ['Respuesta','<b>Con estos datos no hay alcance.</b> Confirma con la docente si el resultado esperado es ese o si los datos tienen un error.','final'],
+    ['Si las aceleraciones estuvieran intercambiadas','Solo como hipótesis, con auto a 4 ft/s² y moto a 6 ft/s²: '+m('t² − 13,6t − 728 = 0')+', '+m('t ≈ 34,6 s')+' y '+m('d ≈ 6339 ft')+'.']]},
 {g:'e',n:'1',name:'Tren',txt:'Un tren viaja a una velocidad constante de 72 km/h durante 15 minutos. ¿Qué distancia recorre, en metros?',
  s:[['Conversión',c('v = 72 ÷ 3,6 = 20 m/s<br>t = 15 × 60 = 900 s')],['Fórmula MRU',c(m('d = v · t = 20 · 900'))],['Respuesta','<b>d = 18 000 m</b> (18 km)','final']]},
 {g:'e',n:'2',name:'Arranque',txt:'Un auto parte del reposo y alcanza 25 m/s en 10 s con aceleración constante. Halla: a) su aceleración, b) la distancia recorrida.',
@@ -374,7 +396,7 @@ function drawProb(){
  const pills=g=>P.map((p,i)=>p.g===g?`<button class="pill" aria-pressed="${i===pi}" data-i="${i}">${p.n}</button>`:'').join('');
  $('#ppick').innerHTML=`<span class="tag">Del cuaderno</span><div class="pick">${pills('c')}</div><span class="tag">Más ejercicios</span><div class="pick">${pills('e')}</div>`;
  const p=P[pi];
- $('#pbody').innerHTML=`<h3>${p.g==='c'?'Problema':'Ejercicio'} ${p.n}: ${p.name}</h3>`+(p.fix?`<span class="tag">Redacción ${p.fix.toLowerCase()}</span>`:'')+`<p class="statement">${p.txt}</p>`+
+ $('#pbody').innerHTML=`<h3>${p.g==='c'?'Problema':'Ejercicio'} ${p.n}: ${p.name}</h3>`+(p.fix?`<span class="tag">${p.fix==='Oficial'?'Enunciado oficial':'Redacción '+p.fix.toLowerCase()}</span>`:'')+`<p class="statement">${p.txt}</p>`+
   (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+`<div class="steps">`+
   p.s.slice(0,ps).map(s=>`<div class="step ${s[2]||''}"><b class="t">${s[0]}</b>${s[1]}</div>`).join('')+`</div>`+
   `<div class="row">`+(ps<p.s.length?`<button class="btn" id="nx">${ps?'Siguiente paso':'Ver el primer paso'}</button><button class="btn alt" id="all">Ver todo</button>`:'')+(ps?`<button class="btn alt" id="rs">Empezar de nuevo</button>`:'')+`<span class="note">${ps} de ${p.s.length} pasos</span></div>`;
@@ -395,6 +417,7 @@ const M=[
  {n:'Fórmula D',w:'Sin aceleración',t:[mD(),' = (',mV0(),' + ',mVF(),') / ',m2(),' · ',mT()]},
  {n:'Segundo n',w:'Distancia en un solo segundo',t:['d<sub>n</sub> = ',mV0(),' + ',mA(),' (',bk('n','n'),' − ',mH(),')']},
  {n:'Alcance',w:'Mismo punto de salida; uno sale antes',t:['d<sub>1</sub> = d<sub>2</sub>,&nbsp; el que sale antes usa ',mT(),' + retraso']},
+ {n:'Cuadrática',w:'Para at² + bt + c = 0',t:['t = (−',bk('b','b'),' ± √(b² − ',bk('4','4'),'·a·c)) / (',m2(),'·a)']},
  {n:'Velocidad',w:'km/h a m/s',t:['km/h ÷ ',bk('3,6','3.6'),' = m/s']},
  {n:'Velocidad',w:'mi/h a ft/s',t:['mi/h × ',bk('22/15','22/15'),' = ft/s']},
  {n:'Tiempo',w:'Minutos a segundos',t:['min × ',bk('60','60'),' = s']}
