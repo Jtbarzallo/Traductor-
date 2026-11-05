@@ -120,6 +120,10 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
 .pm{font-family:var(--math);font-size:1.05rem;line-height:1.5;display:inline-block}
 .pm sub{font-size:.68em}
 .pf .pm{font-style:italic;color:var(--blue);font-size:1.12rem}
+.chip{display:inline-grid;justify-items:center;gap:1px}
+.chip small{font:400 .72rem var(--body)}
+.sig{font-size:.95rem;border:1px solid var(--line);background:var(--card);padding:12px 14px;border-radius:4px}
+.sig ul{margin:5px 0 0;padding:0;list-style:none;display:grid;gap:4px}
 </style>
 </head>
 <body>
@@ -138,6 +142,22 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
 </nav>
 
 <section class="view" id="formulas">
+  <div class="grp">
+    <h2>Qué significa cada letra</h2>
+    <div class="tbl"><table>
+      <tr><th>Letra</th><th>Significa</th><th>Unidad SI</th></tr>
+      <tr><td><span class="m">v<sub>0</sub></span></td><td>Velocidad inicial, al empezar</td><td>m/s</td></tr>
+      <tr><td><span class="m">v<sub>f</sub></span></td><td>Velocidad final, al terminar</td><td>m/s</td></tr>
+      <tr><td><span class="m">v</span></td><td>Velocidad constante (MRU)</td><td>m/s</td></tr>
+      <tr><td><span class="m">a</span></td><td>Aceleración: cuánto cambia la velocidad cada segundo. Es negativa si frena.</td><td>m/s²</td></tr>
+      <tr><td><span class="m">t</span></td><td>Tiempo</td><td>s</td></tr>
+      <tr><td><span class="m">d</span></td><td>Distancia recorrida</td><td>m</td></tr>
+      <tr><td><span class="m">n</span></td><td>Número del segundo; el quinto segundo es <span class="m">n = 5</span></td><td>sin unidad</td></tr>
+      <tr><td><span class="m">d<sub>n</sub></span></td><td>Distancia recorrida solo durante el segundo <span class="m">n</span></td><td>m</td></tr>
+      <tr><td><span class="m">x</span></td><td>Posición medida desde un punto de referencia</td><td>m</td></tr>
+    </table></div>
+    <p class="note">El numerito o letra pequeña se llama subíndice e indica de quién o de qué momento es el dato. Por ejemplo, <span class="m">v<sub>0</sub></span> es la velocidad en el momento 0, y <span class="m">v<sub>M</sub></span> puede ser la velocidad de la moto. El punto <span class="m">·</span> significa multiplicar. MRU es movimiento rectilíneo uniforme y MRUV es movimiento rectilíneo uniformemente variado.</p>
+  </div>
   <div class="grp">
     <h2>MRU: velocidad constante</h2>
     <div class="f"><div class="eq">d = v · t</div><p class="when">La aceleración es cero. También sirve despejada: <span class="m">v = d / t</span> y <span class="m">t = d / v</span>.</p></div>
@@ -293,8 +313,8 @@ $('#fcards').innerHTML=F.map(f=>`<div class="f"><span class="tag">Fórmula ${f.i
 const VARS=[['v0',V0,'velocidad inicial'],['vf',VF,'velocidad final'],['a','a','aceleración'],['t','t','tiempo'],['d','d','distancia']];
 let have=new Set(['v0','vf','t']),seek='a';
 function drawPick(){
- $('#have').innerHTML=VARS.map(([k,l,n])=>`<button class="chip" aria-pressed="${have.has(k)}" data-k="${k}" title="${n}" ${k===seek?'disabled style="opacity:.4"':''}><span class="m">${l}</span></button>`).join('');
- $('#seek').innerHTML=VARS.map(([k,l,n])=>`<button class="chip seek" aria-pressed="${k===seek}" data-k="${k}" title="${n}"><span class="m">${l}</span></button>`).join('');
+ $('#have').innerHTML=VARS.map(([k,l,n])=>`<button class="chip" aria-pressed="${have.has(k)}" data-k="${k}" ${k===seek?'disabled style="opacity:.4"':''}><span class="m">${l}</span><small>${n}</small></button>`).join('');
+ $('#seek').innerHTML=VARS.map(([k,l,n])=>`<button class="chip seek" aria-pressed="${k===seek}" data-k="${k}"><span class="m">${l}</span><small>${n}</small></button>`).join('');
  const hits=F.filter(f=>f.vars.includes(seek)&&f.vars.every(v=>v===seek||have.has(v)));
  const name=VARS.find(v=>v[0]===seek)[2];
  $('#pickOut').innerHTML=hits.length
@@ -424,13 +444,17 @@ const PLAN={
 P.forEach(p=>{p.plan=PLAN[p.g+p.n];if(!p.plan)throw 'sin plan '+p.n;p.s=p.s.filter(s=>!['Datos','Datos y conversión','Conversión'].includes(s[0]))});
 const li=a=>`<ul>${a.map(x=>`<li><span class="pm">${x}</span></li>`).join('')}</ul>`;
 const planHTML=q=>`<div class="plan"><div><span class="tag">Variables (datos)</span>${li(q.v)}</div><div><span class="tag">Incógnitas</span>${li(q.i)}</div><div class="pf"><span class="tag">Fórmulas que se usan</span>${li(q.f)}</div></div>`;
+const DEF={v0:[V0,'velocidad inicial, al empezar'],vf:[VF,'velocidad final, al terminar'],v:['v','velocidad constante'],a:['a','aceleración: cuánto cambia la velocidad cada segundo'],t:['t','tiempo'],d:['d','distancia recorrida'],n:['n','número del segundo; el quinto segundo es n = 5'],dn:['d<sub>n</sub>','distancia recorrida solo durante el segundo n'],x:['x','posición medida desde el punto A'],D:['D','distancia total entre los dos puntos'],q:['a, b, c','en la fórmula cuadrática, los números de at² + bt + c = 0; aquí a no es aceleración']};
+const SIG={c8:['v','t','d','C = Camila','M = mamá'],c9:['v0','vf','a','t'],c14:['v0','vf','a','t','d'],c15:['v','v0','vf','a','t','d','M = moto','P = patrulla'],c16:['v','v0','a','t','x','q','A = auto','M = moto'],c17:['v0','a','t','d','D','q','1 = auto que sale de A','2 = auto que sale de B'],c18:['v0','a','t','d','q','A = auto','M = moto'],
+e1:['v','t','d'],e2:['v0','vf','a','t','d'],e3:['v0','vf','a','t','d'],e4:['v0','vf','a','t','d'],e5:['v0','vf','a','t','d'],e6:['v0','a','n','dn'],e7:['v','t','d','D','1 = primer auto','2 = segundo auto'],e8:['v','t','d','L = ladrón','P = policía'],e9:['v','v0','vf','a','t','d','A = auto','P = patrulla'],e10:['v','v0','a','t','d','q','B = bus','M = moto'],e11:['v0','vf','v','a','t','d','1, 2, 3 = tramos','total = suma de los tramos'],e12:['v0','vf','a','t','d'],e13:['v0','vf','v','a','t','d','total = suma de las dos partes']};
+const sigHTML=k=>{const it=SIG[k],l=it.filter(x=>DEF[x]).map(x=>`<li><span class="m">${DEF[x][0]}</span>: ${DEF[x][1]}</li>`),s=it.filter(x=>!DEF[x]);return `<div class="sig"><span class="tag">Qué significa cada letra</span><ul>${l.join('')}${s.length?`<li><b>Subíndices:</b> ${s.join('; ')}</li>`:''}</ul></div>`};
 let pi=0,ps=0;
 function drawProb(){
  const pills=g=>P.map((p,i)=>p.g===g?`<button class="pill" aria-pressed="${i===pi}" data-i="${i}">${p.n}</button>`:'').join('');
  $('#ppick').innerHTML=`<span class="tag">Del cuaderno</span><div class="pick">${pills('c')}</div><span class="tag">Más ejercicios</span><div class="pick">${pills('e')}</div>`;
  const p=P[pi];
  $('#pbody').innerHTML=`<h3>${p.g==='c'?'Problema':'Ejercicio'} ${p.n}: ${p.name}</h3>`+(p.fix?`<span class="tag">${p.fix==='Oficial'?'Enunciado oficial':'Redacción '+p.fix.toLowerCase()}</span>`:'')+`<p class="statement">${p.txt}</p>`+
-  (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+planHTML(p.plan)+`<div class="steps">`+
+  (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+planHTML(p.plan)+sigHTML(p.g+p.n)+`<div class="steps">`+
   p.s.slice(0,ps).map(s=>`<div class="step ${s[2]||''}"><b class="t">${s[0]}</b>${s[1]}</div>`).join('')+`</div>`+
   `<div class="row">`+(ps<p.s.length?`<button class="btn" id="nx">${ps?'Siguiente paso':'Ver el primer paso'}</button><button class="btn alt" id="all">Ver todo</button>`:'')+(ps?`<button class="btn alt" id="rs">Empezar de nuevo</button>`:'')+`<span class="note">${ps} de ${p.s.length} pasos</span></div>`;
 }
