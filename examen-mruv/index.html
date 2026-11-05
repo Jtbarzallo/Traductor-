@@ -246,7 +246,7 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
 <section class="view" id="problemas" hidden>
   <div class="grp">
     <h2>Problemas resueltos</h2>
-    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Del 14 al 18 usan el enunciado oficial; el 8 y el 9 tienen la redacción revisada.</p>
+    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Todos los del cuaderno usan el enunciado oficial.</p>
     <div id="ppick"></div>
   </div>
   <div class="grp" id="pbody"></div>
@@ -302,8 +302,8 @@ drawPick();
 /* ---------- Problemas ---------- */
 const c=s=>`<div class="calc">${s}</div>`;
 const P=[
-{g:'c',n:'8',name:'Camila y su mamá',fix:'Ajustada',orig:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a velocidad constante de 15 km/h. Diez minutos después, su mamá se da cuenta de que olvidó el almuerzo y sale en moto por la misma ruta, en el mismo sentido, a 45 km/h. Determina (en unidades SI): a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa se produce el alcance?',why:'"Olvidó" no aclara quién olvidó el almuerzo, y falta decir que la velocidad de la moto es constante.',
- txt:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a una velocidad constante de 15 km/h. Diez minutos después, su mamá nota que Camila olvidó el almuerzo y sale en moto por la misma ruta y en el mismo sentido, a una velocidad constante de 45 km/h. Determina: a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? (en segundos) b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa ocurre? (en metros)',
+{g:'c',n:'8',name:'Camila y su mamá',fix:'Oficial',
+ txt:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a velocidad constante de 15 km/h. Diez minutos después, su mamá se da cuenta de que olvidó el almuerzo y sale en moto por la misma ruta, en el mismo sentido, a 45 km/h. Determina (en unidades SI): a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa se produce el alcance?',
  s:[['Tipo de problema','Velocidades constantes: <b>MRU</b>. La palabra "alcanza" indica que debes <b>igualar distancias</b>.'],
     ['Conversión',c(`Camila: 15 ÷ 3,6 = 25/6 m/s (≈ 4,17 m/s)<br>Mamá: 45 ÷ 3,6 = 12,5 m/s<br>Ventaja: 10 × 60 = 600 s`)],
     ['Plantea los tiempos',`Si la mamá viaja durante ${m('t')}, Camila viaja durante ${m('t + 600')}, porque salió antes.`+c(m(`12,5·t = ${fr('25','6')}(t + 600)`))],
@@ -313,8 +313,8 @@ const P=[
     ['c) Distancia: d = v · t',c(m('d = 12,5 · 300')+' = <b>3750 m</b>')],
     ['Comprobación',`Camila viaja 900 s: ${m(fr('25','6')+'· 900')} = 3750 m. Coincide.`],
     ['Respuesta','<b>a) 300 s &nbsp; b) 7:15 a.m. &nbsp; c) 3750 m</b>','final']]},
-{g:'c',n:'9',name:'Robot Fred',fix:'Ajustada',orig:'Un robot llamado Fred se mueve inicialmente a 2,20 m/s por un pasillo en una terminal espacial. Después acelera a 4,80 m/s en un tiempo de 0,20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',why:'"Acelera a 4,80 m/s" confunde velocidad con aceleración.',
- txt:'Un robot llamado Fred se mueve en línea recta a 2,20 m/s por un pasillo de una terminal espacial. Luego aumenta su velocidad a 4,80 m/s en 0,20 s, sin cambiar de dirección. Determine la magnitud de su aceleración media.',
+{g:'c',n:'9',name:'Robot Fred',fix:'Oficial',
+ txt:'Un robot llamado Fred se mueve inicialmente a 2.20 m/s por un pasillo en una terminal espacial. Después acelera a 4.80 m/s en un tiempo de 0.20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',
  s:[['Datos',c(`${m(V0)} = 2,20 m/s<br>${m(VF)} = 4,80 m/s<br>${m('t')} = 0,20 s<br>Buscas: ${m('a')}`)],
     ['¿Qué fórmula?',`La aceleración mide cuánto cambia la velocidad en cada segundo. Usa la <b>fórmula A</b> despejada.`+c(m(`a = ${fr(VF+' − '+V0,'t')}`))],
     ['Cambio de velocidad',c('4,80 − 2,20 = 2,60 m/s')],
