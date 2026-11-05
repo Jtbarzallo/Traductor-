@@ -114,6 +114,12 @@ input.blank[type=text]{font:italic 500 1.05rem var(--math);padding:2px 4px;text-
 input.blank.ok{border-color:var(--good);background:var(--good-soft)}
 input.blank.no{border-color:var(--red);background:var(--red-soft)}
 .fix{color:var(--red);font-weight:700;margin-left:5px}
+.plan{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px 18px;background:var(--blue-soft);padding:14px;border-radius:4px}
+.plan>div{min-width:0}
+.plan ul{margin:5px 0 0;padding:0;list-style:none;display:grid;gap:5px}
+.pm{font-family:var(--math);font-size:1.05rem;line-height:1.5;display:inline-block}
+.pm sub{font-size:.68em}
+.pf .pm{font-style:italic;color:var(--blue);font-size:1.12rem}
 </style>
 </head>
 <body>
@@ -246,7 +252,7 @@ input.blank.no{border-color:var(--red);background:var(--red-soft)}
 <section class="view" id="problemas" hidden>
   <div class="grp">
     <h2>Problemas resueltos</h2>
-    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Todos los del cuaderno usan el enunciado oficial.</p>
+    <p class="note">Cada problema muestra sus variables, incógnitas y fórmulas. Copia ese orden en tu hoja e intenta cada paso antes de abrirlo. Todos los del cuaderno usan el enunciado oficial.</p>
     <div id="ppick"></div>
   </div>
   <div class="grp" id="pbody"></div>
@@ -391,13 +397,40 @@ const P=[
 {g:'e',n:'13',name:'Tiempo de reacción',txt:'Un conductor va a 72 km/h y ve un obstáculo. Tarda 0,5 s en reaccionar y luego frena a 5 m/s² hasta detenerse. ¿Qué distancia total recorre desde que ve el obstáculo?',
  s:[['Conversión',c('72 ÷ 3,6 = 20 m/s')],['Mientras reacciona: MRU','Todavía no frena.'+c(m('d = 20 · 0,5')+' = 10 m')],['Mientras frena: fórmula C',c(m(`d = ${fr('0² − 20²','2(−5)')}`)+' = 40 m')],['Respuesta','<b>10 + 40 = 50 m</b>','final']]}
 ];
+const FA=`${VF} = ${V0} + a·t`,FAa=`a = ${fr(VF+' − '+V0,'t')}`,FB=`d = ${V0}·t + ½·a·t²`,FC=`${VF}² = ${V0}² + 2·a·d`,FD=`d = ${fr(V0+' + '+VF,'2')}·t`,FU='d = v·t',FQ=`t = ${fr('−b ± √(b² − 4ac)','2a')}`;
+const sb=(a,b)=>`${a}<sub>${b}</sub>`;
+const PLAN={
+ c8:{v:[`Hora de salida = 7:00 a.m.`,`${sb('v','C')} = 15 km/h = 25/6 m/s`,`${sb('v','M')} = 45 km/h = 12,5 m/s`,`Retraso = 10 min = 600 s`],i:[`t = tiempo de la mamá hasta el alcance`,`Hora del alcance`,`d = distancia desde la casa`],f:[FU,`${sb('d','M')} = ${sb('d','C')}`,`${sb('t','C')} = t + 600`]},
+ c9:{v:[`${V0} = 2,20 m/s`,`${VF} = 4,80 m/s`,`t = 0,20 s`],i:[`a = aceleración media`],f:[FAa]},
+ c14:{v:[`${V0} = 0`,`${VF} = 108 km/h = 30 m/s`,`t = 6 s`,`Para el literal c: d = 40 m`],i:[`a) a`,`b) d en los 6 s`,`c) ${VF} a los 40 m, en km/h`],f:[FAa,FD,FC]},
+ c15:{v:[`${sb('v','M')} = 72 km/h = 20 m/s (constante)`,`${V0} de la patrulla = 0`,`a de la patrulla = 2 m/s²`],i:[`a) t del alcance`,`b) d del alcance`,`c) ${VF} de la patrulla, en km/h`],f:[`Moto: ${FU}`,`Patrulla: ${FB}`,`${sb('d','M')} = ${sb('d','P')}`,FA]},
+ c16:{v:[`${sb('v','A')} = 20 m/s (constante)`,`${V0} de la moto = 0`,`a de la moto = 4 m/s²`,`La moto empieza 80 m detrás de A`],i:[`t del alcance`,`x = distancia desde A`],f:[`Auto: x = v·t`,`Moto: x = −80 + ½·a·t²`,`${sb('x','A')} = ${sb('x','M')}`,FQ]},
+ c17:{v:[`Auto 1: ${V0} = 20 mi/h, a = 4 mi/h², sale 8:00`,`Auto 2: ${V0} = 30 mi/h, a = 2 mi/h², sale 8:30`,`Retraso = 0,5 h`,`D = distancia entre ciudades: <b>no la dan</b>`],i:[`Hora del encuentro`,`${sb('d','1')} = distancia desde A`],f:[FB,`${sb('d','1')} + ${sb('d','2')} = D`,FQ]},
+ c18:{v:[`Auto: ${V0} = 36 mi/h = 52,8 ft/s, a = 6 ft/s²`,`Moto: ${V0} = 54 mi/h = 79,2 ft/s, a = 4 ft/s²`,`Retraso = 10 s`],i:[`t = tiempo de la moto hasta el alcance`,`d = distancia de la moto`],f:[FB,`${sb('d','A')} = ${sb('d','M')}`,`${sb('t','A')} = t + 10`,FQ]},
+ e1:{v:[`v = 72 km/h = 20 m/s`,`t = 15 min = 900 s`],i:[`d`],f:[FU]},
+ e2:{v:[`${V0} = 0`,`${VF} = 25 m/s`,`t = 10 s`],i:[`a`,`d`],f:[FAa,FD]},
+ e3:{v:[`${V0} = 20 m/s`,`${VF} = 0`,`d = 50 m`],i:[`a`,`t`],f:[`a = ${fr(VF+'² − '+V0+'²','2d')}`,`t = ${fr(VF+' − '+V0,'a')}`]},
+ e4:{v:[`${V0} = 0`,`a = 4 m/s²`,`d = 800 m`],i:[`${VF}`,`t`],f:[FC,`t = ${fr(VF+' − '+V0,'a')}`]},
+ e5:{v:[`${V0} = 4 m/s`,`a = 2 m/s²`,`t = 6 s`],i:[`${VF}`,`d`],f:[FA,FB]},
+ e6:{v:[`${V0} = 3 m/s`,`a = 2 m/s²`,`n = 7`],i:[`${sb('d','7')}`],f:[`${sb('d','n')} = ${V0} + a(n − ½)`]},
+ e7:{v:[`D = 3000 m`,`${sb('v','1')} = 20 m/s`,`${sb('v','2')} = 30 m/s`],i:[`t`,`${sb('d','1')}`],f:[FU,`${sb('d','1')} + ${sb('d','2')} = D`]},
+ e8:{v:[`${sb('v','L')} = 8 m/s`,`${sb('v','P')} = 10 m/s`,`Ventaja = 100 m`],i:[`t`,`${sb('d','P')}`],f:[FU,`${sb('d','P')} = ${sb('d','L')} + 100`]},
+ e9:{v:[`${sb('v','A')} = 20 m/s (constante)`,`${V0} de la patrulla = 0`,`a de la patrulla = 4 m/s²`],i:[`t`,`d`,`${VF} de la patrulla`],f:[`Auto: ${FU}`,`Patrulla: ${FB}`,`${sb('d','A')} = ${sb('d','P')}`,FA]},
+ e10:{v:[`${sb('v','B')} = 15 m/s (constante)`,`${V0} de la moto = 0`,`a de la moto = 3 m/s²`,`Retraso = 5 s`],i:[`t = tiempo de la moto`,`d`],f:[`Bus: d = v(t + 5)`,`Moto: ${FB}`,`${sb('d','B')} = ${sb('d','M')}`,FQ]},
+ e11:{v:[`Tramo 1: ${V0} = 0, a = 2 m/s², t = 10 s`,`Tramo 2: t = 30 s, v constante`,`Tramo 3: t = 5 s, ${VF} = 0`],i:[`${sb('d','total')}`],f:[FA,FB,FU,FD,`${sb('d','total')} = ${sb('d','1')} + ${sb('d','2')} + ${sb('d','3')}`]},
+ e12:{v:[`${V0} = 60 mi/h = 88 ft/s`,`${VF} = 0`,`a = −11 ft/s²`],i:[`t`,`d`],f:[`t = ${fr(VF+' − '+V0,'a')}`,FD]},
+ e13:{v:[`${V0} = 72 km/h = 20 m/s`,`Tiempo de reacción = 0,5 s`,`a = −5 m/s²`,`${VF} = 0`],i:[`${sb('d','total')}`],f:[FU,`d = ${fr(VF+'² − '+V0+'²','2a')}`]}
+};
+P.forEach(p=>{p.plan=PLAN[p.g+p.n];if(!p.plan)throw 'sin plan '+p.n;p.s=p.s.filter(s=>!['Datos','Datos y conversión','Conversión'].includes(s[0]))});
+const li=a=>`<ul>${a.map(x=>`<li><span class="pm">${x}</span></li>`).join('')}</ul>`;
+const planHTML=q=>`<div class="plan"><div><span class="tag">Variables (datos)</span>${li(q.v)}</div><div><span class="tag">Incógnitas</span>${li(q.i)}</div><div class="pf"><span class="tag">Fórmulas que se usan</span>${li(q.f)}</div></div>`;
 let pi=0,ps=0;
 function drawProb(){
  const pills=g=>P.map((p,i)=>p.g===g?`<button class="pill" aria-pressed="${i===pi}" data-i="${i}">${p.n}</button>`:'').join('');
  $('#ppick').innerHTML=`<span class="tag">Del cuaderno</span><div class="pick">${pills('c')}</div><span class="tag">Más ejercicios</span><div class="pick">${pills('e')}</div>`;
  const p=P[pi];
  $('#pbody').innerHTML=`<h3>${p.g==='c'?'Problema':'Ejercicio'} ${p.n}: ${p.name}</h3>`+(p.fix?`<span class="tag">${p.fix==='Oficial'?'Enunciado oficial':'Redacción '+p.fix.toLowerCase()}</span>`:'')+`<p class="statement">${p.txt}</p>`+
-  (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+`<div class="steps">`+
+  (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+planHTML(p.plan)+`<div class="steps">`+
   p.s.slice(0,ps).map(s=>`<div class="step ${s[2]||''}"><b class="t">${s[0]}</b>${s[1]}</div>`).join('')+`</div>`+
   `<div class="row">`+(ps<p.s.length?`<button class="btn" id="nx">${ps?'Siguiente paso':'Ver el primer paso'}</button><button class="btn alt" id="all">Ver todo</button>`:'')+(ps?`<button class="btn alt" id="rs">Empezar de nuevo</button>`:'')+`<span class="note">${ps} de ${p.s.length} pasos</span></div>`;
 }
