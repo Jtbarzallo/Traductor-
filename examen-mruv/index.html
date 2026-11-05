@@ -28,7 +28,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 header.top{padding-block:28px 14px}
 h1{font:700 clamp(2rem,7vw,3rem)/1.05 var(--hand);color:var(--red);margin:0;text-wrap:balance}
 .lead{margin:8px 0 0;color:var(--soft);max-width:62ch}
-nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-block:8px;border-bottom:2px solid var(--ink)}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;padding-block:8px;border-bottom:2px solid var(--ink)}
 nav button{font:700 .92rem var(--body);background:none;border:0;color:var(--soft);padding:9px 2px;border-radius:6px;cursor:pointer}
 nav button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
 h2{font:700 1.6rem/1.2 var(--hand);margin:0;color:var(--ink);text-wrap:balance}
@@ -91,8 +91,29 @@ input[type=text]{font:700 1.15rem var(--body);width:9em;max-width:100%;padding:9
 .big{font:700 3rem var(--hand);color:var(--red);line-height:1}
 svg text{font:13px var(--body);fill:var(--soft)}
 svg .v{fill:var(--ink);font-weight:700}
-@media (max-width:440px){nav button{font-size:.82rem}.f .eq{font-size:1.32rem}.step .calc{font-size:1.08rem}}
+@media (max-width:440px){nav button{font-size:.72rem;padding-inline:0}.srow{grid-template-columns:minmax(0,1fr)!important}.f .eq{font-size:1.32rem}.step .calc{font-size:1.08rem}}
 @media (prefers-reduced-motion:no-preference){.step{animation:in .18s ease-out}@keyframes in{from{transform:translateY(5px)}to{transform:none}}}
+.orig{font-size:.95rem;color:var(--soft)}
+.orig summary{cursor:pointer;font-weight:700}
+.orig p{margin:8px 0 0}
+#ppick{display:grid;gap:6px}
+.sheet{display:grid;gap:0;background:var(--card);border:1px solid var(--line);border-radius:4px}
+.srow{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:4px 12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .note{font-size:.88rem}
+.cover{font:italic 500 1.2rem/1.5 var(--math);text-align:left;background:none;border:0;color:var(--blue);padding:3px 6px;cursor:pointer;border-radius:3px;min-width:0;width:100%}
+.cover sub{font-size:.65em}
+.cover[aria-pressed="true"]{background:var(--blue-soft)}
+.cover[aria-pressed="true"] span{visibility:hidden}
+.mrow{display:grid;gap:4px;padding-block:10px;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mq{font:italic 500 1.2rem/2.2 var(--math);color:var(--blue)}
+.mq sub{font-size:.65em}
+.bw{display:inline-block;white-space:nowrap}
+input.blank[type=text]{font:italic 500 1.05rem var(--math);padding:2px 4px;text-align:center;max-width:7em;background:var(--paper);vertical-align:baseline}
+input.blank.ok{border-color:var(--good);background:var(--good-soft)}
+input.blank.no{border-color:var(--red);background:var(--red-soft)}
+.fix{color:var(--red);font-weight:700;margin-left:5px}
 </style>
 </head>
 <body>
@@ -100,11 +121,12 @@ svg .v{fill:var(--ink);font-weight:700}
 <div class="wrap">
 <header class="top">
   <h1>Examen de MRU y MRUV</h1>
-  <p class="lead">Aprende las fórmulas, decide cuál usar y practica con los problemas del cuaderno y con ejercicios nuevos.</p>
+  <p class="lead">Aprende las fórmulas de memoria, decide cuál usar y practica con los problemas del cuaderno y con ejercicios nuevos.</p>
 </header>
 <nav role="tablist" aria-label="Secciones">
   <button role="tab" data-v="formulas" id="tab-formulas">Fórmulas</button>
   <button role="tab" data-v="elegir" id="tab-elegir">¿Cuál uso?</button>
+  <button role="tab" data-v="memorizar" id="tab-memorizar">Memorizar</button>
   <button role="tab" data-v="problemas" id="tab-problemas">Problemas</button>
   <button role="tab" data-v="practica" id="tab-practica">Practicar</button>
 </nav>
@@ -202,11 +224,30 @@ svg .v{fill:var(--ink);font-weight:700}
   </div>
 </section>
 
+<section class="view" id="memorizar" hidden>
+  <div class="grp">
+    <h2>Formulario para memorizar</h2>
+    <p class="note">Lee una fórmula, tócala para taparla y dila en voz alta. Tócala otra vez para comprobar.</p>
+    <div class="row"><button class="btn alt" id="covAll">Tapar todas</button><button class="btn alt" id="covNone">Mostrar todas</button></div>
+    <div class="sheet" id="sheet"></div>
+  </div>
+  <div class="grp">
+    <h2>Completa de memoria</h2>
+    <p class="note">Escribe lo que falta, sin mirar. Para <span class="m">v<sub>0</sub></span> escribe v0 y para <span class="m">v<sub>f</sub></span> escribe vf. Respeta el orden de cada fórmula.</p>
+    <div class="pick" id="lvls"></div>
+    <form id="mform" class="qcard" autocomplete="off">
+      <div id="mrows"></div>
+      <div class="row"><button class="btn">Revisar</button><button class="btn alt" type="button" id="mnew">Otras casillas</button></div>
+      <p class="verdict" id="mres" aria-live="polite"></p>
+    </form>
+  </div>
+</section>
+
 <section class="view" id="problemas" hidden>
   <div class="grp">
-    <h2>Problemas del cuaderno</h2>
-    <p class="note">Intenta cada paso en una hoja antes de abrirlo.</p>
-    <div class="pick" id="ppick"></div>
+    <h2>Problemas resueltos</h2>
+    <p class="note">Intenta cada paso en una hoja antes de abrirlo. Los del cuaderno ya tienen la redacción revisada.</p>
+    <div id="ppick"></div>
   </div>
   <div class="grp" id="pbody"></div>
 </section>
@@ -214,7 +255,7 @@ svg .v{fill:var(--ink);font-weight:700}
 <section class="view" id="practica" hidden>
   <div class="grp">
     <h2>Practicar como en el examen</h2>
-    <p class="note">Cada ronda tiene 8 preguntas con números nuevos. Resuelve en una hoja y escribe solo el número.</p>
+    <p class="note">Cada ronda tiene 8 preguntas con números al azar, así que puedes repetirla sin agotar ejercicios. Resuelve en una hoja y escribe solo el número.</p>
     <div class="pick" id="tpick"></div>
   </div>
   <div id="qarea" class="grp"></div>
@@ -261,48 +302,129 @@ drawPick();
 /* ---------- Problemas ---------- */
 const c=s=>`<div class="calc">${s}</div>`;
 const P=[
-{n:'9',name:'Robot Fred',txt:'Un robot llamado Fred se mueve inicialmente a 2,20 m/s por un pasillo en una terminal espacial. Después acelera a 4,80 m/s en un tiempo de 0,20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',
+{g:'c',n:'9',name:'Robot Fred',fix:'Ajustada',orig:'Un robot llamado Fred se mueve inicialmente a 2,20 m/s por un pasillo en una terminal espacial. Después acelera a 4,80 m/s en un tiempo de 0,20 s. Determine el tamaño o la magnitud de su aceleración media a lo largo de la trayectoria recorrida.',why:'"Acelera a 4,80 m/s" confunde velocidad con aceleración.',
+ txt:'Un robot llamado Fred se mueve en línea recta a 2,20 m/s por un pasillo de una terminal espacial. Luego aumenta su velocidad a 4,80 m/s en 0,20 s, sin cambiar de dirección. Determine la magnitud de su aceleración media.',
  s:[['Datos',c(`${m(V0)} = 2,20 m/s<br>${m(VF)} = 4,80 m/s<br>${m('t')} = 0,20 s<br>Buscas: ${m('a')}`)],
-    ['¿Qué fórmula?',`Tienes ${m(V0)}, ${m(VF)} y ${m('t')}, y la distancia no aparece. Usa la <b>fórmula A</b> despejada.`+c(m(`a = ${fr(VF+' − '+V0,'t')}`))],
-    ['Cálculo',c(m(`a = ${fr('4,80 − 2,20','0,20')} = ${fr('2,60','0,20')}`))],
+    ['¿Qué fórmula?',`La aceleración mide cuánto cambia la velocidad en cada segundo. Usa la <b>fórmula A</b> despejada.`+c(m(`a = ${fr(VF+' − '+V0,'t')}`))],
+    ['Cambio de velocidad',c('4,80 − 2,20 = 2,60 m/s')],
+    ['Divide por el tiempo',c(m(`a = ${fr('2,60','0,20')}`)+' = 13 m/s²')],
     ['Respuesta','<b>a = 13 m/s²</b>','final']]},
-{n:'14',name:'Motociclista',txt:'Un motociclista que hace domicilios sale detenido en un semáforo y acelera uniformemente hasta alcanzar 108 km/h en 6 s. Determina: a) Aceleración en m/s². b) La distancia de frenado en metros. c) La distancia que recorre el bus durante el quinto segundo de frenado.',
- s:[['Datos y conversión',c(`${m(V0)} = 0 &nbsp;(sale detenido)<br>${m(VF)} = 108 ÷ 3,6 = 30 m/s<br>${m('t')} = 6 s`)],
-    ['a) Aceleración: fórmula A',c(m(`a = ${fr('30 − 0','6')}`)+' = <b>5 m/s²</b>')],
-    ['b) Distancia: fórmula D',c(m(`d = ${fr('0 + 30','2')}·6`)+' = <b>90 m</b>')+'Da igual si acelera de 0 a 30 m/s o si frena de 30 m/s a 0 en 6 s.'],
-    ['Cuidado con el enunciado','Dice que acelera, pero b) y c) hablan de frenado, y c) dice "bus". Conviene preguntarle a la docente. El frenado es el caso que pide el literal c.','warn'],
-    ['c) Quinto segundo frenando',`Frena con ${m('a = −5 m/s²')} desde 30 m/s. El quinto segundo es ${m('n = 5')}.`+c(m('d<sub>5</sub> = 30 + (−5)(5 − ½)')+'<br>'+m('d<sub>5</sub> = 30 − 22,5')+' = <b>7,5 m</b>')],
-    ['c) Si en realidad acelerara',c(m('d<sub>5</sub> = 0 + 5(5 − ½)')+' = <b>22,5 m</b>')],
-    ['Respuesta','<b>a) 5 m/s² &nbsp; b) 90 m &nbsp; c) 7,5 m</b> frenando (22,5 m si acelerara)','final']]},
-{n:'8',name:'Camila y su mamá',txt:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a velocidad constante de 15 km/h. Diez minutos después, su mamá se da cuenta de que olvidó el almuerzo y sale en moto por la misma ruta, en el mismo sentido, a 45 km/h. Determina (en unidades SI): a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa se produce el alcance?',
+{g:'c',n:'14',name:'Motociclista',fix:'Corregida',orig:'Un motociclista que hace domicilios sale detenido en un semáforo y acelera uniformemente hasta alcanzar 108 km/h en 6 s. Determina: a) Aceleración en m/s². b) La distancia de frenado en metros. c) La distancia que recorre el bus durante el quinto segundo de frenado.',why:'Dice que acelera, pero pregunta por el frenado, y cambia de motociclista a bus. Confirma esta versión con la docente.',
+ txt:'Un motociclista que hace domicilios viaja a 108 km/h y frena de manera uniforme hasta detenerse en 6 s. Determina: a) Su aceleración en m/s². b) La distancia de frenado en metros. c) La distancia que recorre durante el quinto segundo de frenado.',
+ s:[['Datos y conversión',`Frenar hasta detenerse significa ${m(VF+' = 0')}.`+c(`${m(V0)} = 108 ÷ 3,6 = 30 m/s<br>${m(VF)} = 0<br>${m('t')} = 6 s`)],
+    ['a) Aceleración: fórmula A',c(m(`a = ${fr('0 − 30','6')}`)+' = <b>−5 m/s²</b>')+'El signo negativo indica que la velocidad baja 5 m/s cada segundo.'],
+    ['b) Distancia: fórmula D','Conoces las dos velocidades y el tiempo, así que usas la velocidad promedio.'+c(m(`d = ${fr('30 + 0','2')}·6`)+' = <b>90 m</b>')],
+    ['c) ¿Qué es el quinto segundo?',`Es el tramo de ${m('t = 4')} a ${m('t = 5')}. No son los primeros 5 s.`],
+    ['c) Velocidades del tramo',c(`A los 4 s: 30 − 5·4 = 10 m/s<br>A los 5 s: 30 − 5·5 = 5 m/s`)],
+    ['c) Distancia del tramo',c(m(`d = ${fr('10 + 5','2')}·1`)+' = <b>7,5 m</b>')+`Con la fórmula directa: ${m('d<sub>5</sub> = 30 − 5(5 − ½)')} = 7,5 m.`],
+    ['Comprobación','Metros de cada segundo: 27,5 + 22,5 + 17,5 + 12,5 + 7,5 + 2,5 = 90 m. Coincide con el literal b.'],
+    ['Respuesta','<b>a) −5 m/s² &nbsp; b) 90 m &nbsp; c) 7,5 m</b>','final'],
+    ['Si la docente quería que acelerara','Partiría del reposo hasta 108 km/h en 6 s: a = 5 m/s², d = 90 m y el quinto segundo mide 22,5 m.','warn']]},
+{g:'c',n:'8',name:'Camila y su mamá',fix:'Ajustada',orig:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a velocidad constante de 15 km/h. Diez minutos después, su mamá se da cuenta de que olvidó el almuerzo y sale en moto por la misma ruta, en el mismo sentido, a 45 km/h. Determina (en unidades SI): a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa se produce el alcance?',why:'"Olvidó" no aclara quién olvidó el almuerzo, y falta decir que la velocidad de la moto es constante.',
+ txt:'Camila sale de su casa a las 7:00 a.m. hacia el colegio en bicicleta, a una velocidad constante de 15 km/h. Diez minutos después, su mamá nota que Camila olvidó el almuerzo y sale en moto por la misma ruta y en el mismo sentido, a una velocidad constante de 45 km/h. Determina: a) ¿Cuánto tiempo después de salir la mamá alcanza a Camila? (en segundos) b) ¿A qué hora ocurre el alcance? c) ¿A qué distancia de la casa ocurre? (en metros)',
  s:[['Tipo de problema','Velocidades constantes: <b>MRU</b>. La palabra "alcanza" indica que debes <b>igualar distancias</b>.'],
-    ['Datos y conversión',c(`Camila: 15 ÷ 3,6 = 4,17 m/s<br>Mamá: 45 ÷ 3,6 = 12,5 m/s<br>Ventaja: 10 × 60 = 600 s`)+`Usa la fracción exacta para Camila, 25/6, y así evitas errores de redondeo.`],
-    ['Plantea los tiempos',`Sea ${m('t')} el tiempo de la mamá. Camila salió antes, así que su tiempo es ${m('t + 600')}.`+c(m('d<sub>mamá</sub> = d<sub>Camila</sub>')+'<br>'+m(`12,5·t = ${fr('25','6')}(t + 600)`))],
-    ['a) Despeja t',c(m(`12,5·t = ${fr('25','6')}·t + 2500`)+'<br>'+m(`${fr('25','3')}·t = 2500`)+'<br>'+m('t')+' = <b>300 s</b> (5 min)')],
-    ['b) Hora','La mamá salió a las 7:10 y tarda 5 min: <b>7:15 a.m.</b>'],
-    ['c) Distancia: d = v · t',c(m('d = 12,5 · 300')+' = <b>3750 m</b>')+`Comprueba con Camila: ${m(fr('25','6')+'· 900')} = 3750 m. Coincide.`],
+    ['Conversión',c(`Camila: 15 ÷ 3,6 = 25/6 m/s (≈ 4,17 m/s)<br>Mamá: 45 ÷ 3,6 = 12,5 m/s<br>Ventaja: 10 × 60 = 600 s`)],
+    ['Plantea los tiempos',`Si la mamá viaja durante ${m('t')}, Camila viaja durante ${m('t + 600')}, porque salió antes.`+c(m(`12,5·t = ${fr('25','6')}(t + 600)`))],
+    ['Multiplica el paréntesis',c(m(`12,5·t = ${fr('25','6')}·t + 2500`))],
+    ['a) Agrupa y despeja t',c(m(`(12,5 − ${fr('25','6')})·t = 2500`)+'<br>'+m(`${fr('25','3')}·t = 2500`)+'<br>'+m('t')+' = <b>300 s</b> (5 min)')],
+    ['b) Hora','La mamá sale a las 7:10 y tarda 5 min: <b>7:15 a.m.</b>'],
+    ['c) Distancia: d = v · t',c(m('d = 12,5 · 300')+' = <b>3750 m</b>')],
+    ['Comprobación',`Camila viaja 900 s: ${m(fr('25','6')+'· 900')} = 3750 m. Coincide.`],
     ['Respuesta','<b>a) 300 s &nbsp; b) 7:15 a.m. &nbsp; c) 3750 m</b>','final']]},
-{n:'18',name:'Automóvil y motocicleta',txt:'Un automóvil pasa por un punto A con una velocidad inicial de 54 mi/h y continúa acelerando uniformemente a razón de 6 ft/s². 10 segundos después, una motocicleta pasa por el mismo punto A, con una velocidad inicial de 36 mi/h, manteniendo una aceleración constante de 4 ft/s². ¿Cuánto tiempo después de que parte la motocicleta alcanza el automóvil y qué distancia ha recorrido la motocicleta hasta ese instante?',
- s:[['Tipo de problema','Los dos aceleran: <b>MRUV</b> con <b>alcance</b>. Para cada uno usa la fórmula B e iguala distancias.'],
-    ['Datos y conversión',c(`Auto: 54 × 22/15 = 79,2 ft/s, ${m('a')} = 6 ft/s²<br>Moto: 36 × 22/15 = 52,8 ft/s, ${m('a')} = 4 ft/s²`)],
-    ['Plantea las distancias',`El auto lleva 10 s más: su tiempo es ${m('t + 10')}.`+c('Auto: '+m('d = 79,2(t + 10) + 3(t + 10)²')+'<br>Moto: '+m('d = 52,8·t + 2·t²'))],
-    ['Iguala y ordena',c(m('52,8·t + 2t² = 3t² + 139,2·t + 1092')+'<br>'+m('t² + 86,4·t + 1092 = 0'))],
-    ['Fórmula cuadrática',c(m(`t = ${fr('−86,4 ± √(86,4² − 4·1092)','2')}`)+'<br>'+m('t ≈ −15,4 s')+' &nbsp;o&nbsp; '+m('t ≈ −71,0 s'))],
-    ['Interpreta','Los dos tiempos son negativos. <b>Con estos datos, la moto nunca alcanza al auto</b>: el auto va adelante, y además es más rápido y acelera más. Revisa el enunciado original, porque puede haber un dato cambiado.','warn'],
-    ['Si los datos estuvieran intercambiados',`Auto con 36 mi/h y 4 ft/s²; moto con 54 mi/h y 6 ft/s²:`+c(m('t² − 13,6·t − 728 = 0')+'<br>'+m('t ≈ 34,6 s')+', '+m('d ≈ 6339 ft'))],
-    ['Respuesta','<b>Tal como está escrito: no hay alcance.</b> Si los datos fueron intercambiados: t ≈ 34,6 s y d ≈ 6339 ft.','final']]}
+{g:'c',n:'18',name:'Automóvil y motocicleta',fix:'Corregida',orig:'Un automóvil pasa por un punto A con una velocidad inicial de 54 mi/h y continúa acelerando uniformemente a razón de 6 ft/s². 10 segundos después, una motocicleta pasa por el mismo punto A, con una velocidad inicial de 36 mi/h, manteniendo una aceleración constante de 4 ft/s². ¿Cuánto tiempo después de que parte la motocicleta alcanza el automóvil y qué distancia ha recorrido la motocicleta hasta ese instante?',why:'La moto, más lenta y con menor aceleración, nunca alcanza al auto: los dos tiempos salen negativos. Aquí se intercambiaron los datos de los vehículos. Confirma esta versión con la docente.',
+ txt:'Un automóvil pasa por un punto A a 36 mi/h y continúa acelerando uniformemente a razón de 4 ft/s². Diez segundos después, una motocicleta pasa por el mismo punto A a 54 mi/h, con una aceleración constante de 6 ft/s². ¿Cuánto tiempo después de pasar por A alcanza la motocicleta al automóvil, y qué distancia ha recorrido desde A hasta ese instante?',
+ s:[['Conversión',c(`Auto: 36 × 22/15 = 52,8 ft/s<br>Moto: 54 × 22/15 = 79,2 ft/s`)],
+    ['Plantea los tiempos',`Si la moto viaja durante ${m('t')}, el auto viaja durante ${m('t + 10')}. Usa la <b>fórmula B</b> para cada uno.`+c('Moto: '+m('d = 79,2·t + 3t²')+'<br>Auto: '+m('d = 52,8(t + 10) + 2(t + 10)²'))],
+    ['Desarrolla la distancia del auto',`Recuerda que ${m('(t + 10)² = t² + 20t + 100')}.`+c(m('d = 52,8t + 528 + 2t² + 40t + 200')+'<br>'+m('d = 2t² + 92,8t + 728'))],
+    ['Iguala las distancias',c(m('79,2t + 3t² = 2t² + 92,8t + 728')+'<br>'+m('t² − 13,6t − 728 = 0'))],
+    ['Fórmula cuadrática',c(m(`t = ${fr('13,6 ± √(13,6² + 4·728)','2')}`)+'<br>'+m(`t = ${fr('13,6 ± 55,65','2')}`))],
+    ['Elige la raíz válida',c(m('t ≈ 34,6 s')+' &nbsp;y&nbsp; '+m('t ≈ −21,0 s'))+'Se descarta la negativa, porque el alcance ocurre después de que la moto pasa por A.'],
+    ['Distancia de la moto',c(m('d = 79,2(34,63) + 3(34,63)²')+' ≈ <b>6339 ft</b>')],
+    ['Comprobación',c('Auto, 44,63 s: '+m('52,8(44,63) + 2(44,63)²')+' ≈ 6339 ft')+'Coincide.'],
+    ['Respuesta','<b>t ≈ 34,6 s &nbsp; d ≈ 6339 ft</b> (≈ 1,2 mi)','final']]},
+{g:'e',n:'1',name:'Tren',txt:'Un tren viaja a una velocidad constante de 72 km/h durante 15 minutos. ¿Qué distancia recorre, en metros?',
+ s:[['Conversión',c('v = 72 ÷ 3,6 = 20 m/s<br>t = 15 × 60 = 900 s')],['Fórmula MRU',c(m('d = v · t = 20 · 900'))],['Respuesta','<b>d = 18 000 m</b> (18 km)','final']]},
+{g:'e',n:'2',name:'Arranque',txt:'Un auto parte del reposo y alcanza 25 m/s en 10 s con aceleración constante. Halla: a) su aceleración, b) la distancia recorrida.',
+ s:[['Datos',c(`${m(V0+' = 0')} (reposo), ${m(VF+' = 25 m/s')}, ${m('t = 10 s')}`)],['a) Fórmula A',c(m(`a = ${fr('25 − 0','10')}`)+' = 2,5 m/s²')],['b) Fórmula D',c(m(`d = ${fr('0 + 25','2')}·10`)+' = 125 m')],['Respuesta','<b>a) 2,5 m/s² &nbsp; b) 125 m</b>','final']]},
+{g:'e',n:'3',name:'Frenada sin tiempo',txt:'Un carro a 20 m/s frena y se detiene en 50 m. Halla: a) su aceleración, b) el tiempo de frenado.',
+ s:[['¿Qué fórmula?',`No te dan tiempo: usa la <b>fórmula C</b>. Además, ${m(VF+' = 0')}.`],['a) Aceleración',c(m(`a = ${fr('0² − 20²','2·50')} = ${fr('−400','100')}`)+' = −4 m/s²')],['b) Tiempo: fórmula A',c(m(`t = ${fr('0 − 20','−4')}`)+' = 5 s')],['Respuesta','<b>a) −4 m/s² &nbsp; b) 5 s</b>','final']]},
+{g:'e',n:'4',name:'Avión',txt:'Un avión parte del reposo y acelera a 4 m/s² por una pista de 800 m. Halla: a) su velocidad al final de la pista, b) el tiempo que tarda.',
+ s:[['a) Fórmula C',c(m(VF+'² = 0 + 2·4·800 = 6400')+'<br>'+m(VF+' = √6400')+' = 80 m/s')],['b) Fórmula A',c(m(`t = ${fr('80 − 0','4')}`)+' = 20 s')],['Respuesta','<b>a) 80 m/s &nbsp; b) 20 s</b>','final']]},
+{g:'e',n:'5',name:'Ciclista',txt:'Un ciclista va a 4 m/s y acelera a 2 m/s² durante 6 s. Halla: a) su velocidad final, b) la distancia recorrida.',
+ s:[['a) Fórmula A',c(m(VF+' = 4 + 2·6')+' = 16 m/s')],['b) Fórmula B',c(m('d = 4·6 + ½·2·6² = 24 + 36')+' = 60 m')],['Comprobación con la fórmula D',c(m(`d = ${fr('4 + 16','2')}·6`)+' = 60 m')],['Respuesta','<b>a) 16 m/s &nbsp; b) 60 m</b>','final']]},
+{g:'e',n:'6',name:'Séptimo segundo',txt:'Un móvil tiene velocidad inicial de 3 m/s y acelera a 2 m/s². ¿Qué distancia recorre durante el séptimo segundo?',
+ s:[['Identifica n',`El séptimo segundo va de ${m('t = 6')} a ${m('t = 7')}, así que ${m('n = 7')}.`],['Fórmula',c(m('d<sub>7</sub> = 3 + 2(7 − ½) = 3 + 13'))],['Respuesta','<b>16 m</b>','final']]},
+{g:'e',n:'7',name:'Autos de frente',txt:'Dos autos están separados 3000 m y viajan uno hacia el otro a velocidades constantes de 20 m/s y 30 m/s. Salen al mismo tiempo. ¿Cuándo se encuentran y a qué distancia del primer auto?',
+ s:[['Plantea','Van en sentidos opuestos, así que sus distancias <b>suman</b> la separación.'+c(m('20t + 30t = 3000'))],['Tiempo',c(m('50t = 3000')+', '+m('t')+' = 60 s')],['Distancia',c(m('d = 20 · 60')+' = 1200 m')],['Respuesta','<b>60 s, a 1200 m del primer auto</b>','final']]},
+{g:'e',n:'8',name:'Policía y ladrón',txt:'Un ladrón corre a 8 m/s con 100 m de ventaja. Un policía lo persigue a 10 m/s. Ambos arrancan a la vez y mantienen su velocidad. ¿Cuánto tarda en alcanzarlo y qué distancia recorre el policía?',
+ s:[['Plantea','El policía debe recorrer lo mismo que el ladrón, más la ventaja.'+c(m('10t = 8t + 100'))],['Tiempo',c(m('2t = 100')+', '+m('t')+' = 50 s')],['Distancia',c(m('d = 10 · 50')+' = 500 m')],['Respuesta','<b>50 s y 500 m</b>','final']]},
+{g:'e',n:'9',name:'Patrulla',txt:'Un auto pasa a 20 m/s constantes junto a una patrulla detenida. En ese instante, la patrulla acelera a 4 m/s². Halla: a) cuándo lo alcanza, b) a qué distancia, c) la velocidad de la patrulla en ese momento.',
+ s:[['Plantea','Auto en MRU y patrulla en MRUV, con el mismo tiempo.'+c(m('20t = ½·4·t²'))],['a) Tiempo',`Divide entre ${m('t')}, porque ${m('t = 0')} es solo el inicio.`+c(m('20 = 2t')+', '+m('t')+' = 10 s')],['b) Distancia',c(m('d = 20 · 10')+' = 200 m')],['c) Velocidad',c(m(VF+' = 0 + 4 · 10')+' = 40 m/s')],['Respuesta','<b>a) 10 s &nbsp; b) 200 m &nbsp; c) 40 m/s</b>','final']]},
+{g:'e',n:'10',name:'Moto tras el bus',txt:'Un bus pasa por un punto a 15 m/s constantes. Cinco segundos después, una moto arranca desde el reposo en ese punto con aceleración de 3 m/s². ¿Cuánto tarda la moto en alcanzar al bus y a qué distancia?',
+ s:[['Plantea',`El bus lleva 5 s más: su tiempo es ${m('t + 5')}.`+c(m('½·3·t² = 15(t + 5)'))],['Ordena',c(m('1,5t² − 15t − 75 = 0')+'<br>Divide entre 1,5: '+m('t² − 10t − 50 = 0'))],['Cuadrática',c(m(`t = ${fr('10 ± √(100 + 200)','2')}`)+' ≈ 13,66 s')+'La raíz negativa se descarta.'],['Distancia',c(m('d = 1,5(13,66)²')+' ≈ 280 m')],['Comprobación',c(m('15(18,66)')+' ≈ 280 m. Coincide.')],['Respuesta','<b>t ≈ 13,66 s &nbsp; d ≈ 280 m</b>','final']]},
+{g:'e',n:'11',name:'Tres tramos',txt:'Una moto parte del reposo y acelera a 2 m/s² durante 10 s. Luego mantiene su velocidad durante 30 s y finalmente frena hasta detenerse en 5 s. ¿Qué distancia total recorre?',
+ s:[['Tramo 1: acelera',c(m(VF+' = 2 · 10')+' = 20 m/s<br>'+m('d = ½·2·10²')+' = 100 m')],['Tramo 2: constante',c(m('d = 20 · 30')+' = 600 m')],['Tramo 3: frena',`La velocidad final de un tramo es la inicial del siguiente.`+c(m(`d = ${fr('20 + 0','2')}·5`)+' = 50 m')],['Respuesta','<b>100 + 600 + 50 = 750 m</b>','final']]},
+{g:'e',n:'12',name:'Unidades inglesas',txt:'Un auto a 60 mi/h frena con aceleración de 11 ft/s² hasta detenerse. Halla el tiempo y la distancia de frenado en pies.',
+ s:[['Conversión',c('60 × 22/15 = 88 ft/s')],['Tiempo: fórmula A',c(m(`t = ${fr('0 − 88','−11')}`)+' = 8 s')],['Distancia: fórmula D',c(m(`d = ${fr('88 + 0','2')}·8`)+' = 352 ft')],['Respuesta','<b>t = 8 s &nbsp; d = 352 ft</b>','final']]},
+{g:'e',n:'13',name:'Tiempo de reacción',txt:'Un conductor va a 72 km/h y ve un obstáculo. Tarda 0,5 s en reaccionar y luego frena a 5 m/s² hasta detenerse. ¿Qué distancia total recorre desde que ve el obstáculo?',
+ s:[['Conversión',c('72 ÷ 3,6 = 20 m/s')],['Mientras reacciona: MRU','Todavía no frena.'+c(m('d = 20 · 0,5')+' = 10 m')],['Mientras frena: fórmula C',c(m(`d = ${fr('0² − 20²','2(−5)')}`)+' = 40 m')],['Respuesta','<b>10 + 40 = 50 m</b>','final']]}
 ];
 let pi=0,ps=0;
 function drawProb(){
- $('#ppick').innerHTML=P.map((p,i)=>`<button class="pill" aria-pressed="${i===pi}" data-i="${i}">N.º ${p.n}</button>`).join('');
+ const pills=g=>P.map((p,i)=>p.g===g?`<button class="pill" aria-pressed="${i===pi}" data-i="${i}">${p.n}</button>`:'').join('');
+ $('#ppick').innerHTML=`<span class="tag">Del cuaderno</span><div class="pick">${pills('c')}</div><span class="tag">Más ejercicios</span><div class="pick">${pills('e')}</div>`;
  const p=P[pi];
- $('#pbody').innerHTML=`<h3>${p.n}. ${p.name}</h3><p class="statement">${p.txt}</p><div class="steps">`+
+ $('#pbody').innerHTML=`<h3>${p.g==='c'?'Problema':'Ejercicio'} ${p.n}: ${p.name}</h3>`+(p.fix?`<span class="tag">Redacción ${p.fix.toLowerCase()}</span>`:'')+`<p class="statement">${p.txt}</p>`+
+  (p.orig?`<details class="orig"><summary>Ver el enunciado original y qué cambió</summary><p>${p.orig}</p><p><b>Qué cambió:</b> ${p.why}</p></details>`:'')+`<div class="steps">`+
   p.s.slice(0,ps).map(s=>`<div class="step ${s[2]||''}"><b class="t">${s[0]}</b>${s[1]}</div>`).join('')+`</div>`+
   `<div class="row">`+(ps<p.s.length?`<button class="btn" id="nx">${ps?'Siguiente paso':'Ver el primer paso'}</button><button class="btn alt" id="all">Ver todo</button>`:'')+(ps?`<button class="btn alt" id="rs">Empezar de nuevo</button>`:'')+`<span class="note">${ps} de ${p.s.length} pasos</span></div>`;
 }
 $('#ppick').onclick=e=>{const b=e.target.closest('button');if(b){pi=+b.dataset.i;ps=0;drawProb()}};
 $('#pbody').onclick=e=>{if(e.target.id==='nx')ps++;else if(e.target.id==='all')ps=P[pi].s.length;else if(e.target.id==='rs')ps=0;else return;drawProb()};
 drawProb();
+
+/* ---------- Memorizar ---------- */
+const bk=(d,...a)=>({d,a});
+const mV0=()=>bk(V0,'v0','vo','vi'),mVF=()=>bk(VF,'vf'),mA=()=>bk('a','a'),mT=()=>bk('t','t'),mD=()=>bk('d','d'),mH=()=>bk('½','1/2','0.5'),m2=()=>bk('2','2');
+const M=[
+ {n:'MRU',w:'Velocidad constante',t:[mD(),' = ',bk('v','v'),' · ',mT()]},
+ {n:'Fórmula A',w:'Sin distancia',t:[mVF(),' = ',mV0(),' + ',mA(),' · ',mT()]},
+ {n:'A despejada',w:'Hallar la aceleración',t:[mA(),' = (',mVF(),' − ',mV0(),') / ',mT()]},
+ {n:'Fórmula B',w:'Sin velocidad final',t:[mD(),' = ',mV0(),' · ',mT(),' + ',mH(),' · ',mA(),' · ',mT(),'²']},
+ {n:'Fórmula C',w:'Sin tiempo',t:[mVF(),'² = ',mV0(),'² + ',m2(),' · ',mA(),' · ',mD()]},
+ {n:'Fórmula D',w:'Sin aceleración',t:[mD(),' = (',mV0(),' + ',mVF(),') / ',m2(),' · ',mT()]},
+ {n:'Segundo n',w:'Distancia en un solo segundo',t:['d<sub>n</sub> = ',mV0(),' + ',mA(),' (',bk('n','n'),' − ',mH(),')']},
+ {n:'Alcance',w:'Mismo punto de salida; uno sale antes',t:['d<sub>1</sub> = d<sub>2</sub>,&nbsp; el que sale antes usa ',mT(),' + retraso']},
+ {n:'Velocidad',w:'km/h a m/s',t:['km/h ÷ ',bk('3,6','3.6'),' = m/s']},
+ {n:'Velocidad',w:'mi/h a ft/s',t:['mi/h × ',bk('22/15','22/15'),' = ft/s']},
+ {n:'Tiempo',w:'Minutos a segundos',t:['min × ',bk('60','60'),' = s']}
+];
+const tokTxt=x=>typeof x==='string'?x:x.d;
+$('#sheet').innerHTML=M.map((f,i)=>`<div class="srow"><div><b>${f.n}</b><br><span class="note">${f.w}</span></div><button class="cover" aria-pressed="false" data-i="${i}" aria-label="Tapar o mostrar ${f.n}"><span>${f.t.map(tokTxt).join('')}</span></button></div>`).join('');
+$('#sheet').onclick=e=>{const b=e.target.closest('.cover');if(b)b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true')};
+function coverAll(v){document.querySelectorAll('.cover').forEach(b=>b.setAttribute('aria-pressed',v))}
+$('#covAll').onclick=()=>coverAll(true);$('#covNone').onclick=()=>coverAll(false);
+let lvl=1;
+const norm=s=>s.toLowerCase().replace(/\s/g,'').replace(/,/g,'.').replace(/[₀]/g,'0').replace(/_/g,'').replace(/½/g,'1/2');
+function drawMemo(){
+ $('#lvls').innerHTML=[[1,'1 casilla'],[2,'2 casillas'],[9,'Todas']].map(([k,l])=>`<button type="button" class="pill" aria-pressed="${k===lvl}" data-l="${k}">${l}</button>`).join('');
+ $('#mrows').innerHTML=M.map((f,i)=>{
+  const idx=f.t.map((x,j)=>typeof x==='string'?-1:j).filter(j=>j>=0);
+  const ch=new Set(sh(idx).slice(0,lvl));
+  const body=f.t.map((x,j)=>{if(!ch.has(j))return tokTxt(x);return `<span class="bw"><input type="text" class="blank" id="b${i}_${j}" data-a="${x.a.join('|')}" data-d="${encodeURIComponent(x.d)}" aria-label="Casilla de ${f.n}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${Math.max(2.8,x.a[0].length*.75+1.6)}em"></span>`}).join('');
+  return `<div class="mrow"><span class="tag">${f.n}: ${f.w}</span><div class="mq">${body}</div></div>`}).join('');
+ $('#mres').textContent='';
+}
+$('#lvls').onclick=e=>{const b=e.target.closest('button');if(b){lvl=+b.dataset.l;drawMemo()}};
+$('#mnew').onclick=drawMemo;
+$('#mform').addEventListener('submit',e=>{
+ e.preventDefault();let ok=0,tot=0;
+ document.querySelectorAll('.blank').forEach(i=>{tot++;const good=i.dataset.a.split('|').includes(norm(i.value));i.classList.remove('ok','no');i.classList.add(good?'ok':'no');if(good)ok++;
+  const w=i.parentElement,old=w.querySelector('.fix');if(old)old.remove();
+  if(!good)w.insertAdjacentHTML('beforeend',`<span class="fix">${decodeURIComponent(i.dataset.d)}</span>`)});
+ $('#mres').textContent=ok===tot?`Perfecto: ${ok} de ${tot}. Sube de nivel o pide otras casillas.`:`${ok} de ${tot}. Lee las correcciones en rojo y repite.`;
+});
+drawMemo();
 
 /* ---------- Generadores ---------- */
 const G={
@@ -315,11 +437,20 @@ const G={
   ()=>{const k=pick([36,54,72,90,108]),t=pick([4,5,6,8,10]),v=k/3.6;return{q:`Un auto va a ${k} km/h y frena hasta detenerse en ${t} s. Halla la distancia de frenado.`,ans:v*t/2,unit:'m',sol:`Convierte: ${fmt(v)} m/s. Fórmula D con v<sub>f</sub> = 0: d = (${fmt(v)} + 0)/2 · ${t} = ${fmt(v*t/2)} m`}},
   ()=>{const a=pick([2,3,4,5]),t=pick([3,4,5,6,8,10]);return{q:`Un móvil parte del reposo con a = ${a} m/s². ¿Qué distancia recorre en ${t} s?`,ans:.5*a*t*t,unit:'m',sol:`Fórmula B con v<sub>0</sub> = 0: d = ½·${a}·${t}² = ${fmt(.5*a*t*t)} m`}},
   ()=>{const v=pick([0,4,6,10]),a=pick([2,3,4]),t=pick([2,3,5]),d=v*t+.5*a*t*t,f=v+a*t;return{q:`Un móvil tiene v₀ = ${v} m/s y a = ${a} m/s². ¿Qué velocidad lleva tras recorrer ${fmt(d)} m?`,ans:f,unit:'m/s',sol:`Fórmula C, porque no hay tiempo: v<sub>f</sub> = √(${v}² + 2·${a}·${fmt(d)}) = √${fmt(f*f)} = ${fmt(f)} m/s`}},
+  ()=>{const v=pick([10,20,30]),t=pick([2,4,5]),a=v/t,d=v*t/2;return{q:`Un móvil a ${v} m/s frena y se detiene en ${fmt(d)} m. Halla la magnitud de su aceleración.`,ans:a,unit:'m/s²',sol:`Fórmula C, porque no hay tiempo: a = (0² − ${v}²) / (2·${fmt(d)}) = −${fmt(a)} m/s². Su magnitud es ${fmt(a)} m/s²`}},
+  ()=>{const a=pick([2,3,4]),t=pick([5,10,20]),d=.5*a*t*t;return{q:`Un móvil parte del reposo y recorre ${fmt(d)} m en ${t} s. Halla su velocidad final.`,ans:a*t,unit:'m/s',sol:`Fórmula D con v<sub>0</sub> = 0: d = v<sub>f</sub>/2 · t, entonces v<sub>f</sub> = 2·${fmt(d)}/${t} = ${fmt(a*t)} m/s`}},
+  ()=>{const a=pick([2,4,5]),t=pick([5,6,10]),v=pick([5,10,20]);return{q:`Un móvil a ${v} m/s acelera a ${a} m/s² durante ${t} s y luego sigue ${t} s más a velocidad constante. ¿Qué distancia total recorre?`,ans:v*t+.5*a*t*t+(v+a*t)*t,unit:'m',sol:`Tramo 1: ${v}·${t} + ½·${a}·${t}² = ${fmt(v*t+.5*a*t*t)} m. Velocidad alcanzada: ${v+a*t} m/s. Tramo 2: ${v+a*t}·${t} = ${(v+a*t)*t} m. Total: ${fmt(v*t+.5*a*t*t+(v+a*t)*t)} m`}},
   ()=>{const v=pick([20,30,40]),a=pick([4,5]),t=v/a;return{q:`Un móvil a ${v} m/s frena con aceleración de ${a} m/s². ¿En cuántos segundos se detiene?`,ans:t,unit:'s',sol:`Fórmula A: t = (0 − ${v}) / (−${a}) = ${fmt(t)} s`}}],
  nth:[
   ()=>{const v=pick([0,2,10]),a=pick([2,4,5,6]),n=pick([3,4,5,6]),o=['','','','tercer','cuarto','quinto','sexto'][n];return{q:`Un móvil con v₀ = ${v} m/s acelera a ${a} m/s². ¿Qué distancia recorre durante el ${o} segundo?`,ans:v+a*(n-.5),unit:'m',sol:`d<sub>${n}</sub> = ${v} + ${a}(${n} − ½) = ${fmt(v+a*(n-.5))} m`}},
   ()=>{const v=pick([30,40]),a=5,n=pick([3,4,5]),o=['','','','tercer','cuarto','quinto'][n];return{q:`Un móvil a ${v} m/s frena con ${a} m/s². ¿Qué distancia recorre durante el ${o} segundo de frenado?`,ans:v-a*(n-.5),unit:'m',sol:`a es negativa: d<sub>${n}</sub> = ${v} − ${a}(${n} − ½) = ${fmt(v-a*(n-.5))} m`}}],
+ mru:[
+  ()=>{const k=pick([36,54,72,90,108]),n=pick([5,10,15,20,30]);return{q:`Un vehículo viaja a ${k} km/h constantes durante ${n} min. ¿Qué distancia recorre en metros?`,ans:k/3.6*n*60,unit:'m',sol:`${k} ÷ 3,6 = ${fmt(k/3.6)} m/s; ${n} min = ${n*60} s. d = ${fmt(k/3.6)} · ${n*60} = ${fmt(k/3.6*n*60)} m`}},
+  ()=>{const v=pick([5,8,10,20,25]),d=v*pick([20,30,40,60]);return{q:`Un móvil recorre ${d} m a ${v} m/s constantes. ¿Cuántos segundos tarda?`,ans:d/v,unit:'s',sol:`t = d / v = ${d} / ${v} = ${fmt(d/v)} s`}},
+  ()=>{const t=pick([10,20,25,40,50]),v=pick([4,6,12,15]),d=v*t;return{q:`Un corredor recorre ${d} m en ${t} s a velocidad constante. Halla su velocidad.`,ans:v,unit:'m/s',sol:`v = d / t = ${d} / ${t} = ${v} m/s`}}],
  alc:[
+  ()=>{const v1=pick([10,15,20]),v2=pick([20,30,40]),t=pick([20,30,50,60]),s=(v1+v2)*t;return{q:`Dos autos separados ${s} m viajan uno hacia el otro a ${v1} m/s y ${v2} m/s constantes. ¿En cuántos segundos se encuentran?`,ans:t,unit:'s',sol:`Sentidos opuestos, las distancias se suman: ${v1}t + ${v2}t = ${s}, t = ${s} / ${v1+v2} = ${t} s`}},
+  ()=>{const v=pick([6,8,10]),x=pick([2,4,5]),t=pick([20,30,50]),h=x*t;return{q:`Un ladrón corre a ${v} m/s con ${h} m de ventaja. Un policía lo persigue a ${v+x} m/s. ¿En cuántos segundos lo alcanza?`,ans:t,unit:'s',sol:`${v+x}t = ${v}t + ${h}, entonces ${x}t = ${h} y t = ${t} s`}},
   ()=>{const v1=pick([12,15,18,20,30]),x=pick([2,3,4]),v2=v1*x,dl=pick([5,10,12,15]),tm=dl/(x-1);return{q:`Una bicicleta sale a ${v1} km/h. ${dl} min después, una moto sale del mismo punto a ${v2} km/h. ¿Cuántos segundos tarda la moto en alcanzarla?`,ans:tm*60,unit:'s',sol:`Iguala: ${v2}·t = ${v1}(t + ${dl}). Con t en minutos: t = ${v1}·${dl} / (${v2} − ${v1}) = ${fmt(tm)} min = ${fmt(tm*60)} s`}},
   ()=>{const v=pick([10,15,20,25]),a=pick([2,4,5]);return{q:`Un auto pasa a ${v} m/s constantes junto a una patrulla detenida. En ese instante la patrulla acelera a ${a} m/s². ¿En cuántos segundos lo alcanza?`,ans:2*v/a,unit:'s',sol:`Iguala: ${v}·t = ½·${a}·t². Divide entre t: t = 2·${v}/${a} = ${fmt(2*v/a)} s`}},
   ()=>{const v=pick([10,15,20,25]),a=pick([2,4,5]),t=2*v/a;return{q:`Un auto pasa a ${v} m/s constantes junto a una patrulla detenida, que acelera a ${a} m/s² en ese instante. ¿A qué distancia lo alcanza?`,ans:v*t,unit:'m',sol:`Primero t = 2·${v}/${a} = ${fmt(t)} s. Luego d = ${v}·${fmt(t)} = ${fmt(v*t)} m`}}],
@@ -335,11 +466,11 @@ const G={
   ()=>mc('¿Qué fórmula corresponde a velocidad constante?',['d = v·t',`${VF}² = ${V0}² + 2·a·d`,`d = ${V0}·t + ½·a·t²`,`${VF} = a·t`],'Velocidad constante es MRU.')]
 };
 function mc(q,opts,sol){const order=opts.map((o,i)=>({o,ok:i===0})).sort(()=>Math.random()-.5);return{q,opts:order,sol}}
-const T=[['mix','Simulacro mixto'],['form','Fórmulas de memoria'],['conv','Conversiones'],['mruv','MRUV'],['nth','Segundo específico'],['alc','Alcance']];
+const T=[['mix','Simulacro mixto'],['form','Fórmulas de memoria'],['conv','Conversiones'],['mru','MRU'],['mruv','MRUV'],['nth','Segundo específico'],['alc','Alcance']];
 let topic='mix',deck=[],qi=0,score=0,done=false;
 function buildDeck(){
  let pool;
- if(topic==='mix'){pool=[...sh(G.form).slice(0,2),...sh(G.conv).slice(0,1),...sh(G.mruv).slice(0,2),...sh(G.nth).slice(0,1),...sh(G.alc).slice(0,2)];pool=sh(pool)}
+ if(topic==='mix'){pool=[...sh(G.form).slice(0,2),...sh(G.conv).slice(0,1),...sh(G.mru).slice(0,1),...sh(G.mruv).slice(0,2),...sh(G.alc).slice(0,2)];pool=sh(pool)}
  else{const g=G[topic];pool=[];const s=sh(g);for(let i=0;i<8;i++)pool.push(s[i%s.length])}
  const seen=new Set();deck=pool.map(f=>{let q=f(),n=0;while(seen.has(q.q)&&n++<25)q=f();seen.add(q.q);return q});qi=0;score=0;done=false;drawQ();
 }
@@ -383,7 +514,7 @@ $('#tpick').onclick=e=>{const b=e.target.closest('button');if(b){topic=b.dataset
 drawTopics();buildDeck();
 
 /* ---------- Pestañas ---------- */
-const views=['formulas','elegir','problemas','practica'];
+const views=['formulas','elegir','memorizar','problemas','practica'];
 function show(v,scroll){if(!views.includes(v))v='formulas';views.forEach(x=>{$('#'+x).hidden=x!==v;$('#tab-'+x).setAttribute('aria-selected',x===v)});if(scroll)window.scrollTo(0,0)}
 document.querySelector('nav').onclick=e=>{const b=e.target.closest('button');if(b){location.hash=b.dataset.v;show(b.dataset.v,true)}};
 addEventListener('hashchange',()=>show(location.hash.slice(1)));
