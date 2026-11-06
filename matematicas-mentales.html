@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E8B923">
+<title>Cálculo Mental</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Una sumadora de escritorio amarilla con su rollo de papel: el papel guarda las cuentas, las teclas responden. */
+:root{
+  --body:#E8B923; --body-deep:#C99A0E; --ink:#1B2733; --key:#26323F; --key-top:#34424F; --paper:#FFFDF4; --rule:#D9D3BF;
+  --muted:#5F6670; --red:#B92B1E; --green:#14703F; --sans:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif; --tape:"Courier Prime","Courier New",monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--body);color:var(--ink);font:500 17px/1.45 var(--sans);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.paper :focus-visible{outline-color:var(--red)}
+#app{max-width:520px;margin:0 auto;min-height:100dvh;padding:max(14px,env(safe-area-inset-top)) 16px max(14px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
+h1,h2,h3,p{margin:0}
+
+/* Papel */
+.paper{background:var(--paper);padding:18px 16px 26px;font-family:var(--tape);font-size:16px;position:relative;
+  --z:9px;
+  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/calc(2*var(--z)) 51% repeat-x,linear-gradient(#000 0 0) top/100% calc(100% - var(--z)) no-repeat;
+  mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/calc(2*var(--z)) 51% repeat-x,linear-gradient(#000 0 0) top/100% calc(100% - var(--z)) no-repeat}
+
+/* Inicio */
+.brand{padding:10px 2px 18px}
+.brand h1{font-size:clamp(50px,15vw,72px);line-height:.88;font-weight:800;letter-spacing:-.035em}
+.brand p{margin-top:12px;max-width:30em}
+.stats{display:flex;gap:22px;margin-top:14px;font-size:15px}
+.stats b{font-size:21px;font-weight:800;margin-right:4px}
+.cta{display:block;width:100%;padding:15px 18px;background:var(--key);color:#fff;border-radius:14px;font-weight:700;font-size:18px;text-align:left;box-shadow:inset 0 2px 0 var(--key-top),0 4px 0 #0e161e}
+.cta:active{transform:translateY(3px);box-shadow:inset 0 2px 0 var(--key-top),0 1px 0 #0e161e}
+.cta small{display:block;font-weight:500;font-size:14.5px;opacity:.82}
+.cta.red{background:var(--red);box-shadow:inset 0 2px 0 #d24b3c,0 4px 0 #7c1a11}
+.cta.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.home-actions{display:grid;gap:12px;margin-bottom:18px}
+.row{display:flex;width:100%;align-items:baseline;gap:8px;padding:10px 0;text-align:left;font-family:var(--tape);border-bottom:1px dashed var(--rule)}
+.row:last-child{border-bottom:0}
+.row .n{flex:none;width:2ch;text-align:right;color:var(--muted)}
+.row .t{flex:none;max-width:60%;font-weight:700}
+.row .dots{flex:1;min-width:10px;border-bottom:2px dotted var(--rule);transform:translateY(-4px)}
+.row .s{flex:none;font-size:13.5px;color:var(--muted)}
+.row.done .s{color:var(--green);font-weight:700}
+.row.next{background:var(--body);margin:0 -8px;padding:10px 8px;width:calc(100% + 16px);border-bottom:0}
+.row.next .n,.row.next .s{color:var(--ink)}
+.row.next .dots{border-color:var(--ink)}
+.row.later .t{font-weight:400;color:var(--muted)}
+.note{font:500 14px/1.4 var(--sans);margin-top:14px}
+
+/* Barra superior */
+.top{display:flex;align-items:center;gap:8px;margin-bottom:12px;min-height:40px}
+.back{width:40px;height:40px;border-radius:50%;background:var(--key);color:#fff;font-size:20px;flex:none}
+.top h2{font-size:17px;font-weight:700;line-height:1.15;flex:1;min-width:0}
+.top .count{font:700 15px var(--tape);flex:none}
+
+/* Lección */
+.lesson h2{font-size:clamp(32px,9vw,44px);font-weight:800;line-height:1;letter-spacing:-.025em;margin-bottom:12px}
+.lesson>p{margin-bottom:16px}
+.ex-q{font:800 40px/1.1 var(--sans);letter-spacing:-.02em;margin-bottom:12px;font-variant-numeric:tabular-nums}
+.step{padding:7px 0;border-top:1px dashed var(--rule)}
+.step.final{font-weight:700;font-size:19px}
+.actions{display:grid;gap:12px;margin-top:18px}
+.fyi{font:500 15px/1.4 var(--sans);margin-bottom:14px;padding-left:12px;border-left:4px solid var(--ink)}
+
+/* Práctica */
+.drill{flex:1;display:flex;flex-direction:column;min-height:0}
+.tape{flex:1;min-height:170px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 14px 22px;margin-bottom:12px}
+.log{font-size:15px;color:var(--muted);overflow:hidden}
+.log div{display:flex;justify-content:space-between;gap:10px;padding:1px 0}
+.log .bad{color:var(--red)}
+.log .ok b{color:var(--green)}
+.steps{font-size:15.5px;margin:6px 0;max-height:32dvh;overflow:auto}
+.steps .step{padding:4px 0}
+.steps.err{color:var(--red)}
+.prob{width:100%;text-align:left;font:800 46px/1.08 var(--sans);letter-spacing:-.02em;margin-top:8px;font-variant-numeric:tabular-nums;padding:0;cursor:default}
+.prob.long{font-size:25px;line-height:1.15;letter-spacing:-.01em;font-weight:700}
+.prob.hid{cursor:pointer;color:var(--muted)}
+.ans{font:700 35px/1.2 var(--tape);min-height:44px;border-top:2px solid var(--ink);margin-top:6px;padding-top:4px;display:flex;justify-content:space-between;align-items:baseline}
+.ans .cur{animation:blink 1.1s steps(1) infinite}
+.ans.bad{color:var(--red);animation:nudge .25s}
+@keyframes blink{50%{opacity:0}}
+@keyframes nudge{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.feed{animation:feed .16s ease-out}
+@keyframes feed{from{transform:translateY(10px)}to{transform:none}}
+.tools{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.tool{padding:7px 12px;border-radius:999px;box-shadow:inset 0 0 0 2px var(--ink);font-size:14.5px;font-weight:700}
+.tool[aria-pressed="true"]{background:var(--ink);color:#fff}
+.tools .hint{margin-left:auto;font-size:14.5px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.k{height:clamp(50px,8.4dvh,68px);border-radius:16px;background:var(--key);color:#fff;font:700 27px var(--sans);box-shadow:inset 0 2px 0 var(--key-top),0 4px 0 #0e161e;font-variant-numeric:tabular-nums}
+.k:active{transform:translateY(3px);box-shadow:inset 0 2px 0 var(--key-top),0 1px 0 #0e161e}
+.k.eq{grid-column:1/-1;background:var(--red);box-shadow:inset 0 2px 0 #d24b3c,0 4px 0 #7c1a11;font-size:23px}
+.k.eq:active{box-shadow:inset 0 2px 0 #d24b3c,0 1px 0 #7c1a11}
+
+/* Resultado */
+.result h2{font-size:clamp(36px,11vw,52px);font-weight:800;line-height:.98;letter-spacing:-.03em;margin-bottom:14px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--rule)}
+.line b.ok{color:var(--green)}.line b.no{color:var(--red)}
+.fix{margin-top:16px}
+.fix h3{font:700 16px var(--tape);margin-bottom:4px;color:var(--red)}
+.fix .step{font-size:15px;padding:3px 0;border:0}
+.result .say{font:500 16px/1.45 var(--sans);margin:12px 0 0}
+
+@media (min-width:860px){
+  #app.wide{max-width:900px}
+  .wide .drill{display:grid;grid-template-columns:1fr 340px;grid-template-rows:auto 1fr;column-gap:22px}
+  .wide .tape{grid-row:1/3;margin:0;min-height:60dvh}
+  .wide .tools{grid-column:2;margin-top:0}
+  .wide .keys{grid-column:2;align-self:start}
+  .wide .k{height:66px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+"use strict";
+/* ---------- Utilidades ---------- */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[ri(0,a.length-1)];
+const fmt=x=>{const v=Math.round(x*100)/100;return String(v)};
+const usd=x=>{const v=Math.round(x*100)/100;return "$"+(Number.isInteger(v)?v:v.toFixed(2))};
+const M="×",D="÷",R="−";
+const P=(q,a,steps)=>({q,a:Math.round(a*100)/100,steps});
+const noTen=(a,b)=>{let n;do{n=ri(a,b)}while(n%10===0);return n};
+
+/* ---------- Los escalones ---------- */
+const LEVELS=[
+{id:"comp",t:"Lo que falta para 100",goal:4,
+ idea:"Es la base de restar rápido y de dar vueltos. Cada cifra debe sumar 9 con su pareja, y la última cifra debe sumar 10.",
+ gen(){ if(Math.random()<.7){const n=noTen(11,99),d=Math.floor(n/10),u=n%10;return P(`100 ${R} ${n}`,100-n,[`Decenas hasta 9: ${d} + ${9-d} = 9`,`Unidades hasta 10: ${u} + ${10-u} = 10`,`Une las cifras: ${100-n}`])}
+  const n=noTen(101,989),c=Math.floor(n/100),d=Math.floor(n/10)%10,u=n%10;return P(`1000 ${R} ${n}`,1000-n,[`Centenas hasta 9: ${c} + ${9-c} = 9`,`Decenas hasta 9: ${d} + ${9-d} = 9`,`Unidades hasta 10: ${u} + ${10-u} = 10`,`Une las cifras: ${1000-n}`])}},
+{id:"suma",t:"Sumar de izquierda a derecha",goal:6,
+ idea:"En la cabeza no se empieza por las unidades. Suma primero lo grande: así siempre llevas un total parcial que puedes recordar.",
+ gen(){const a=noTen(23,89);let b;do{b=ri(12,69)}while((a%10)+(b%10)<10);const de=b-b%10;return P(`${a} + ${b}`,a+b,[`Suma las decenas: ${a} + ${de} = ${a+de}`,`Suma las unidades: ${a+de} + ${b%10} = ${a+b}`])}},
+{id:"redo",t:"Redondear y corregir",goal:6,
+ idea:"Si un número termina en 7, 8 o 9, súmalo como si fuera la decena siguiente y luego quita lo que agregaste de más.",
+ gen(){const a=ri(24,498),b=ri(1,8)*10+pick([7,8,9]),r=b+(10-b%10),x=r-b;return P(`${a} + ${b}`,a+b,[`Redondea: ${b} + ${x} = ${r}`,`Suma: ${a} + ${r} = ${a+r}`,`Quita lo de más: ${a+r} ${R} ${x} = ${a+b}`])}},
+{id:"resta",t:"Restar subiendo",goal:8,
+ idea:"Restar es medir la distancia entre dos números. Salta desde el menor hasta la decena siguiente, luego hasta el mayor, y suma los saltos.",
+ gen(){let a,b;do{a=ri(41,98);b=noTen(13,a-4)}while(a%10>=b%10);const n=b+(10-b%10),s1=n-b,s2=a-n;return P(`${a} ${R} ${b}`,a-b,[`Salto a la decena: ${b} + ${s1} = ${n}`,`Salto al mayor: ${n} + ${s2} = ${a}`,`Junta los saltos: ${s1} + ${s2} = ${a-b}`])}},
+{id:"tabla",t:"Las tablas difíciles",goal:3,
+ idea:"Del 6 al 9 son las que más fallan y todas las demás técnicas dependen de ellas. Si una no sale de memoria, sácala de una cuenta fácil.",
+ gen(){const a=ri(6,9),b=ri(6,9),q=`${a} ${M} ${b}`,r=a*b;
+  if(a===9||b===9){const o=a===9?b:a;return P(q,r,[`${o} ${M} 10 = ${o*10}`,`Quita uno: ${o*10} ${R} ${o} = ${r}`])}
+  if(a===6||b===6){const o=a===6?b:a;return P(q,r,[`${o} ${M} 5 = ${o*5}`,`Agrega uno: ${o*5} + ${o} = ${r}`])}
+  if(a===8||b===8){const o=a===8?b:a;return P(q,r,[`Dobla: ${o} ${M} 2 = ${o*2}`,`Dobla: ${o*2} ${M} 2 = ${o*4}`,`Dobla: ${o*4} ${M} 2 = ${r}`])}
+  return P(q,r,[`7 ${M} 5 = 35`,`7 ${M} 2 = 14`,`Suma: 35 + 14 = 49`])}},
+{id:"doble",t:"Doblar y sacar mitad",goal:6,
+ idea:"Multiplicar por 4 es doblar dos veces, por 8 es doblar tres veces. Dividir para 4 es sacar mitad dos veces.",
+ gen(){const k=ri(0,2);
+  if(k===0){const n=ri(12,49);return P(`${n} ${M} 4`,n*4,[`Dobla: ${n} ${M} 2 = ${n*2}`,`Dobla: ${n*2} ${M} 2 = ${n*4}`])}
+  if(k===1){const n=ri(12,29);return P(`${n} ${M} 8`,n*8,[`Dobla: ${n} ${M} 2 = ${n*2}`,`Dobla: ${n*2} ${M} 2 = ${n*4}`,`Dobla: ${n*4} ${M} 2 = ${n*8}`])}
+  const r=ri(12,60),n=r*4;return P(`${n} ${D} 4`,r,[`Mitad: ${n} ${D} 2 = ${n/2}`,`Mitad: ${n/2} ${D} 2 = ${r}`])}},
+{id:"cinco",t:"Por 5 y por 25",goal:6,
+ idea:"5 es la mitad de 10, y 25 es la cuarta parte de 100. Divide primero y luego agrega los ceros.",
+ gen(){ if(Math.random()<.6){const n=ri(14,98);return P(`${n} ${M} 5`,n*5,[`Mitad: ${n} ${D} 2 = ${fmt(n/2)}`,`Por 10: ${fmt(n/2)} ${M} 10 = ${n*5}`])}
+  const k=ri(3,24),n=k*4;return P(`${n} ${M} 25`,n*25,[`Cuarta parte: ${n} ${D} 4 = ${k}`,`Por 100: ${k} ${M} 100 = ${k*100}`])}},
+{id:"nueve",t:"Por 9 y por 11",goal:6,
+ idea:"Multiplica por 10, que es fácil. Para el 9 quita el número una vez; para el 11 agrégalo una vez.",
+ gen(){const n=noTen(12,99);if(Math.random()<.5)return P(`${n} ${M} 9`,n*9,[`Por 10: ${n} ${M} 10 = ${n*10}`,`Quita uno: ${n*10} ${R} ${n} = ${n*9}`]);return P(`${n} ${M} 11`,n*11,[`Por 10: ${n} ${M} 10 = ${n*10}`,`Agrega uno: ${n*10} + ${n} = ${n*11}`])}},
+{id:"partes",t:"Multiplicar por partes",goal:8,
+ idea:"Parte el número de dos cifras en decenas y unidades. Multiplica cada parte, empezando por la grande, y suma.",
+ gen(){const a=noTen(12,98),b=ri(3,9),d=a-a%10,u=a%10;return P(`${a} ${M} ${b}`,a*b,[`Decenas: ${d} ${M} ${b} = ${d*b}`,`Unidades: ${u} ${M} ${b} = ${u*b}`,`Suma: ${d*b} + ${u*b} = ${a*b}`])}},
+{id:"divi",t:"Dividir por partes",goal:10,
+ idea:"Busca primero un pedazo redondo que se divida fácil. Divide lo que queda y suma los dos resultados.",
+ gen(){const d=ri(3,8),q=noTen(12,99),t=q-q%10,u=q%10,n=d*q;return P(`${n} ${D} ${d}`,q,[`Pedazo redondo: ${d} ${M} ${t} = ${d*t}`,`Lo que queda: ${n} ${R} ${d*t} = ${d*u}`,`Divide eso: ${d*u} ${D} ${d} = ${u}`,`Suma: ${t} + ${u} = ${q}`])}},
+{id:"pct",t:"Porcentajes",goal:8,
+ idea:"Casi todo sale del 10 %: corre la coma un lugar. El 5 % es la mitad de eso, el 20 % es el doble y el 15 % es 10 % más 5 %.",
+ gen(){const p=pick([10,5,15,20,15,1,25]);const b=Math.random()<.75?ri(1,49)*20:ri(6,49)*2,q=`${p}% de ${b}`,r=b*p/100;
+  const t=b/10;
+  if(p===10)return P(q,r,[`Corre la coma: ${b} ${D} 10 = ${fmt(t)}`]);
+  if(p===5)return P(q,r,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`Mitad: ${fmt(t)} ${D} 2 = ${fmt(r)}`]);
+  if(p===15)return P(q,r,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`5%: ${fmt(t)} ${D} 2 = ${fmt(t/2)}`,`Suma: ${fmt(t)} + ${fmt(t/2)} = ${fmt(r)}`]);
+  if(p===20)return P(q,r,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`Dobla: ${fmt(t)} ${M} 2 = ${fmt(r)}`]);
+  if(p===1)return P(q,r,[`Corre la coma dos lugares: ${b} ${D} 100 = ${fmt(r)}`]);
+  return P(q,r,[`25% es la cuarta parte`,`Mitad: ${b} ${D} 2 = ${fmt(b/2)}`,`Mitad: ${fmt(b/2)} ${D} 2 = ${fmt(r)}`])}},
+{id:"cuad",t:"Cuadrados que terminan en 5",goal:5,
+ idea:"Toma lo que está antes del 5, multiplícalo por el número siguiente y pega 25 al final.",
+ gen(){const k=ri(1,10),n=k*10+5;return P(`${n}²`,n*n,[`Lo de antes por el siguiente: ${k} ${M} ${k+1} = ${k*(k+1)}`,`Pega 25: ${n*n}`])}},
+{id:"dosd",t:"Dos cifras por dos cifras",goal:15,
+ idea:"Multiplica por las decenas del segundo número, luego por sus unidades, y suma. Ve guardando el total parcial en la cabeza.",
+ gen(){const a=noTen(12,39),b=noTen(12,29),d=b-b%10,u=b%10;return P(`${a} ${M} ${b}`,a*b,[`${a} ${M} ${d} = ${a*d}`,`${a} ${M} ${u} = ${a*u}`,`Suma: ${a*d} + ${a*u} = ${a*b}`])}},
+{id:"atajo",t:"Atajos con simetría y cerca de 100",goal:10,
+ idea:"Dos números a la misma distancia de una decena: decena al cuadrado menos distancia al cuadrado. Dos números cerca de 100: resta las distancias y pega su producto.",
+ gen(){ if(Math.random()<.5){const m=ri(2,9)*10,d=ri(1,5);return P(`${m-d} ${M} ${m+d}`,m*m-d*d,[`Decena al cuadrado: ${m} ${M} ${m} = ${m*m}`,`Distancia al cuadrado: ${d} ${M} ${d} = ${d*d}`,`Resta: ${m*m} ${R} ${d*d} = ${m*m-d*d}`])}
+  const x=ri(2,9),y=ri(2,9),a=100-x,b=100-y,pr=String(x*y).padStart(2,"0");return P(`${a} ${M} ${b}`,a*b,[`Distancias a 100: ${x} y ${y}`,`Primer número menos la otra distancia: ${a} ${R} ${y} = ${a-y}`,`Producto de distancias, en dos cifras: ${x} ${M} ${y} = ${x*y}`,`Pega las dos partes: ${a-y}${pr}`])}},
+{id:"real",t:"Cuentas de la vida real",goal:15,
+ idea:"Aquí se junta todo: vueltos, precios por cantidad, IVA del 15 % y descuentos, con dólares y centavos.",
+ gen(){const k=ri(0,4);
+  if(k===0){const c=ri(5,49)*100+pick([25,50,75,10,60,90]),p=c/100,b=Math.ceil(p/10)*10+pick([0,10]),n=Math.ceil(p),f=n-p,g=b-n;
+   return P(`Pagas ${usd(p)} con ${usd(b)}. ¿Cuánto es el vuelto?`,b-p,[`Hasta el dólar: ${usd(p)} + ${usd(f)} = ${usd(n)}`,`Hasta el billete: ${usd(n)} + ${usd(g)} = ${usd(b)}`,`Junta: ${usd(f)} + ${usd(g)} = ${usd(b-p)}`])}
+  if(k===1){const n=ri(3,9),e=ri(1,9),t=n*(e+.5);return P(`${n} unidades a ${usd(e+.5)}. ¿Cuánto es el total?`,t,[`Dólares: ${n} ${M} ${e} = ${n*e}`,`Centavos: ${n} ${M} 0.50 = ${fmt(n/2)}`,`Suma: ${n*e} + ${fmt(n/2)} = ${fmt(t)}`])}
+  if(k===2){const b=ri(1,30)*20,t=b/10,h=t/2;return P(`IVA del 15% sobre ${usd(b)}. ¿Cuánto es el IVA?`,t+h,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`5%: ${fmt(t)} ${D} 2 = ${fmt(h)}`,`Suma: ${fmt(t)} + ${fmt(h)} = ${fmt(t+h)}`])}
+  if(k===3){const b=ri(1,30)*20,t=b/10,h=t/2,i=t+h;return P(`${usd(b)} más IVA del 15%. ¿Cuánto es el total?`,b+i,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`5%: ${fmt(t)} ${D} 2 = ${fmt(h)}`,`IVA: ${fmt(t)} + ${fmt(h)} = ${fmt(i)}`,`Total: ${b} + ${fmt(i)} = ${fmt(b+i)}`])}
+  const b=ri(2,40)*10,t=b/10,o=t*2;return P(`${usd(b)} con 20% de descuento. ¿Cuánto pagas?`,b-o,[`10%: ${b} ${D} 10 = ${fmt(t)}`,`20%: ${fmt(t)} ${M} 2 = ${fmt(o)}`,`Resta: ${b} ${R} ${fmt(o)} = ${fmt(b-o)}`])}}
+];
+const byId=Object.fromEntries(LEVELS.map(l=>[l.id,l]));
+
+/* ---------- Progreso ---------- */
+const KEY="calculo_mental_v1";
+const fresh=()=>({lv:{},streak:0,last:null,hide:false});
+let S=fresh();
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(fresh(),JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const dstr=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return dstr(d)};
+const INTERVALS=[1,3,7,14,30,60];
+const lv=id=>S.lv[id]||(S.lv[id]={passed:false,best:null,box:0,due:null});
+const passed=()=>LEVELS.filter(l=>S.lv[l.id]&&S.lv[l.id].passed);
+const dueLevels=()=>passed().filter(l=>S.lv[l.id].due&&S.lv[l.id].due<=dstr());
+const nextLevelIndex=()=>{const i=LEVELS.findIndex(l=>!(S.lv[l.id]&&S.lv[l.id].passed));return i<0?LEVELS.length:i};
+function markDay(){const t=dstr();if(S.last===t)return;S.streak=S.last===addDays(-1)?S.streak+1:1;S.last=t}
+function currentStreak(){return (S.last===dstr()||S.last===addDays(-1))?S.streak:0}
+const median=a=>{if(!a.length)return 0;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const secs=x=>(Math.round(x*10)/10).toString();
+
+/* ---------- Pantallas ---------- */
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let cur=null; /* sesión activa de práctica */
+function setWide(on){app.classList.toggle("wide",!!on)}
+
+function home(){
+ cur=null;setWide(false);
+ const due=dueLevels(),nx=nextLevelIndex(),done=passed().length;
+ const rows=LEVELS.map((l,i)=>{const s=S.lv[l.id],ok=s&&s.passed,isN=i===nx;
+  const st=ok?`✓ ${s.best!=null?secs(s.best)+" s":""}`:isN?"sigue":`meta ${l.goal} s`;
+  return `<button class="row ${ok?"done":""} ${isN?"next":""} ${i>nx?"later":""}" data-go="${l.id}"><span class="n">${i+1}</span><span class="t">${esc(l.t)}</span><span class="dots"></span><span class="s">${st}</span></button>`}).join("");
+ let main="";
+ if(due.length) main+=`<button class="cta red" id="rev">Hacer el repaso de hoy<small>12 cuentas de ${due.length===1?"1 escalón":due.length+" escalones"} que ya aprobaste</small></button>`;
+ if(nx<LEVELS.length) main+=`<button class="cta" data-go="${LEVELS[nx].id}">${done?"Seguir":"Empezar"}: ${esc(LEVELS[nx].t)}<small>Escalón ${nx+1} de ${LEVELS.length}</small></button>`;
+ if(!due.length&&done) main+=`<button class="cta ghost" id="extra">Repasar sin esperar<small>Hoy no te toca repaso; esto es práctica adicional</small></button>`;
+ app.innerHTML=`<header class="brand"><h1>Cálculo<br>mental</h1>
+  <p>Aprende una técnica a la vez y pásala cuando te salga bien y rápido, sin papel ni calculadora.</p>
+  <div class="stats"><span><b>${done}</b>de ${LEVELS.length} escalones</span><span><b>${currentStreak()}</b>${currentStreak()===1?"día":"días"} seguidos</span></div></header>
+  <div class="home-actions">${main}</div>
+  <section class="paper" aria-label="Escalones">${rows}</section>
+  <p class="note">Tu avance se guarda en este navegador y en este dispositivo.</p>`;
+ bindGo();
+ const r=document.getElementById("rev");if(r)r.onclick=()=>startReview(due,false);
+ const x=document.getElementById("extra");if(x)x.onclick=()=>startReview(passed(),true);
+}
+function bindGo(){app.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>lesson(b.dataset.go))}
+
+function lesson(id){
+ cur=null;setWide(false);
+ const l=byId[id],i=LEVELS.indexOf(l),nx=nextLevelIndex(),ex=l.gen();let shown=0;
+ const stepsHtml=()=>ex.steps.slice(0,shown).map(s=>`<div class="step feed">${esc(s)}</div>`).join("")+(shown>=ex.steps.length?`<div class="step final feed">${esc(ex.q.length>12?"Respuesta":ex.q)} = ${esc(fmt(ex.a))}</div>`:"");
+ const paint=()=>{
+  const finished=shown>=ex.steps.length;
+  app.innerHTML=`<div class="top"><button class="back" aria-label="Volver al inicio" id="bk">←</button><h2>Escalón ${i+1} de ${LEVELS.length}</h2></div>
+  <div class="lesson"><h2>${esc(l.t)}</h2><p>${esc(l.idea)}</p>
+  ${i>nx?`<p class="fyi">Este escalón usa los anteriores. Si ya lo dominas, puedes dar la prueba directo.</p>`:""}
+  <div class="paper"><div class="ex-q ${ex.q.length>12?"prob long":""}">${esc(ex.q)}</div>${stepsHtml()}</div>
+  <div class="actions">
+   ${finished?`<button class="cta red" id="pr">Practicar<small>Con pistas y sin apuro</small></button><button class="cta ghost" id="other">Ver otro ejemplo</button>`:`<button class="cta" id="ns">Ver el paso ${shown+1} de ${ex.steps.length}</button>`}
+   <button class="cta ghost" id="tst">Dar la prueba<small>10 cuentas: 9 bien y tiempo típico de ${l.goal} s o menos</small></button>
+  </div></div>`;
+  document.getElementById("bk").onclick=home;
+  const ns=document.getElementById("ns");if(ns)ns.onclick=()=>{shown++;paint();const b=document.getElementById("ns")||document.getElementById("pr");if(b)b.focus()};
+  const pr=document.getElementById("pr");if(pr)pr.onclick=()=>startDrill({mode:"practice",levels:[l]});
+  const ot=document.getElementById("other");if(ot)ot.onclick=()=>lesson(id);
+  document.getElementById("tst").onclick=()=>startDrill({mode:"test",levels:[l],total:10});
+ };
+ paint();window.scrollTo(0,0);
+}
+
+/* ---------- Motor de práctica ---------- */
+function startReview(levels,extra){startDrill({mode:"review",levels,total:12,extra})}
+function startDrill(o){
+ setWide(true);
+ cur={...o,n:0,right:0,times:[],log:[],errors:[],retry:[],stats:{},entry:"",state:"ask",hint:0,prob:null,hideT:null,masked:false,t0:0};
+ cur.levelOf=null;
+ next();window.scrollTo(0,0);
+}
+function nextProblem(){
+ const c=cur;
+ const idx=c.retry.findIndex(r=>r.at<=c.n);
+ if(idx>=0){const r=c.retry.splice(idx,1)[0];c.levelOf=r.lv;return r.p}
+ const l=pick(c.levels);c.levelOf=l;
+ let p;do{p=l.gen()}while(c.prob&&p.q===c.prob.q);
+ return p;
+}
+function next(){
+ const c=cur;
+ if(c.total&&c.n>=c.total){finish();return}
+ c.prob=nextProblem();c.entry="";c.state="ask";c.hint=0;c.masked=false;c.t0=performance.now();
+ clearTimeout(c.hideT);
+ if(S.hide)c.hideT=setTimeout(()=>{if(cur===c&&c.state==="ask"){c.masked=true;paintDrill()}},3000);
+ paintDrill();
+}
+function paintDrill(){
+ const c=cur,p=c.prob,bad=c.state==="wrong";
+ const title=c.mode==="review"?"Repaso":c.levels[0].t;
+ const label=c.mode==="test"?"Prueba: ":c.mode==="practice"?"Práctica: ":"";
+ const count=c.total?`${Math.min(c.n+1,c.total)}/${c.total}`:`${c.right} bien`;
+ const log=c.log.slice(-4).map(x=>`<div class="${x.ok?"ok":"bad"}"><span>${esc(x.s)}</span><b>${x.ok?"✓ ":"✗ "}${x.t} s</b></div>`).join("");
+ const shownSteps=bad?p.steps:p.steps.slice(0,c.hint);
+ const canHint=c.mode==="practice"&&c.state==="ask"&&c.hint<p.steps.length;
+ const long=p.q.length>12;
+ const eqLabel=bad?"Seguir":"=";
+ app.innerHTML=`<div class="top"><button class="back" aria-label="Salir" id="bk">←</button><h2>${label}${esc(title)}</h2><span class="count">${count}</span></div>
+ <div class="drill">
+  <section class="paper tape" aria-live="polite">
+   <div class="log">${log}</div>
+   <button class="prob ${long?"long":""} ${c.masked?"hid":""}" id="prob" ${c.masked?"":'tabindex="-1"'}>${c.masked?"Toca para volver a ver":esc(p.q)}</button>
+   ${shownSteps.length?`<div class="steps ${bad?"err":""}">${shownSteps.map(s=>`<div class="step">${esc(s)}</div>`).join("")}</div>`:""}
+   <div class="ans ${bad?"bad":""}" id="ans"><span>${bad?esc(fmt(p.a)):esc(c.entry)}${bad?"":'<span class="cur">_</span>'}</span>${bad?`<small style="font-size:15px">era esto; pusiste ${esc(c.lastEntry)}</small>`:""}</div>
+  </section>
+  <div class="tools">
+   <button class="tool" id="hide" aria-pressed="${S.hide}">Ocultar a los 3 s</button>
+   ${canHint?`<button class="tool hint" id="hint">Pista</button>`:""}
+   ${c.mode==="practice"&&c.right>=5?`<button class="tool hint" id="ttest">Dar la prueba</button>`:""}
+  </div>
+  <div class="keys" role="group" aria-label="Teclado">
+   ${[7,8,9,4,5,6,1,2,3].map(d=>`<button class="k" data-k="${d}">${d}</button>`).join("")}
+   <button class="k" data-k="." aria-label="Punto decimal">.</button><button class="k" data-k="0">0</button><button class="k" data-k="del" aria-label="Borrar">⌫</button>
+   <button class="k eq" data-k="ok" aria-label="${bad?"Seguir":"Revisar respuesta"}">${eqLabel}</button>
+  </div>
+ </div>`;
+ document.getElementById("bk").onclick=()=>{clearTimeout(c.hideT);if(c.mode==="review")home();else lesson(c.levels[0].id)};
+ app.querySelectorAll(".k").forEach(b=>b.onclick=()=>press(b.dataset.k));
+ const pb=document.getElementById("prob");
+ pb.onclick=()=>{if(c.masked){c.masked=false;paintDrill();clearTimeout(c.hideT);if(S.hide)c.hideT=setTimeout(()=>{if(cur===c&&c.state==="ask"){c.masked=true;paintDrill()}},3000)}};
+ document.getElementById("hide").onclick=()=>{S.hide=!S.hide;save();clearTimeout(c.hideT);c.masked=false;if(S.hide&&c.state==="ask")c.hideT=setTimeout(()=>{if(cur===c&&c.state==="ask"){c.masked=true;paintDrill()}},3000);paintDrill()};
+ const h=document.getElementById("hint");if(h)h.onclick=()=>{c.hint++;c.usedHint=true;paintDrill()};
+ const tt=document.getElementById("ttest");if(tt)tt.onclick=()=>startDrill({mode:"test",levels:c.levels,total:10});
+}
+function press(k){
+ const c=cur;if(!c)return;
+ if(c.state==="wrong"){if(k==="ok")next();return}
+ if(k==="del"){c.entry=c.entry.slice(0,-1)}
+ else if(k==="ok"){submit();return}
+ else if(k==="."){if(!c.entry.includes(".")&&c.entry.length<9)c.entry=(c.entry||"0")+"."}
+ else if(c.entry.length<9){c.entry+=k}
+ const a=document.getElementById("ans");
+ if(a)a.firstElementChild.innerHTML=esc(c.entry)+'<span class="cur">_</span>';
+}
+function submit(){
+ const c=cur;if(!c.entry||c.entry===".")return;
+ const given=parseFloat(c.entry),p=c.prob,ok=Math.abs(given-p.a)<.001,t=(performance.now()-c.t0)/1000;
+ clearTimeout(c.hideT);
+ c.n++;
+ const lid=c.levelOf.id;const st=c.stats[lid]||(c.stats[lid]={r:0,n:0});st.n++;
+ c.log.push({s:`${p.q.length>16?"Cuenta":p.q} = ${c.entry}`,ok,t:secs(t)});
+ if(ok){c.right++;st.r++;c.times.push(t)}else{c.errors.push({p,given:c.entry})}
+ if(c.mode==="test"){next();return}
+ if(ok){next();return}
+ c.lastEntry=c.entry;c.state="wrong";
+ if(c.mode==="practice")c.retry.push({p,lv:c.levelOf,at:c.n+3});
+ paintDrill();
+}
+function finish(){
+ const c=cur;markDay();
+ const med=median(c.times);
+ if(c.mode==="test"){
+  const l=c.levels[0],s=lv(l.id),acc=c.right>=9,fast=med<=l.goal,pass=acc&&fast;
+  if(pass){if(s.best==null||med<s.best)s.best=med;if(!s.passed){s.passed=true;s.box=0;s.due=addDays(INTERVALS[0])}}
+  save();
+  const nxt=LEVELS[LEVELS.indexOf(l)+1];
+  let say=pass?(nxt?"Mañana te tocará repasarlo para que no se olvide.":"Aprobaste el último escalón."):
+   !acc?`Necesitas 9 bien para aprobar. Practica los errores de abajo y vuelve a intentarlo.`:`Ya aciertas lo suficiente. Falta velocidad: practica hasta que no tengas que pensar cada paso.`;
+  result(pass?"Aprobado":"Todavía no",[
+   ["Bien",`${c.right} de 10`,acc],["Tiempo típico",`${secs(med)} s (meta ${l.goal} s)`,fast]],say,c.errors,
+   pass&&nxt?[["Seguir: "+nxt.t,()=>lesson(nxt.id),"red"],["Volver al inicio",home,"ghost"]]:[[pass?"Volver al inicio":"Practicar otra vez",pass?home:()=>startDrill({mode:"practice",levels:[l]}),"red"],[pass?"Repetir la prueba":"Repetir la prueba",()=>startDrill({mode:"test",levels:[l],total:10}),"ghost"],...(pass?[]:[["Volver al inicio",home,"ghost"]])]);
+ } else {
+  const weak=[];
+  if(!c.extra)Object.entries(c.stats).forEach(([id,st])=>{const s=lv(id);if(st.r/st.n>=.8){s.box=Math.min(s.box+1,INTERVALS.length-1)}else{s.box=0;weak.push(byId[id].t)}s.due=addDays(INTERVALS[s.box])});
+  save();
+  const lines=[["Bien",`${c.right} de ${c.total}`,c.right/c.total>=.8],["Tiempo típico",`${secs(med)} s`,true]];
+  result(c.right/c.total>=.8?"Repaso hecho":"Repaso con tropiezos",lines,
+   weak.length?`Volverá mañana: ${weak.join(", ")}.`:(c.extra?"Esta práctica no cambia las fechas de repaso.":"Lo que te salió bien volverá dentro de más días."),c.errors,[["Volver al inicio",home,"red"]]);
+ }
+}
+function result(title,lines,say,errors,btns){
+ setWide(false);cur=null;
+ app.innerHTML=`<div class="top"><button class="back" aria-label="Volver al inicio" id="bk">←</button><h2>Resultado</h2></div>
+ <div class="result"><h2>${esc(title)}</h2>
+ <div class="paper">${lines.map(([a,b,ok])=>`<div class="line"><span>${esc(a)}</span><b class="${ok?"ok":"no"}">${esc(b)}</b></div>`).join("")}
+ ${errors.map(e=>`<div class="fix"><h3>${esc(e.p.q)} = ${esc(fmt(e.p.a))} (pusiste ${esc(e.given)})</h3>${e.p.steps.map(s=>`<div class="step">${esc(s)}</div>`).join("")}</div>`).join("")}</div>
+ <p class="say">${esc(say)}</p>
+ <div class="actions">${btns.map((b,i)=>`<button class="cta ${b[2]}" data-b="${i}">${esc(b[0])}</button>`).join("")}</div></div>`;
+ document.getElementById("bk").onclick=home;
+ app.querySelectorAll("[data-b]").forEach(x=>x.onclick=btns[+x.dataset.b][1]);
+ window.scrollTo(0,0);
+}
+document.addEventListener("keydown",e=>{
+ if(!cur||e.ctrlKey||e.metaKey||e.altKey)return;
+ if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault()}
+ else if(e.key==="."||e.key===","){press(".");e.preventDefault()}
+ else if(e.key==="Backspace"){press("del");e.preventDefault()}
+ else if(e.key==="Enter"){press("ok");e.preventDefault()}
+});
+home();
+</script>
+</body>
+</html>
