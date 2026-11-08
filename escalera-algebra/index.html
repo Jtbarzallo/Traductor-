@@ -131,6 +131,19 @@ button:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visibl
 .ans{font-family:var(--f-math);font-size:1.08rem;margin-top:8px;display:grid;gap:4px}
 .cta{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:11px 14px;font:700 .95rem var(--f-body);cursor:pointer}
 
+/* Mi pizarra */
+.myv{display:grid;gap:10px}
+.myv>.hint{margin:0}
+.myWrap{touch-action:none}
+@media (min-width:641px){.myWrap{aspect-ratio:16/9}}
+.myWrap canvas{cursor:crosshair}
+.myStatus{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.45);color:#f2efe4;font:700 .85rem var(--f-body);padding:6px 10px;border-radius:8px;max-width:calc(100% - 20px)}
+.myEdit{display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.myEdit label{font-weight:700;font-size:.9rem}
+.myEdit input{font:400 1.2rem var(--f-chalk);padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);min-width:0}
+.keys{display:flex;flex-wrap:wrap;gap:5px}
+.keys button{min-width:38px;height:36px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;font:600 1rem var(--f-math);cursor:pointer}
+.mypre{white-space:pre-wrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;user-select:all;font-family:var(--f-math)}
 /* Escalera */
 .stairTop{display:grid;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
 .viz{display:flex;align-items:flex-end;gap:2px;height:80px}
@@ -211,6 +224,7 @@ ol.steps{list-style:none;padding:0;margin:0;display:grid;gap:2px}
       <button id="vStair" aria-pressed="true">Escalera</button>
       <button id="vTutor" aria-pressed="false">Tutor en vivo</button>
       <button id="vNotes" aria-pressed="false">Apuntes</button>
+      <button id="vMy" aria-pressed="false">Mi pizarra</button>
     </div>
   </div>
 
@@ -275,6 +289,31 @@ ol.steps{list-style:none;padding:0;margin:0;display:grid;gap:2px}
         <div class="st" id="askSt"></div>
       </div>
     </aside>
+  </section>
+
+  <section class="myv" id="myView" hidden>
+    <p class="hint">Escribe con el dedo o el mouse. Cuando paras un momento, lo que escribiste se convierte en letras y números de tiza, en el mismo lugar.</p>
+    <div class="boardWrap myWrap" id="myWrap"><canvas id="myBoard" aria-label="Mi pizarra: escribe a mano"></canvas><div class="myStatus" id="myStatus" hidden></div></div>
+    <div class="tray">
+      <button class="tbtn" id="myPen" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>Escribir</button>
+      <span class="dots" id="myDots"></span>
+      <button class="tbtn" id="myErase" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M14 4l6 6-9 9H6l-3-3z"/><path d="M9 21h12"/></svg>Borrador</button>
+      <button class="tbtn" id="myEditT" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M4 12h7M4 17h6"/><path d="M14 19l1-4 5-5 3 3-5 5z"/></svg>Corregir</button>
+      <button class="tbtn" id="myUndo">Deshacer</button>
+      <button class="tbtn" id="myClear">Borrar todo</button>
+      <span class="sep"></span>
+      <label class="hint"><input type="checkbox" id="myAuto" checked> Convertir solo</label>
+      <button class="tbtn" id="myNow" hidden>Pasar a letra</button>
+      <button class="tbtn" id="myCopy">Copiar texto</button>
+      <button class="tbtn" id="myFs">Pantalla completa</button>
+    </div>
+    <form class="myEdit" id="myEdit" hidden autocomplete="off">
+      <label for="myEditIn">Corrige el texto</label>
+      <input id="myEditIn" type="text" spellcheck="false">
+      <div class="keys" id="myKeys"><button type="button">²</button><button type="button">³</button><button type="button">√</button><button type="button">±</button><button type="button">·</button><button type="button">−</button><button type="button">→</button><button type="button">≠</button><button type="button">≥</button><button type="button">≤</button><button type="button">₂</button><button type="button">π</button></div>
+      <div class="row"><button class="cta">Guardar</button><button type="button" class="ghost" id="myDel">Borrar</button></div>
+    </form>
+    <p class="hint" id="myNote">Con «Corregir» tocas un texto para arreglarlo si se leyó mal.</p>
   </section>
 
   <section class="notes" id="notesView" hidden>
@@ -1002,11 +1041,11 @@ function renderNotes(){const ls=LESSONS[st.lesson],e=curEx();$('#theory').innerH
    <div class="pre" id="exPre"></div>`;
   $('#toTutor').onclick=()=>{setView('tutor');st.playing=true;runStep(0);};}
 function selectEx(li,ei){token++;stopSpeech();paused=false;active=false;st.playing=false;st.lesson=li;st.ex=ei;st.step=0;$('#segs').innerHTML='';renderTabs();renderNotes();runStep(0,false);updatePlay();renderPrereq();}
-function setView(v){st.view=v;$('#stairView').hidden=v!=='stair';$('#tutorView').hidden=v!=='tutor';$('#notesView').hidden=v!=='notes';
+function setView(v){st.view=v;$('#stairView').hidden=v!=='stair';$('#myView').hidden=v!=='my';$('#vMy').setAttribute('aria-pressed',v==='my');if(v==='my')requestAnimationFrame(myFit);else if(typeof MY!=='undefined'&&MY.pend.length)myConvert();$('#tutorView').hidden=v!=='tutor';$('#notesView').hidden=v!=='notes';
   $('#vStair').setAttribute('aria-pressed',v==='stair');$('#vTutor').setAttribute('aria-pressed',v==='tutor');$('#vNotes').setAttribute('aria-pressed',v==='notes');
-  $('#lessonTabs').hidden=v==='stair';$('#rail').hidden=v==='stair';
+  $('#lessonTabs').hidden=v==='stair'||v==='my';$('#rail').hidden=v==='stair'||v==='my';
   if(v!=='tutor'&&st.playing)togglePlay();if(v!=='stair')stopLesson();if(v==='tutor')requestAnimationFrame(fit);try{localStorage.setItem('pizarra-view',v);}catch(e){}window.scrollTo(0,0);}
-$('#vStair').onclick=()=>setView('stair');$('#vTutor').onclick=()=>setView('tutor');$('#vNotes').onclick=()=>setView('notes');
+$('#vStair').onclick=()=>setView('stair');$('#vMy').onclick=()=>setView('my');$('#vTutor').onclick=()=>setView('tutor');$('#vNotes').onclick=()=>setView('notes');
 function prereqHTML(){const ids=PREREQ[st.lesson+'-'+st.ex]||[];return `<b>¿Te cuesta? Practica antes estos escalones:</b><div>${ids.map(id=>{const i=LV.findIndex(v=>v.id===id);return `<button data-lv="${i}">${i+1}. ${esc(LV[i].name)}</button>`;}).join('')}</div>`;}
 function renderPrereq(){for(const el of [$('#prereq'),$('#exPre')]){if(!el)continue;el.innerHTML=prereqHTML();el.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{setView('stair');openLv(+b.dataset.lv);});}}
 $('#play').onclick=togglePlay;$('#mPlay').onclick=togglePlay;
@@ -1121,12 +1160,93 @@ $('#listen').onclick=async e=>{e.preventDefault();if(!hasTTS){$('#listen').textC
   for(const p of parts){if(!lessonOn)break;await new Promise(res=>{const u=new SpeechSynthesisUtterance(p);u.lang=VOICE?VOICE.lang:'es-ES';if(VOICE)u.voice=VOICE;u.rate=0.95*st.speed;u.onend=res;u.onerror=res;setTimeout(res,4000+p.length*140);speechSynthesis.speak(u);});}
   stopLesson();};
 
+/* ===================== Mi pizarra: escribo a mano y se convierte en letra ===================== */
+const myWrap=$('#myWrap'),myC=$('#myBoard'),mctx=myC.getContext('2d');
+let MW=300,MH=200,SAMPLE_IMG=false,MYASK=null;
+(async()=>{try{if(!(window.claude&&typeof window.claude.use==='function'))return;const sm=await window.claude.use('sample');if(sm){MYASK=sm;const lim=await sm.limits().catch(()=>null);SAMPLE_IMG=!!(lim&&lim.images);}}catch(e){}})();
+const MY={items:[],pend:[],busy:[],tool:'pen',color:'#f2efe4',auto:true,sel:null};
+try{const d=JSON.parse(localStorage.getItem('mi-pizarra')||'null');if(d&&Array.isArray(d.items))MY.items=d.items;}catch(e){}
+function mySave(){try{localStorage.setItem('mi-pizarra',JSON.stringify({items:MY.items}));}catch(e){}}
+function myFit(){MW=myWrap.clientWidth;MH=myWrap.clientHeight;if(!MW||!MH)return;const d=Math.min(2,window.devicePixelRatio||1);myC.width=Math.round(MW*d);myC.height=Math.round(MH*d);mctx.setTransform(d,0,0,d,0,0);myDraw();}
+new ResizeObserver(myFit).observe(myWrap);
+const myFont=h=>`400 ${Math.round(h*MH)}px Kalam, "Comic Sans MS", cursive`;
+function myStroke(g,s,alpha,from){g.globalAlpha=alpha;g.strokeStyle=s.c;g.lineWidth=Math.max(2,s.w*MW);g.lineCap='round';g.lineJoin='round';g.shadowColor=s.c;g.shadowBlur=1;
+  const P=s.pts,a=Math.max(0,(from||0)-1);g.beginPath();g.moveTo(P[a][0]*MW,P[a][1]*MH);if(P.length===1)g.lineTo(P[0][0]*MW+.1,P[0][1]*MH);for(let i=a+1;i<P.length;i++)g.lineTo(P[i][0]*MW,P[i][1]*MH);g.stroke();g.globalAlpha=1;g.shadowBlur=0;}
+function myDraw(){const g=mctx;g.clearRect(0,0,MW,MH);g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--board').trim()||'#1d3a31';g.fillRect(0,0,MW,MH);
+  for(const [x,y,r] of smudges){const rg=g.createRadialGradient(x*MW,y*MH,0,x*MW,y*MH,r*MW);rg.addColorStop(0,'rgba(255,255,255,0.045)');rg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=rg;g.fillRect(0,0,MW,MH);}
+  for(const it of MY.items){if(it.ink){it.ink.forEach(s=>myStroke(g,s,.9));continue;}
+    g.font=myFont(it.h);g.fillStyle=it.c;g.shadowColor=it.c;g.shadowBlur=1.5;g.fillText(it.t,it.x*MW,it.y*MH);g.shadowBlur=0;g.globalAlpha=.22;g.fillText(it.t,it.x*MW+.7,it.y*MH+.5);g.globalAlpha=1;
+    if(it===MY.sel){const w=g.measureText(it.t).width;g.strokeStyle='#f6d870';g.setLineDash([5,4]);g.lineWidth=1.5;g.strokeRect(it.x*MW-6,(it.y-it.h*.95)*MH,w+12,it.h*1.25*MH);g.setLineDash([]);}}
+  MY.busy.forEach(b=>b.strokes.forEach(s=>myStroke(g,s,.35)));
+  MY.pend.forEach(s=>myStroke(g,s,1));}
+function myPt(e){const r=myC.getBoundingClientRect();return [(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height];}
+function myBox(it){if(it.ink){return bboxOf(it.ink);}mctx.font=myFont(it.h);const w=mctx.measureText(it.t).width/MW;return {x1:it.x,x2:it.x+w,y1:it.y-it.h*.95,y2:it.y+it.h*.3};}
+function bboxOf(strokes){let x1=1,y1=1,x2=0,y2=0;for(const s of strokes)for(const [x,y] of s.pts){x1=Math.min(x1,x);y1=Math.min(y1,y);x2=Math.max(x2,x);y2=Math.max(y2,y);}return {x1,y1,x2,y2};}
+const inBox=(p,b,pad=.015)=>p[0]>=b.x1-pad&&p[0]<=b.x2+pad&&p[1]>=b.y1-pad&&p[1]<=b.y2+pad;
+function myErase(p){const n=MY.items.length+MY.pend.length;MY.items=MY.items.filter(it=>!inBox(p,myBox(it)));MY.pend=MY.pend.filter(s=>!s.pts.some(q=>Math.hypot(q[0]-p[0],(q[1]-p[1])*MH/MW)<.03));if(MY.items.length+MY.pend.length!==n){mySave();myDraw();}}
+function myStatus(t){$('#myStatus').textContent=t;$('#myStatus').hidden=!t;}
+let myCur=null,myTimer=null;
+myC.addEventListener('pointerdown',e=>{e.preventDefault();clearTimeout(myTimer);try{myC.setPointerCapture(e.pointerId);}catch(_){}const p=myPt(e);
+  if(MY.tool==='pen'){myCur={c:MY.color,w:Math.max(3,MW*.0065)/MW,pts:[p]};MY.pend.push(myCur);myStroke(mctx,myCur,1);}
+  else if(MY.tool==='erase'){myCur={erase:true};myErase(p);}
+  else{const hit=[...MY.items].reverse().find(it=>!it.ink&&inBox(p,myBox(it)));MY.sel=hit||null;myDraw();openEdit();}});
+myC.addEventListener('pointermove',e=>{if(!myCur)return;const p=myPt(e);if(myCur.erase){myErase(p);return;}myCur.pts.push(p);myStroke(mctx,myCur,1,myCur.pts.length-1);});
+['pointerup','pointercancel'].forEach(t=>myC.addEventListener(t,()=>{if(myCur&&!myCur.erase&&MY.auto)myTimer=setTimeout(myConvert,1400);myCur=null;}));
+
+function strokesToBlob(strokes,b){const pad=24,bw=Math.max(1,(b.x2-b.x1)*MW),bh=Math.max(1,(b.y2-b.y1)*MH);let s=Math.max(1,140/bh);if(bw*s>1800)s=1800/bw;
+  const c=document.createElement('canvas');c.width=Math.round(bw*s+pad*2);c.height=Math.round(bh*s+pad*2);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);
+  g.strokeStyle='#000';g.lineCap='round';g.lineJoin='round';
+  for(const st of strokes){g.lineWidth=Math.max(3,st.w*MW*s);g.beginPath();st.pts.forEach(([x,y],i)=>{const X=(x-b.x1)*MW*s+pad,Y=(y-b.y1)*MH*s+pad;i?g.lineTo(X,Y):g.moveTo(X,Y);});if(st.pts.length===1){const [x,y]=st.pts[0];g.lineTo((x-b.x1)*MW*s+pad+.5,(y-b.y1)*MH*s+pad);}g.stroke();}
+  return new Promise((res,rej)=>c.toBlob(bl=>bl?res(bl):rej(new Error('blob')),'image/png'));}
+const OCR_PROMPT=`La imagen es un fragmento escrito a mano con el dedo, en una pizarra, por un estudiante de colegio en Ecuador. Suele ser matemática (álgebra, ecuaciones, sistemas, logaritmos) o texto en español.
+Transcríbelo EXACTAMENTE como está escrito: no lo resuelvas, no lo corrijas y no agregues nada.
+Usa esta notación: x², y³, √, ±, ·, −, =, ≠, <, >, ≤, ≥, →, paréntesis, fracciones con /, logaritmos como log₂(x), subíndices con ₀₁₂₃₄₅₆₇₈₉ y exponentes con ⁰¹²³⁴⁵⁶⁷⁸⁹.
+Si hay varias líneas, sepáralas con un salto de línea. Responde SOLO con la transcripción, sin comillas ni explicaciones. Si no se puede leer nada, responde exactamente: ?`;
+const myQueue=[];let myRunning=false;
+function myConvert(){clearTimeout(myTimer);if(!MY.pend.length)return;const strokes=MY.pend;MY.pend=[];
+  if(!SAMPLE_IMG){MY.items.push({ink:strokes});mySave();myDraw();myStatus(MYASK?'Para convertir a letra, permite que esta página envíe imágenes a Claude.':'La conversión a letra funciona al abrir la pizarra dentro de Claude. Aquí queda escrito a mano.');return;}
+  const job={strokes};MY.busy.push(job);myQueue.push(job);myDraw();myRun();}
+async function myRun(){if(myRunning)return;myRunning=true;
+  while(myQueue.length){const job=myQueue.shift();myStatus('Pasando a letra…');const strokes=job.strokes;const b=bboxOf(strokes);
+    try{const blob=await strokesToBlob(strokes,b);const r=await MYASK(OCR_PROMPT,{images:[blob],modelTier:'default',cache:false});
+      let txt=String(r.text||'').replace(/```[a-z]*|```/g,'').trim();if(!txt||txt==='?')throw {code:'unreadable'};
+      const lines=txt.split(/\n+/).map(s=>s.trim().replace(/^["“]|["”]$/g,'')).filter(Boolean).slice(0,8);
+      const lh=(b.y2-b.y1)/lines.length;const c=strokes[0].c;
+      lines.forEach((t,i)=>{let h=Math.min(Math.max(lh*.78,24/MH),.16);mctx.font=myFont(h);const w=mctx.measureText(t).width/MW;const room=.98-b.x1;if(w>room&&room>.05)h*=room/w;
+        const y=Math.min(.99,Math.max(h*.95,b.y1+lh*(i+1)-lh*.2));MY.items.push({t,x:b.x1,y,h,c});});
+      myStatus('');}
+    catch(err){MY.items.push({ink:strokes});const c=err&&err.code;
+      myStatus(c==='unreadable'?'No pude leer eso. Quedó escrito a mano: bórralo y escríbelo un poco más grande.':c==='not_granted'?'Para convertir a letra, permite que esta página envíe imágenes a Claude.':c==='rate_limited'?'Vas muy rápido. Espera unos segundos y sigue escribiendo.':'No se pudo convertir ahora. Quedó escrito a mano.');}
+    MY.busy=MY.busy.filter(j=>j!==job);mySave();myDraw();}
+  myRunning=false;}
+
+/* Herramientas */
+const myTools={pen:$('#myPen'),erase:$('#myErase'),edit:$('#myEditT')};
+function setMyTool(t){MY.tool=t;for(const k in myTools)myTools[k].setAttribute('aria-pressed',k===t);if(t!=='edit'){MY.sel=null;$('#myEdit').hidden=true;myDraw();}if(t!=='pen'&&MY.pend.length)myConvert();}
+myTools.pen.onclick=()=>setMyTool('pen');myTools.erase.onclick=()=>setMyTool('erase');myTools.edit.onclick=()=>setMyTool('edit');
+const myDots=$('#myDots');PEN.forEach((c,i)=>{const d=document.createElement('button');d.className='dot';d.style.background=c;d.setAttribute('aria-label',['Tiza blanca','Tiza amarilla','Tiza rosada','Tiza celeste'][i]);d.setAttribute('aria-pressed',i===0);
+  d.onclick=()=>{MY.color=c;setMyTool('pen');[...myDots.children].forEach(x=>x.setAttribute('aria-pressed',x===d));};myDots.appendChild(d);});
+$('#myNow').onclick=myConvert;
+$('#myAuto').onchange=e=>{MY.auto=e.target.checked;$('#myNow').hidden=MY.auto;};
+$('#myUndo').onclick=()=>{if(MY.pend.length)MY.pend.pop();else MY.items.pop();MY.sel=null;$('#myEdit').hidden=true;mySave();myDraw();};
+let clearArm=0;$('#myClear').onclick=()=>{const b=$('#myClear');if(Date.now()-clearArm<3500){MY.items=[];MY.pend=[];MY.sel=null;$('#myEdit').hidden=true;mySave();myDraw();b.textContent='Borrar todo';clearArm=0;return;}
+  clearArm=Date.now();b.textContent='¿Seguro? Toca otra vez';setTimeout(()=>{if(clearArm&&Date.now()-clearArm>=3400){b.textContent='Borrar todo';clearArm=0;}},3600);};
+$('#myCopy').onclick=()=>{const txt=MY.items.filter(i=>!i.ink).sort((a,b)=>Math.abs(a.y-b.y)<.02?a.x-b.x:a.y-b.y).map(i=>i.t).join('\n');const n=$('#myNote');
+  if(!txt){n.textContent='Todavía no hay nada convertido a letra.';return;}
+  const show=()=>{n.innerHTML='Selecciona y copia:<pre class="mypre"></pre>';n.querySelector('pre').textContent=txt;};
+  try{navigator.clipboard.writeText(txt).then(()=>{n.textContent='Texto copiado.';},show);}catch(e){show();}};
+$('#myFs').onclick=()=>{try{if(document.fullscreenElement)document.exitFullscreen();else{const p=myWrap.requestFullscreen&&myWrap.requestFullscreen();if(p&&p.catch)p.catch(()=>{});}}catch(e){}};
+function openEdit(){const it=MY.sel;$('#myEdit').hidden=!it;if(it){$('#myEditIn').value=it.t;$('#myEditIn').focus();}}
+$('#myEdit').onsubmit=e=>{e.preventDefault();const it=MY.sel;if(!it)return;const v=$('#myEditIn').value.trim();if(v)it.t=v;else MY.items=MY.items.filter(x=>x!==it);MY.sel=null;$('#myEdit').hidden=true;mySave();myDraw();};
+$('#myDel').onclick=()=>{MY.items=MY.items.filter(x=>x!==MY.sel);MY.sel=null;$('#myEdit').hidden=true;mySave();myDraw();};
+$('#myKeys').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const inp=$('#myEditIn');const s=inp.selectionStart??inp.value.length;inp.value=inp.value.slice(0,s)+b.textContent+inp.value.slice(inp.selectionEnd??s);inp.focus();inp.selectionStart=inp.selectionEnd=s+b.textContent.length;});
+
 /* ===================== Inicio ===================== */
 renderTabs();renderNotes();renderPrereq();fit();
 if(matchMedia('(min-width:921px)').matches)$('#stairListBox').open=true;
 openLv(curLv);
 let v0='stair';try{v0=localStorage.getItem('pizarra-view')||'stair';}catch(e){}
-setView(['stair','tutor','notes'].includes(v0)?v0:'stair');
+setView(['stair','tutor','notes','my'].includes(v0)?v0:'stair');
 const startStep=st.step;runStep(startStep,false);
 if(document.fonts&&document.fonts.load){document.fonts.load('400 20px Kalam').then(()=>document.fonts.load('700 20px Kalam')).then(()=>draw()).catch(()=>{});}
 </script>
