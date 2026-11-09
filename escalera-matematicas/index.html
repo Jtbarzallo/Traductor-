@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Escalera de Matemáticas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&family=STIX+Two+Text:wght@400;500&display=swap">
+<style>
+/* Concepto: el cuaderno cuadriculado del estudiante — tinta azul para explicar, roja para corregir, resaltador amarillo para lo importante. */
+:root{
+  --paper:#f5f8fc; --grid:#e0e8f2; --surface:#ffffff; --ink:#18243a; --muted:#566379; --line:#cdd8e6;
+  --blue:#1f4ea3; --blue-soft:#e3ebf8; --red:#b42d26; --red-soft:#fbe8e6; --green:#1c7546; --green-soft:#e0f2e7;
+  --hl:#fff0a6; --hl-ink:#3a2f00; --on-blue:#ffffff;
+  --f-hand:'Kalam','Segoe Print','Comic Sans MS',cursive; --f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif; --f-math:'STIX Two Text','Cambria Math',Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0f1724; --grid:#182334; --surface:#162133; --ink:#e4ebf5; --muted:#9aa9be; --line:#2a3a52;
+  --blue:#86b2ff; --blue-soft:#1b2d4c; --red:#ff8c84; --red-soft:#3a1d1c; --green:#72d6a0; --green-soft:#16332a;
+  --hl:#4d4313; --hl-ink:#fff4c2; --on-blue:#0d1626; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1724; --grid:#182334; --surface:#162133; --ink:#e4ebf5; --muted:#9aa9be; --line:#2a3a52;
+  --blue:#86b2ff; --blue-soft:#1b2d4c; --red:#ff8c84; --red-soft:#3a1d1c; --green:#72d6a0; --green-soft:#16332a;
+  --hl:#4d4313; --hl-ink:#fff4c2; --on-blue:#0d1626; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background-color:var(--paper);color:var(--ink)}
+body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;font:17px/1.55 var(--f-body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px;display:grid;gap:16px}
+.wrap>*{min-width:0}
+header h1{font:700 clamp(2rem,6vw,2.9rem)/1.05 var(--f-hand);color:var(--blue);margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:4px;padding-block:8px;border-bottom:2px solid var(--ink)}
+nav.tabs button{flex:0 0 auto;white-space:nowrap;font:700 .92rem var(--f-body);background:none;border:0;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer}
+nav.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+nav.tabs .n{display:inline-block;min-width:1.4em;margin-left:4px;padding:0 5px;border-radius:9px;background:var(--red);color:var(--on-blue);font-size:.75rem}
+button:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+h2{font:700 1.7rem/1.15 var(--f-hand);margin:0;text-wrap:balance}
+.mx{font-family:var(--f-math);font-size:1.07em}
+.q .mx,.opt .mx{white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.label{font:700 .74rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--blue)}
+.hint{font-size:.86rem;color:var(--muted);margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cta{border:0;background:var(--blue);color:var(--on-blue);border-radius:6px;padding:10px 16px;font:700 .95rem var(--f-body);cursor:pointer}
+.ghost{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:9px 14px;font:700 .9rem var(--f-body);cursor:pointer}
+.ghost:disabled,.cta:disabled{opacity:.45;cursor:default}
+
+/* Escalera */
+.top{padding:14px 16px;display:grid;gap:8px}
+.viz{display:flex;align-items:flex-end;gap:2px;height:84px}
+.viz button{flex:1 1 0;min-width:0;border:0;padding:0;border-radius:2px 2px 0 0;background:var(--line);cursor:pointer}
+.viz button.ok{background:var(--green)}
+.viz button.cur{background:var(--blue)}
+.viz button.ok.cur{background:var(--green);outline:2px solid var(--blue);outline-offset:1px}
+.stat{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;font-size:.95rem}
+.stat b{font:700 1.4rem var(--f-hand);color:var(--blue)}
+.grid{display:grid;grid-template-columns:290px minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.list{padding:8px 10px}
+.list summary{cursor:pointer;font:700 1.05rem var(--f-hand);padding:4px}
+.list h4{font:700 .72rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:14px 6px 4px}
+.list ol{list-style:none;padding:0;margin:0;display:grid;gap:1px}
+.srow{display:flex;gap:9px;align-items:center;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:5px 7px;border-radius:6px;cursor:pointer;font:inherit;font-size:.92rem}
+.srow .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font:700 .74rem var(--f-body);flex:0 0 auto;font-variant-numeric:tabular-nums}
+.srow.ok .n{background:var(--green);border-color:var(--green);color:var(--on-blue)}
+.srow.cur{background:var(--blue-soft);font-weight:700}
+.lvl{display:grid;gap:14px;min-width:0}
+#lvHead h2{font-size:clamp(1.6rem,4vw,2.1rem);margin:2px 0 8px;color:var(--ink)}
+.meter{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.86rem;color:var(--muted)}
+.meter i{width:14px;height:14px;border-radius:50%;border:2px solid var(--green)}
+.meter i.on{background:var(--green)}
+.badge{background:var(--green);color:var(--on-blue);border-radius:4px;padding:1px 8px;font-weight:700}
+.lesson{padding:12px 18px}
+.lesson>summary{cursor:pointer;font:700 1.25rem var(--f-hand);color:var(--blue);padding:4px 0}
+.lsn{font-size:1.02rem;line-height:1.65}
+.lsn section{margin-top:14px}
+.lsn h4{font:700 .78rem var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.lsn p,.lsn li{max-width:70ch}
+.lsn p{margin:0 0 8px}
+.lsn ol,.lsn ul{padding-left:1.4em;margin:0}.lsn li{margin:5px 0}
+.ls-idea{background:var(--blue-soft);border-radius:6px;padding:12px 14px}
+.ls-ej{border-left:3px solid var(--blue);padding-left:14px}
+.ls-ej .enun{font-family:var(--f-hand);font-size:1.2rem;color:var(--blue);margin:0 0 4px}
+.mal{display:grid;gap:4px;padding:10px 12px;border:1px dashed var(--line);border-radius:6px;margin-bottom:8px;max-width:70ch}
+.mal .no{color:var(--red);text-decoration:line-through;text-decoration-thickness:1px}
+.mal .no b,.mal .si b{text-decoration:none;display:inline-block;width:1.2em}
+.mal .si{color:var(--green);font-weight:700}
+.mal p{margin:0;font-size:.93rem;color:var(--muted)}
+.tip{background:var(--hl);color:var(--hl-ink);padding:10px 14px;border-radius:4px;margin:14px 0 4px;max-width:70ch}
+.formula{font-family:var(--f-math);font-size:1.18rem;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin:8px 0;overflow-x:auto;line-height:1.8}
+.formula.frac{display:flex;align-items:center;gap:8px}
+.fr{display:inline-flex;flex-direction:column;text-align:center}.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 6px}
+.tb{border-collapse:collapse;margin:8px 0;font-family:var(--f-math)}.tb td{padding:5px 14px;border:1px solid var(--line)}
+.recta{width:100%;max-width:440px;color:var(--ink);display:block;margin:6px 0}
+ol.orden{font-size:1.05rem}
+.q{font-size:1.18rem;line-height:1.6;overflow-x:auto}
+.qcard{padding:16px;display:grid;gap:12px;min-width:0}
+.fld{border:0;padding:0;margin:0 0 12px;display:grid;gap:6px;min-width:0}
+.fld>label,.fld legend{font-weight:700;font-size:.93rem;padding:0;margin-bottom:6px}
+.numrow{display:flex;gap:6px;max-width:320px}
+.numrow input{flex:1;min-width:0;font:700 1.15rem var(--f-body);padding:9px 10px;border:1.5px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink)}
+.sgn{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:0 12px;font-weight:700;cursor:pointer}
+.choices{display:grid;gap:6px}
+.choices .opt{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1.5px solid var(--line);border-radius:6px;cursor:pointer;background:var(--paper);font-size:1.03rem}
+.choices .opt:has(input:checked){border-color:var(--blue);background:var(--blue-soft)}
+.fld.good .numrow input,.fld.good .opt:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.fld.bad .numrow input,.fld.bad .opt:has(input:checked){border-color:var(--red);background:var(--red-soft)}
+.fb{border-radius:6px;padding:10px 12px;margin:0 0 10px;line-height:1.55}
+.fb.warn{background:var(--hl);color:var(--hl-ink)}.fb.good{background:var(--green-soft)}.fb.bad{background:var(--red-soft)}
+.fb.big{font-size:1.1rem}
+.sol{padding-left:1.4em;display:grid;gap:7px;margin:8px 0 0;line-height:1.6}
+.solbox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
+.solbox summary{cursor:pointer;font-weight:700}
+.nav{justify-content:space-between}
+.ask{padding:14px 16px;display:grid;gap:8px}
+.ask label{font:700 1.1rem var(--f-hand);color:var(--blue)}
+.ask .row input{flex:1 1 220px;min-width:0;font:inherit;background:var(--paper);color:var(--ink);border:1.5px solid var(--line);border-radius:6px;padding:9px 10px}
+.ans{line-height:1.65;max-width:72ch}
+.lk{border:1.5px solid var(--blue);background:transparent;color:var(--blue);border-radius:4px;padding:3px 9px;font:700 .82rem var(--f-body);cursor:pointer}
+
+/* Errores, tips, cuaderno */
+.views{display:grid;gap:16px}
+.blkh{font:700 1.3rem var(--f-hand);color:var(--blue);margin:10px 0 0}
+.errgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:10px}
+.errgrid .mal{background:var(--surface);margin:0;max-width:none}
+.errgrid .mal .lk{justify-self:start;margin-top:4px}
+.tips{padding:16px 20px;display:grid;gap:4px}
+.tips h3{font:700 1.35rem var(--f-hand);color:var(--blue);margin:14px 0 4px}
+.tips ol,.tips ul{padding-left:1.4em;margin:0}.tips li{margin:6px 0;max-width:72ch}
+.check{list-style:none;padding:0!important}.check li::before{content:"☐ ";color:var(--blue)}
+.nb{display:grid;gap:10px}
+.nbi{padding:12px 14px;display:grid;gap:6px}
+.nbi .q{font-size:1.05rem}
+.nbi .mine{color:var(--red)}.nbi .ok{color:var(--green);font-weight:700}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.diag{padding:16px;display:grid;gap:12px;max-width:760px}
+.res li{margin:4px 0}
+@media (prefers-reduced-motion:no-preference){.fb{animation:pop .18s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Escalera de Matemáticas</h1>
+  <p>Desde los signos hasta factoreo, ecuaciones, sistemas y logaritmos. Un escalón a la vez: lección, errores que no debes cometer, práctica y solución paso a paso.</p>
+</header>
+<nav class="tabs" aria-label="Secciones">
+  <button data-v="escalera" aria-pressed="true">Escalera</button>
+  <button data-v="errores" aria-pressed="false">Errores comunes</button>
+  <button data-v="tips" aria-pressed="false">Consejos para mejorar</button>
+  <button data-v="cuaderno" aria-pressed="false">Mi cuaderno de errores<span class="n" id="nbCount" hidden>0</span></button>
+  <button data-v="diag" aria-pressed="false">¿Por dónde empiezo?</button>
+</nav>
+
+<section id="v-escalera" class="views">
+  <div class="card top">
+    <div class="viz" id="viz" role="group" aria-label="Escalones"></div>
+    <div class="stat"><span><b id="nPass">0</b> de <span id="nTot"></span> escalones aprobados</span><span id="nextUp"></span></div>
+    <p class="hint" id="sync">Empieza por el escalón 1 aunque te parezca fácil: cada escalón usa lo del anterior. Puedes entrar a cualquiera cuando quieras.</p>
+  </div>
+  <div class="grid">
+    <details class="card list" id="listBox"><summary>Todos los escalones</summary><div id="list"></div></details>
+    <div class="lvl">
+      <div id="lvHead"></div>
+      <details class="card lesson" id="lessonBox" open><summary>Lección: cómo se hace</summary><div class="row" style="margin-top:6px"><button class="ghost" id="listen">Escuchar la lección</button></div><div class="lsn" id="lesson"></div></details>
+      <div class="card qcard" id="qbox"></div>
+      <div class="card ask" id="ask" hidden>
+        <label for="askIn">¿No entendiste algo? Pregúntale al profe</label>
+        <div class="row"><input id="askIn" type="text" placeholder="Ej.: ¿por qué el último término siempre es positivo?" autocomplete="off"><button class="cta" id="askGo">Preguntar</button></div>
+        <div class="ans" id="askOut" aria-live="polite"></div>
+      </div>
+      <div class="row nav"><button class="ghost" id="prev">← Anterior</button><button class="ghost" id="next">Siguiente →</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="v-errores" class="views" hidden>
+  <div><h2>Errores que no debes cometer</h2><p class="hint">Son los errores más comunes de cada tema. Lee el tachado en rojo, después el correcto en verde y la razón. Con el botón vas directo a practicar ese tema.</p></div>
+  <div id="errList"></div>
+</section>
+
+<section id="v-tips" class="views" hidden>
+  <div class="card tips">
+    <h2>Consejos para mejorar en matemáticas</h2>
+    <h3>Cómo estudiar</h3>
+    <ol>
+      <li><b>Poco y todos los días.</b> 20 a 30 minutos diarios rinden más que 3 horas un solo día. La matemática se aprende como un deporte: con práctica seguida.</li>
+      <li><b>No te saltes escalones.</b> Casi todos los errores en temas difíciles vienen de una base floja (signos, fracciones, paréntesis). Si algo no sale, baja un escalón.</li>
+      <li><b>Primero entiende, después memoriza.</b> Pregúntate "¿por qué?" en cada regla. Si entiendes de dónde sale una fórmula, la puedes reconstruir aunque la olvides.</li>
+      <li><b>Intenta antes de mirar la solución.</b> Equivocarte y corregirte enseña más que leer una solución perfecta.</li>
+      <li><b>Repite lo que fallaste.</b> Al día siguiente, vuelve a hacer sin mirar los ejercicios de tu cuaderno de errores.</li>
+      <li><b>Explícaselo a alguien.</b> Si puedes explicarlo con palabras simples, lo entendiste de verdad. Si te trabas al explicar, ahí está lo que te falta.</li>
+      <li><b>Mezcla temas.</b> Cuando domines varios casos, practica "¿Qué caso uso?". En el examen nadie te dice qué método usar.</li>
+    </ol>
+    <h3>Cómo escribir en el cuaderno</h3>
+    <ol>
+      <li><b>Una operación por renglón.</b> Copia todo lo demás igual. Es más lento, pero casi no te equivocas.</li>
+      <li><b>Paréntesis siempre que reemplaces</b>, sobre todo con negativos: <span class="mx">(−3)² = 9</span>.</li>
+      <li><b>Escribe de dónde sale cada renglón</b> con una nota pequeña: "sumo (1) y (2)", "factor común".</li>
+      <li><b>Encierra en un recuadro</b> lo que vas a volver a usar (un despeje, el dominio).</li>
+      <li><b>Letra grande y ordenada.</b> Muchos errores son por confundir un 1 con un 7, o un 2 con una z.</li>
+    </ol>
+    <h3>Lista para revisar antes de entregar</h3>
+    <ul class="check">
+      <li>¿Revisé los signos en cada renglón?</li>
+      <li>¿Puse paréntesis al reemplazar?</li>
+      <li>¿Al sacar raíz escribí el ±?</li>
+      <li>¿Descarté lo que no sirve (x² negativo, fuera del dominio)?</li>
+      <li>¿Regresé a la variable original (de m a x, de t a x)?</li>
+      <li>¿Comprobé la respuesta reemplazándola en la ecuación original?</li>
+      <li>¿Respondí exactamente lo que se pide (los dos valores, las unidades, los puntos)?</li>
+    </ul>
+    <h3>Cuando te trabes</h3>
+    <ol>
+      <li>Lee otra vez el enunciado y escribe qué te dan y qué te piden.</li>
+      <li>Busca un ejemplo resuelto parecido en la lección y sigue los mismos pasos.</li>
+      <li>Prueba con números pequeños para ver qué pasa.</li>
+      <li>Si llevas más de 10 minutos atascado, mira solo la pista o el primer paso de la solución, no todo.</li>
+    </ol>
+    <p class="hint" style="margin-top:12px">Para ver explicados en pizarra los ejercicios de sistemas y logaritmos de la hoja, abre la <a href="https://claude.ai/artifact/XNAuonrseavthh9d7sCYsM" target="_blank" rel="noopener">Pizarra de Álgebra</a>.</p>
+  </div>
+</section>
+
+<section id="v-cuaderno" class="views" hidden>
+  <div><h2>Mi cuaderno de errores</h2><p class="hint">Aquí se guardan los ejercicios que fallaste, con tu respuesta y la correcta. Repásalos al día siguiente: vuelve a practicar ese escalón sin mirar.</p></div>
+  <div class="nb" id="nb"></div>
+  <div class="row"><button class="ghost" id="nbClear">Borrar el cuaderno</button></div>
+</section>
+
+<section id="v-diag" class="views" hidden>
+  <div class="card diag" id="diag"></div>
+</section>
+</div>
+
+<script>
+/* ===================== Helpers ===================== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const RNZ=(a,b)=>{let v;do{v=R(a,b);}while(v===0);return v;};
+const pk=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const nm=v=>{const r=Math.round(v*1000)/1000;const s=String(Math.abs(r)).replace('.',',');return r<0?'−'+s:s;};
+const pa=v=>v<0?`(${nm(v)})`:nm(v);
+const SUP='⁰¹²³⁴⁵⁶⁷⁸⁹';const sup=n=>String(n).split('').map(d=>d==='-'?'⁻':SUP[+d]).join('');
+const vx=(v,n)=>n===0?'':n===1?v:v+sup(n);
+const tm=(c,v='')=>{if(c===0)return '';const a=Math.abs(c);const body=(v&&a===1)?v:`${a}${v}`;return (c<0?' − ':' + ')+body;};
+function poly(T){let s='';for(const [c,v] of T){if(!c)continue;const a=Math.abs(c);const body=(v&&a===1)?v:`${a}${v}`;s+=s===''?(c<0?'−':'')+body:(c<0?' − ':' + ')+body;}return s||'0';}
+const kxs=(k,v='x')=>k===1?v:k===-1?'−'+v:`${nm(k)}${v}`;
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a;};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const frs=(n,d)=>{if(d<0){n=-n;d=-d;}const g=gcd(n,d)||1;n/=g;d/=g;return d===1?nm(n):`${n<0?'−':''}${Math.abs(n)}/${d}`;};
+const lg=(b,a)=>`log<sub>${b}</sub> ${a}`;
+const E=s=>`<span class="mx">${s}</span>`;
+const num=(label,ans,group)=>({k:'num',label,ans,group});
+const ch=(label,ans,opts,plain)=>({k:'choice',label,ans,plain:!!plain,opts:shuf([...new Set([ans,...opts])])});
+function rad(n){let a=1,b=n;for(let f=2;f*f<=b;f++){while(b%(f*f)===0){b/=f*f;a*=f;}}return {a,b};}
+function rootTxt(n){if(n<0)return 'no existe';if(n===0)return '0';const r=rad(n);if(r.b===1)return `±${r.a}`;if(r.a===1)return `±√${n}`;return `±${r.a}√${r.b}`;}
+function explainAdd(x,y){const r=x+y;
+  if(x>=0&&y>=0)return `Los dos son positivos: se suman. ${E(`${x} + ${y} = ${r}`)}.`;
+  if(x<=0&&y<=0)return `Los dos son negativos, como dos deudas: sumas ${-x} + ${-y} = ${-r} y dejas el signo menos. Resultado: <b>${nm(r)}</b>.`;
+  const ax=Math.abs(x),ay=Math.abs(y),big=ax>=ay?x:y;
+  return `Signos distintos: restas el grande menos el pequeño, sin mirar signos: ${Math.max(ax,ay)} − ${Math.min(ax,ay)} = ${Math.abs(r)}. `+(r===0?'Como valen lo mismo, se anulan: <b>0</b>.':`Lleva el signo del que vale más (${nm(big)}): <b>${nm(r)}</b>.`);}
+function pairSteps(P,S){const out=[];const ap=Math.abs(P);
+  for(let u=1;u*u<=ap;u++){if(ap%u)continue;const v=ap/u;const cands=P>0?[[u,v],[-u,-v]]:[[u,-v],[-u,v]];
+    for(const [p,q] of cands){if(P>0&&S!==0&&Math.sign(p)!==Math.sign(S))continue;const ok=p+q===S;out.push(`${nm(p)} y ${nm(q)}: suman ${nm(p+q)}${ok?' ✓ <b>¡estos son!</b>':''}`);}}
+  return out.join('<br>');}
+function genLC(allowDiscard){const y1=R(2,5),y2=-1-y1;let k;
+  if(allowDiscard&&Math.random()<.35)k=-y2-R(1,2);else k=-y2+R(1,4);
+  const Rr=k-y1*y2;return {y1,y2,k,R:Rr,C:k-Rr,xa:y1+k,xb:y2+k};}
+function genCC(){const a=R(2,7),b=R(1,a-1);return {a,b,R:a*a+b*b,P:a*b};}
+function twoNums(lim=60){let m,n;do{m=RNZ(-9,9);n=RNZ(-9,9);}while(m===n||m+n===0||Math.abs(m*n)>lim);return [m,n];}
+
+/* Lección con formato de profesor */
+const LSMAL=[];
+function LS(o){LSMAL.push(o.mal||[]);let h=`<section class="ls-idea"><h4>La idea</h4>${o.idea}</section>`;
+  if(o.pasos)h+=`<section><h4>Paso a paso</h4><ol class="ls-steps">${o.pasos.map(p=>`<li>${p}</li>`).join('')}</ol></section>`;
+  if(o.ej)o.ej.forEach((e,i)=>{h+=`<section class="ls-ej"><h4>Ejemplo resuelto${o.ej.length>1?' '+(i+1):''}</h4><p class="enun">${e[0]}</p><ol>${e.slice(1).map(s=>`<li>${s}</li>`).join('')}</ol></section>`;});
+  if(o.mal)h+=`<section><h4>Errores que no debes cometer</h4>${o.mal.map(m=>malHTML(m)).join('')}</section>`;
+  if(o.tip)h+=`<p class="tip"><b>Consejo del profe:</b> ${o.tip}</p>`;
+  return h;}
+const malHTML=([w,r,why])=>`<div class="mal"><div class="no"><b aria-label="Mal">✗</b> ${E(w)}</div><div class="si"><b aria-label="Bien">✓</b> ${E(r)}</div><p>${why}</p></div>`;
+
+const RECTA=`<svg class="recta" viewBox="0 0 420 60" role="img" aria-label="Recta numérica de −5 a 5"><line x1="10" y1="25" x2="410" y2="25" stroke="currentColor" stroke-width="2"/>${[-5,-4,-3,-2,-1,0,1,2,3,4,5].map((n,i)=>{const x=30+i*36;return `<line x1="${x}" y1="18" x2="${x}" y2="32" stroke="currentColor" stroke-width="${n===0?3:1.5}"/><text x="${x}" y="52" text-anchor="middle" fill="currentColor" font-size="14">${n<0?'−'+(-n):n}</text>`;}).join('')}<text x="20" y="12" fill="currentColor" font-size="12">← menores</text><text x="400" y="12" text-anchor="end" fill="currentColor" font-size="12">mayores →</text></svg>`;
+
+/* ===================== ESCALONES ===================== */
+const LV=[
+/* ---------- BLOQUE 1: aritmética ---------- */
+{id:'recta',blk:1,name:'Números negativos y la recta',need:4,
+ lesson:LS({idea:`<p>Los números negativos sirven para contar lo que <b>falta</b> o lo que se <b>debe</b>: temperaturas bajo cero, deudas, pisos del subsuelo. Imagina una línea con el 0 en el centro: a la derecha están los positivos y a la izquierda los negativos.</p>${RECTA}<p><b>Mientras más a la derecha está un número, más grande es.</b></p>`,
+  pasos:['Ubica los dos números en la recta.','El que queda más a la derecha es el mayor.',`Entre dos negativos, el mayor es el que está más cerca del 0: ${E('−2 > −7')}. Deber 2 dólares es mejor que deber 7.`,`El <b>valor absoluto</b> ${E('|−5|')} es la distancia al 0, sin importar el lado. ${E('|−5| = 5')} y ${E('|5| = 5')}. Nunca es negativo.`],
+  ej:[['¿Cuál es mayor: −9 o −4?','Los dos son negativos.','−4 está más cerca del 0, así que está más a la derecha.',`Respuesta: −4 es mayor. Se escribe ${E('−4 > −9')}.`]],
+  mal:[['−9 > −4','−4 > −9','Con negativos no mires qué número "se ve" más grande: mira cuál está más cerca del 0.'],['|−6| = −6','|−6| = 6','El valor absoluto es una distancia, y las distancias no son negativas.']],
+  tip:'Si dudas con negativos, piensa en temperatura: −2 °C es menos frío (más caliente) que −7 °C.'}),
+ gen(){if(Math.random()<.65){let a,b;do{a=R(-15,15);b=R(-15,15);}while(a===b);const big=Math.max(a,b),sm=Math.min(a,b);
+   return {q:`¿Cuál número es mayor: ${E(nm(a))} o ${E(nm(b))}?`,fields:[ch('El mayor es',nm(big),[nm(a),nm(b)])],hint:'Imagina la recta: el que está más a la derecha es el mayor.',
+    steps:[`En la recta, ${nm(big)} está más a la derecha que ${nm(sm)}.`,a<0&&b<0?'Entre dos negativos, gana el más cercano al 0.':a>=0&&b>=0?'Entre positivos, gana el más grande.':'Cualquier positivo (o el 0) es mayor que un negativo.',`El mayor es <b>${nm(big)}</b>.`]};}
+  const a=RNZ(-20,20);return {q:`¿Cuánto vale ${E(`|${nm(a)}|`)}?`,fields:[num('Resultado',Math.abs(a))],hint:'El valor absoluto es la distancia al 0: nunca es negativo.',steps:[`${nm(a)} está a ${Math.abs(a)} pasos del 0.`,`Por eso ${E(`|${nm(a)}| = ${Math.abs(a)}`)}.`]};}},
+
+{id:'suma',blk:1,name:'Sumar y restar con signos',need:5,
+ lesson:LS({idea:'<p>Piensa en dinero: un número positivo es lo que <b>tienes</b> y un número negativo es lo que <b>debes</b>. Sumar y restar es ir juntando lo que tienes y lo que debes.</p>',
+  pasos:[`<b>Mismo signo:</b> sumas y dejas ese signo. ${E('−3 − 5 = −8')}: debes 3, luego debes 5 más, así que debes 8.`,`<b>Signos distintos:</b> restas el grande menos el pequeño (sin mirar signos) y pones el signo del que vale más. ${E('−9 + 4 = −5')}: debes 9 y pagas 4, todavía debes 5.`,`<b>Dos signos menos pegados</b> se vuelven más: ${E('6 − (−2) = 6 + 2 = 8')}. Quitar una deuda es como ganar.`,`<b>Más y menos pegados</b> dan menos: ${E('6 + (−2) = 6 − 2 = 4')}.`],
+  ej:[['−8 + 3','Signos distintos: 8 − 3 = 5.','El 8 vale más y es negativo.','Resultado: −5.'],['−4 − 6','Los dos son negativos: debo 4 y debo 6.','4 + 6 = 10 y queda negativo.','Resultado: −10.']],
+  mal:[['−4 − 6 = 10','−4 − 6 = −10','Dos deudas no se convierten en ganancia: se acumulan.'],['7 − 12 = 5','7 − 12 = −5','Si tienes 7 y gastas 12, te quedas debiendo 5.'],['5 − (−3) = 2','5 − (−3) = 8','Menos pegado a menos da más: restar una deuda es ganar.']],
+  tip:'"Menos por menos da más" es para <b>multiplicar</b> o cuando dos signos están pegados, como en −(−3). En −4 − 6 no hay multiplicación: son dos deudas.'}),
+ gen(){const f=R(0,3),a=RNZ(-12,12),b=R(1,12);let q,x,y,pre='';
+  if(f===0){q=`${nm(a)} − ${b}`;x=a;y=-b;}
+  else if(f===1){q=`${nm(a)} + (−${b})`;x=a;y=-b;pre=`Más pegado a menos da menos: ${E(`${nm(a)} + (−${b}) = ${nm(a)} − ${b}`)}.`;}
+  else if(f===2){q=`${nm(a)} − (−${b})`;x=a;y=b;pre=`Menos pegado a menos da más: ${E(`${nm(a)} − (−${b}) = ${nm(a)} + ${b}`)}.`;}
+  else{q=`${nm(a)} + ${b}`;x=a;y=b;}
+  return {q:`Calcula: ${E(q)}`,fields:[num('Resultado',x+y)],hint:'Piensa en dinero: positivo es lo que tienes, negativo lo que debes. ¿Al final tienes o debes?',steps:[pre,explainAdd(x,y)].filter(Boolean)};}},
+
+{id:'mult',blk:1,name:'Multiplicar y dividir con signos',need:5,
+ lesson:LS({idea:'<p>Al multiplicar o dividir, <b>primero decides el signo</b> y después haces la cuenta como si no hubiera signos. Esa es la <b>ley de los signos</b>.</p><table class="tb"><tr><td>(+)·(+) = +</td><td>(−)·(−) = +</td></tr><tr><td>(+)·(−) = −</td><td>(−)·(+) = −</td></tr></table><p>Resumen: <b>signos iguales dan positivo, signos distintos dan negativo.</b> La división sigue la misma regla.</p>',
+  pasos:['Mira los signos y decide si el resultado es + o −.','Haz la cuenta sin signos.','Pon el signo que decidiste.','Si hay varios números, cuenta los negativos: si son par, el resultado es +; si son impar, es −.'],
+  ej:[['(−6)·(−4)','Signos iguales → positivo.','6·4 = 24.','Resultado: 24.'],['(−2)·3·(−5)·(−1)','Hay tres negativos (impar) → negativo.','2·3·5·1 = 30.','Resultado: −30.']],
+  mal:[['(−3)·(−4) = −12','(−3)·(−4) = 12','Signos iguales dan positivo.'],['−3 − 4 = 12','−3 − 4 = −7','Esto es una resta, no una multiplicación: no se usa la ley de los signos.']],
+  tip:'Dos paréntesis pegados sin nada en medio significan multiplicar: (−3)(−4) es lo mismo que (−3)·(−4).'}),
+ gen(){const f=R(0,2);
+  if(f===0){const a=RNZ(-12,12),b=RNZ(-9,9);const same=Math.sign(a)===Math.sign(b);return {q:`Calcula: ${E(`${pa(a)}·${pa(b)}`)}`,fields:[num('Resultado',a*b)],hint:'Primero decide el signo: ¿iguales o distintos?',steps:[`Signo: ${same?'iguales → <b>positivo</b>':'distintos → <b>negativo</b>'}.`,`Sin signos: ${Math.abs(a)}·${Math.abs(b)} = ${Math.abs(a*b)}.`,`Resultado: <b>${nm(a*b)}</b>.`]};}
+  if(f===1){const a=RNZ(-12,12),b=RNZ(-9,9),p=a*b;return {q:`Calcula: ${E(`${nm(p)} ÷ ${pa(b)}`)}`,fields:[num('Resultado',a)],hint:'Para dividir se usa la misma ley de signos.',steps:[`Signo: ${Math.sign(p)===Math.sign(b)?'iguales → <b>positivo</b>':'distintos → <b>negativo</b>'}.`,`Sin signos: ${Math.abs(p)} ÷ ${Math.abs(b)} = ${Math.abs(a)}.`,`Resultado: <b>${nm(a)}</b>.`]};}
+  const v=[RNZ(-5,5),RNZ(-5,5),RNZ(-5,5)];const negs=v.filter(x=>x<0).length,p=v[0]*v[1]*v[2];
+  return {q:`Calcula: ${E(v.map(pa).join('·'))}`,fields:[num('Resultado',p)],hint:'Cuenta cuántos números negativos hay: par → +, impar → −.',steps:[`Hay ${negs} negativo${negs===1?'':'s'}: ${negs%2?'impar → <b>negativo</b>':'par → <b>positivo</b>'}.`,`Sin signos: ${v.map(x=>Math.abs(x)).join('·')} = ${Math.abs(p)}.`,`Resultado: <b>${nm(p)}</b>.`]};}},
+
+{id:'jerarquia',blk:1,name:'Orden de las operaciones',need:4,
+ lesson:LS({idea:'<p>Cuando hay varias operaciones juntas, hay un <b>orden fijo</b>, como las reglas de un juego. Si cada uno hiciera las cuentas en el orden que quiere, cada uno obtendría un resultado distinto.</p><ol class="orden"><li><b>Pa</b>réntesis</li><li><b>Po</b>tencias y raíces</li><li><b>Mu</b>ltiplicaciones y <b>Di</b>visiones, de izquierda a derecha</li><li><b>Su</b>mas y <b>Re</b>stas, de izquierda a derecha</li></ol><p>Para recordarlo: <b>PaPo MuDi SuRe</b>.</p>',
+  pasos:['Busca paréntesis y resuélvelos primero (por dentro).','Calcula potencias y raíces.','Haz multiplicaciones y divisiones en el orden en que aparecen.','Al final, sumas y restas en el orden en que aparecen.'],
+  ej:[['20 − 2·3²',`Potencia: 3² = 9 → ${E('20 − 2·9')}.`,`Multiplicación: 2·9 = 18 → ${E('20 − 18')}.`,'Resta: <b>2</b>.'],['(5 − 8)·2 + 10 ÷ 5',`Paréntesis: 5 − 8 = −3 → ${E('(−3)·2 + 10 ÷ 5')}.`,`Multiplica y divide: ${E('−6 + 2')}.`,'Suma: <b>−4</b>.']],
+  mal:[['2 + 3·4 = 5·4 = 20','2 + 3·4 = 2 + 12 = 14','La multiplicación va antes que la suma.'],['12 ÷ 2·3 = 12 ÷ 6 = 2','12 ÷ 2·3 = 6·3 = 18','Multiplicación y división tienen el mismo nivel: van de izquierda a derecha.'],['2·3² = 6² = 36','2·3² = 2·9 = 18','La potencia solo afecta al 3, y va antes que la multiplicación.']],
+  tip:'Haz una sola operación por renglón y copia todo lo demás igual. Es más lento, pero casi no te equivocas.'}),
+ gen(){const f=R(0,5);let e,v,st;
+  if(f===0){const a=RNZ(-9,9),b=R(2,9),c=R(2,9);e=`${nm(a)} + ${b}·${c}`;v=a+b*c;st=[`Primero la multiplicación: ${E(`${b}·${c} = ${b*c}`)}.`,`Después la suma: ${E(`${nm(a)} + ${b*c} = ${nm(v)}`)}.`];}
+  else if(f===1){const a=RNZ(-9,9),b=R(1,9),c=RNZ(-5,5);e=`(${nm(a)} + ${b})·${pa(c)}`;v=(a+b)*c;st=[`Primero el paréntesis: ${E(`${nm(a)} + ${b} = ${nm(a+b)}`)}.`,`Después multiplicas: ${E(`${pa(a+b)}·${pa(c)} = ${nm(v)}`)}.`];}
+  else if(f===2){const a=R(1,20),b=R(2,6),c=R(2,6);e=`${a} − ${b}·${c}`;v=a-b*c;st=[`Primero la multiplicación: ${E(`${b}·${c} = ${b*c}`)}.`,`Después la resta: ${E(`${a} − ${b*c} = ${nm(v)}`)}.`];}
+  else if(f===3){const a=R(1,30),b=R(2,5),c=R(2,4);e=`${a} − ${c}·${b}²`;v=a-c*b*b;st=[`Primero la potencia: ${E(`${b}² = ${b*b}`)}.`,`Luego la multiplicación: ${E(`${c}·${b*b} = ${c*b*b}`)}.`,`Al final la resta: ${E(`${a} − ${c*b*b} = ${nm(v)}`)}.`];}
+  else if(f===4){const b=R(2,6),k=R(2,6),c=R(2,5);e=`${b*k} ÷ ${b}·${c}`;v=k*c;st=['División y multiplicación tienen el mismo nivel: de izquierda a derecha.',`Primero la división: ${E(`${b*k} ÷ ${b} = ${k}`)}.`,`Luego la multiplicación: ${E(`${k}·${c} = ${v}`)}.`];}
+  else{const a=R(1,15),b=R(1,9),c=R(1,12);e=`${a} − (${b} − ${c})`;v=a-(b-c);st=[`Primero el paréntesis: ${E(`${b} − ${c} = ${nm(b-c)}`)}.`,`Queda ${E(`${a} − ${pa(b-c)}`)}${b-c<0?`; menos pegado a menos da más: ${E(`${a} + ${c-b}`)}`:''}.`,`Resultado: <b>${nm(v)}</b>.`];}
+  return {q:`Calcula: ${E(e)}`,fields:[num('Resultado',v)],hint:'Orden: paréntesis, potencias, multiplicaciones y divisiones, sumas y restas.',steps:st};}},
+
+{id:'simplificar',blk:1,name:'Fracciones: simplificar',need:4,
+ lesson:LS({idea:`<p>Una fracción ${E('a/b')} significa: partes algo en <b>b</b> pedazos iguales y tomas <b>a</b>. El de arriba se llama <b>numerador</b> y el de abajo <b>denominador</b>.</p><p><b>Simplificar</b> es dividir arriba y abajo entre el mismo número. La fracción vale lo mismo: ${E('6/8 = 3/4')} es la misma cantidad de pizza, solo que en pedazos más grandes.</p>`,
+  pasos:['Busca un número que divida a los dos (prueba con 2, 3, 5, 7…).','Divide arriba y abajo entre ese número.','Repite hasta que ya no haya ningún divisor común.','Atajo: si encuentras el número más grande que divide a los dos (el MCD), lo haces en un solo paso.'],
+  ej:[['Simplifica 24/36',`Los dos entre 2: ${E('12/18')}.`,`Otra vez entre 2: ${E('6/9')}.`,`Entre 3: ${E('2/3')}.`,`Ya no hay divisor común: ${E('24/36 = 2/3')}. (El MCD era 12.)`]],
+  mal:[['6/8 = 3/8','6/8 = 3/4','Lo que haces arriba, lo haces abajo.'],['(x + 4)/4 = x','(x + 4)/4 no se simplifica así','Solo se simplifica lo que está multiplicando, nunca lo que suma. Esto es clave en álgebra.']],
+  tip:'Reglas para saber si se puede dividir: entre 2 si termina en número par; entre 3 si la suma de sus cifras es múltiplo de 3 (51 → 5 + 1 = 6, sí); entre 5 si termina en 0 o 5.'}),
+ gen(){let n,d;do{n=R(1,12);d=R(2,12);}while(gcd(n,d)!==1||n===d);const g=R(2,9);
+  return {q:`Simplifica: ${E(`${n*g}/${d*g}`)}`,fields:[num('Numerador (arriba)',n),num('Denominador (abajo)',d)],hint:`Busca un número que divida a ${n*g} y a ${d*g}. Prueba con 2, 3, 5…`,
+   steps:[`El número más grande que divide a ${n*g} y a ${d*g} (el MCD) es ${g}.`,`Divides arriba y abajo: ${E(`${n*g} ÷ ${g} = ${n}`)} y ${E(`${d*g} ÷ ${g} = ${d}`)}.`,`Resultado: <b>${E(`${n}/${d}`)}</b>. Ya no se puede simplificar más.`]};}},
+
+{id:'fr-suma',blk:1,name:'Fracciones: sumar y restar',need:4,
+ lesson:LS({idea:'<p>Solo se pueden sumar pedazos <b>del mismo tamaño</b>. Medio pastel más un tercio de pastel no son "2 quintos": primero hay que cortar los dos en pedazos iguales. Eso es buscar un <b>denominador común</b>.</p>',
+  pasos:['Busca el mínimo común múltiplo (mcm) de los denominadores: el número más pequeño que esté en las tablas de los dos.','Convierte cada fracción: divide el mcm entre su denominador y multiplica ese resultado por el numerador.','Suma o resta solo los de arriba. El de abajo se queda igual.','Simplifica si se puede.',`Atajo <b>en cruz</b> para dos fracciones: ${E('a/b + c/d = (a·d + b·c)/(b·d)')}.`],
+  ej:[['2/3 + 1/4','mcm de 3 y 4: 12.',`${E('2/3 = 8/12')} (12 ÷ 3 = 4, y 4·2 = 8).`,`${E('1/4 = 3/12')} (12 ÷ 4 = 3, y 3·1 = 3).`,`${E('8/12 + 3/12 = 11/12')}.`],['En cruz: 1/2 − 1/3',`${E('(1·3 − 2·1)/(2·3) = (3 − 2)/6 = 1/6')}.`]],
+  mal:[['1/2 + 1/3 = 2/5','1/2 + 1/3 = 5/6','NUNCA sumes los denominadores.'],['2 + 1/3 = 3/3','2 + 1/3 = 6/3 + 1/3 = 7/3','Un entero también es fracción: 2 = 6/3.']],
+  tip:'Comprueba con lógica: 1/2 + 1/3 tiene que dar más que 1/2. Como 2/5 es menos que 1/2, ese resultado no puede estar bien.'}),
+ gen(){const D=[2,3,4,5,6,8,10];const b=pk(D);let d;do{d=pk(D);}while(d===b);const a=R(1,b+2),c=R(1,d+1),neg=Math.random()<.4,L=lcm(b,d),A=a*L/b,C=c*L/d,top=neg?A-C:A+C;
+  return {q:`Calcula: ${E(`${a}/${b} ${neg?'−':'+'} ${c}/${d}`)}`,fields:[num('Resultado (puedes escribir fracción, ej. 5/6)',top/L)],hint:`Busca un denominador común: el número más pequeño que sea múltiplo de ${b} y de ${d}.`,
+   steps:[`Denominador común (mcm de ${b} y ${d}): ${L}.`,`${E(`${a}/${b} = ${A}/${L}`)} (${L} ÷ ${b} = ${L/b}, y ${L/b}·${a} = ${A}).`,`${E(`${c}/${d} = ${C}/${L}`)} (${L} ÷ ${d} = ${L/d}, y ${L/d}·${c} = ${C}).`,`${neg?'Restas':'Sumas'} los de arriba: ${E(`${A} ${neg?'−':'+'} ${C} = ${nm(top)}`)} → ${E(`${nm(top)}/${L}`)}.`,`Simplificado: <b>${E(frs(top,L))}</b>.`]};}},
+
+{id:'fr-mult',blk:1,name:'Fracciones: multiplicar y dividir',need:4,
+ lesson:LS({idea:'<p>Multiplicar fracciones es más fácil que sumarlas: <b>no necesitas denominador común</b>.</p>',
+  pasos:['<b>Multiplicar:</b> arriba por arriba y abajo por abajo.','<b>Dividir:</b> das vuelta la segunda fracción (el de arriba pasa abajo) y multiplicas.','Simplifica el resultado.','Truco: puedes simplificar antes de multiplicar, cruzando un número de arriba con uno de abajo.'],
+  ej:[['(2/3)·(9/4)','Arriba: 2·9 = 18. Abajo: 3·4 = 12.',`${E('18/12 = 3/2')}.`,'Con el truco: el 3 con el 9 (÷3) y el 2 con el 4 (÷2) → (1/1)·(3/2) = 3/2.'],['(3/5) ÷ (6/7)',`Das vuelta la segunda: ${E('6/7 → 7/6')}.`,`${E('(3/5)·(7/6) = 21/30 = 7/10')}.`]],
+  mal:[['(2/3) ÷ (4/5) = 8/15','(2/3) ÷ (4/5) = (2/3)·(5/4) = 10/12 = 5/6','Para dividir, primero se da vuelta la segunda fracción.'],['3·(2/5) = 6/15','3·(2/5) = 6/5','Un entero es n/1: solo multiplica al de arriba.']],
+  tip:'Común denominador es solo para sumar y restar. Para multiplicar y dividir, nunca.'}),
+ gen(){const a=R(1,9),b=R(2,9),c=R(1,9),d=R(2,9);
+  if(Math.random()<.5)return {q:`Calcula: ${E(`(${a}/${b})·(${c}/${d})`)}`,fields:[num('Resultado',(a*c)/(b*d))],hint:'Arriba por arriba y abajo por abajo.',steps:[`Arriba: ${E(`${a}·${c} = ${a*c}`)}. Abajo: ${E(`${b}·${d} = ${b*d}`)}.`,`Queda ${E(`${a*c}/${b*d}`)}, que simplificado es <b>${E(frs(a*c,b*d))}</b>.`]};
+  return {q:`Calcula: ${E(`(${a}/${b}) ÷ (${c}/${d})`)}`,fields:[num('Resultado',(a*d)/(b*c))],hint:'Da vuelta la segunda fracción y multiplica.',steps:[`Das vuelta la segunda: ${E(`${c}/${d} → ${d}/${c}`)}.`,`Multiplicas: ${E(`(${a}/${b})·(${d}/${c}) = ${a*d}/${b*c}`)}.`,`Simplificado: <b>${E(frs(a*d,b*c))}</b>.`]};}},
+
+{id:'leyes-pot',blk:1,name:'Potencias y sus leyes',need:4,
+ lesson:LS({idea:`<p>Una potencia es una multiplicación repetida: ${E('x⁴ = x·x·x·x')}. El número pequeño de arriba (el <b>exponente</b>) dice cuántas veces se repite la <b>base</b>.</p><p>Las leyes no hay que memorizarlas a ciegas: salen de <b>contar</b>.</p>`,
+  pasos:[`${E('xᵐ·xⁿ = xᵐ⁺ⁿ')}: al multiplicar, los exponentes se <b>suman</b>. ${E('x²·x³ = (x·x)(x·x·x) = x⁵')}.`,`${E('xᵐ / xⁿ = xᵐ⁻ⁿ')}: al dividir, se <b>restan</b>. ${E('x⁵/x² = x³')}, porque se cancelan dos x.`,`${E('(xᵐ)ⁿ = xᵐ·ⁿ')}: potencia de potencia, se <b>multiplican</b>. ${E('(x²)³ = x²·x²·x² = x⁶')}.`,`${E('x⁰ = 1')}: todo número (que no sea 0) elevado a 0 vale 1.`,`${E('(x·y)ⁿ = xⁿ·yⁿ')}: el exponente afecta a todo lo que está en el paréntesis.`],
+  ej:[['Simplifica x⁴·x²/x³',`Multiplicación: ${E('x⁴·x² = x⁶')}.`,`División: ${E('x⁶/x³ = x³')}.`]],
+  mal:[['x²·x³ = x⁶','x²·x³ = x⁵','Al multiplicar, los exponentes se SUMAN.'],['(x²)³ = x⁵','(x²)³ = x⁶','Potencia de potencia: los exponentes se MULTIPLICAN.'],['2³·2² = 4⁵','2³·2² = 2⁵','La base no se multiplica: se queda igual.']],
+  tip:'Si olvidas una ley, escribe la potencia como multiplicación (x·x·x…) y cuenta. Así la vuelves a descubrir sola.'}),
+ gen(){const f=R(0,4),m=R(2,7),n=R(2,6);
+  if(f===0)return {q:`Simplifica: ${E(`x${sup(m)}·x${sup(n)} = x<sup>?</sup>`)}`,fields:[num('Exponente',m+n)],hint:'Al multiplicar potencias de la misma base, los exponentes se suman.',steps:[`${E(`x${sup(m)}`)} es x repetida ${m} veces y ${E(`x${sup(n)}`)} es x repetida ${n} veces.`,`En total, ${m} + ${n} = ${m+n}: <b>${E(`x${sup(m+n)}`)}</b>.`]};
+  if(f===1){const M=m+n;return {q:`Simplifica: ${E(`x${sup(M)} / x${sup(n)} = x<sup>?</sup>`)}`,fields:[num('Exponente',m)],hint:'Al dividir, los exponentes se restan.',steps:[`Arriba hay ${M} x y abajo ${n}; se cancelan ${n}.`,`Quedan ${M} − ${n} = ${m}: <b>${E(`x${sup(m)}`)}</b>.`]};}
+  if(f===2)return {q:`Simplifica: ${E(`(x${sup(m)})${sup(n)} = x<sup>?</sup>`)}`,fields:[num('Exponente',m*n)],hint:'Potencia de una potencia: los exponentes se multiplican.',steps:[`${E(`(x${sup(m)})${sup(n)}`)} es ${E(`x${sup(m)}`)} repetido ${n} veces.`,`Son ${m}·${n} = ${m*n}: <b>${E(`x${sup(m*n)}`)}</b>.`]};
+  if(f===3){const a=RNZ(-50,50);return {q:`Calcula: ${E(`${pa(a)}⁰`)}`,fields:[num('Resultado',1)],hint:'¿Cuánto vale cualquier número (que no sea 0) elevado a 0?',steps:['Todo número distinto de 0 elevado a la 0 vale 1.',`Por ejemplo, ${E('x³/x³ = x⁰')}, y algo dividido entre sí mismo es 1.`,'Resultado: <b>1</b>.']};}
+  const p=R(1,4),q=R(1,4);return {q:`Calcula: ${E(`2${sup(p)}·2${sup(q)}`)}`,fields:[num('Resultado',2**(p+q))],hint:'Suma los exponentes y después calcula la potencia.',steps:[`Misma base 2: sumas exponentes, ${E(`2${sup(p+q)}`)}.`,`${E(`2${sup(p+q)} = ${2**(p+q)}`)}.`]};}},
+
+{id:'raices',blk:1,name:'Raíz cuadrada y el ±',need:4,
+ lesson:LS({idea:`<p>La <b>raíz cuadrada</b> responde: ¿qué número, multiplicado por sí mismo, da esto? ${E('√49 = 7')} porque ${E('7·7 = 49')}.</p><p>Pero en una <b>ecuación</b> como ${E('x² = 49')} hay <b>dos</b> respuestas: 7 y −7, porque ${E('(−7)² = 49')} también. Se escribe ${E('x = ±7')} y se lee «más o menos 7».</p><p>Cuadrados que conviene saber: 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144.</p>`,
+  pasos:[`Si ${E('x² = número positivo')}: dos soluciones, ${E('x = ±√número')}.`,`Si ${E('x² = 0')}: una sola solución, ${E('x = 0')}.`,`Si ${E('x² = número negativo')}: <b>no hay solución real</b>. Ningún número al cuadrado da negativo.`,`Si hay una suma dentro de la raíz, primero haces la suma: ${E('√(9 + 16) = √25 = 5')}.`],
+  ej:[['Resuelve x² = 81','Buscas un número que al cuadrado dé 81.',`${E('9² = 81')} y ${E('(−9)² = 81')}.`,`Respuesta: ${E('x = ±9')}.`]],
+  mal:[['x² = 25 → x = 5','x² = 25 → x = ±5','Si olvidas el ±, pierdes la mitad de las soluciones.'],['√(9 + 16) = 3 + 4 = 7','√(9 + 16) = √25 = 5','La raíz NO se reparte en una suma.'],['x² = −9 → x = ±3','x² = −9 no tiene solución real','(−3)² = 9, no −9.']],
+  tip:'Cada vez que saques raíz para resolver una ecuación, escribe el ± antes de pensar en el número. Así no se te olvida.'}),
+ gen(){const f=R(0,3);
+  if(f===2){const [a,b,c]=pk([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15]]);return {q:`Calcula: ${E(`√(${a*a} + ${b*b})`)}`,fields:[num('Resultado',c)],hint:'Primero resuelve lo de adentro de la raíz.',steps:[`Primero la suma: ${E(`${a*a} + ${b*b} = ${c*c}`)}.`,`${E(`√${c*c} = ${c}`)}, porque ${c}·${c} = ${c*c}.`,`Ojo: ${E(`√${a*a} + √${b*b} = ${a+b}`)}, que es otra cosa.`]};}
+  const n=R(2,12);const k=f===3?-(n*n):n*n;const ans=f===3?'No tiene solución real':`x = ±${n}`;
+  return {q:`Resuelve: ${E(`x² = ${nm(k)}`)}`,fields:[ch('Respuesta',ans,[`x = ±${n}`,`x = ${n}`,`x = ±${n*n}`,'No tiene solución real'])],hint:f===3?'¿Existe algún número que al cuadrado dé negativo?':'¿Cuántos números al cuadrado dan ese resultado?',
+   steps:f===3?[`Buscas un número que al cuadrado dé ${nm(k)}.`,'Todo número al cuadrado es positivo o cero, nunca negativo.','Respuesta: <b>no tiene solución real</b>.']:[`${E(`${n}² = ${k}`)} y también ${E(`(−${n})² = ${k}`)}.`,`Respuesta: <b>${E(`x = ±${n}`)}</b>.`]};}},
+
+{id:'raiz-simp',blk:1,name:'Simplificar raíces',need:4,
+ lesson:LS({idea:`<p>Simplificar una raíz es sacar de ella todo lo que se pueda. Para eso buscas dentro un factor que sea <b>cuadrado perfecto</b> (4, 9, 16, 25, 36, 49…). Ese factor sale de la raíz convertido en su raíz.</p>`,
+  pasos:[`Escribe el número como cuadrado perfecto por otro número: ${E('8 = 4·2')}.`,`Separa la raíz: ${E('√8 = √4·√2')}.`,`Saca la raíz exacta: ${E('√4 = 2')}. Queda ${E('2√2')}.`,`Si no hay cuadrado perfecto escondido, como en ${E('√6')} o ${E('√14')}, ya está simplificada.`],
+  ej:[['Simplifica √72',`Cuadrado perfecto más grande que divide a 72: 36 (72 = 36·2).`,`${E('√72 = √36·√2 = 6√2')}.`]],
+  mal:[['√8 = 4','√8 = 2√2','√8 no es la mitad de 8.'],['√12 = 3√4','√12 = 2√3','Sale la raíz del cuadrado perfecto (√4 = 2); adentro se queda el otro factor (3).']],
+  tip:'Prueba dividir entre 4, 9, 16, 25 y 36, en ese orden. Quédate con el más grande que divida exacto.'}),
+ gen(){const a=R(2,6),b=pk([2,3,5,6,7]);const n=a*a*b;const ok=`${a}√${b}`;
+  return {q:`Simplifica: ${E(`√${n}`)}`,fields:[ch('Respuesta',ok,[`${b}√${a}`,`${a*a}√${b}`,`${a}√${a*b}`,`${b}√${a*a}`])],hint:`Busca el cuadrado perfecto más grande que divida a ${n}.`,
+   steps:[`${n} = ${a*a}·${b}, y ${a*a} es cuadrado perfecto (${a}·${a}).`,`${E(`√${n} = √${a*a}·√${b}`)}.`,`${E(`√${a*a} = ${a}`)}, así que queda <b>${E(ok)}</b>.`]};}},
+
+/* ---------- BLOQUE 2: lenguaje algebraico ---------- */
+{id:'terminos',blk:2,name:'Términos y términos semejantes',need:4,
+ lesson:LS({idea:`<p>En álgebra usamos letras para números que no conocemos. Un <b>término</b> es un número y letras multiplicados, por ejemplo ${E('−5x²y')}. Sus partes:</p><ul><li><b>Signo:</b> −</li><li><b>Coeficiente:</b> el número, −5</li><li><b>Parte literal:</b> las letras con sus exponentes, x²y</li></ul><p><b>Términos semejantes</b> son los que tienen <b>exactamente la misma parte literal</b>: mismas letras con los mismos exponentes. Los números pueden ser distintos.</p><p>Piensa en frutas: 3 manzanas + 2 manzanas = 5 manzanas, pero 3 manzanas + 2 peras no se pueden juntar en un solo número.</p>`,
+  pasos:[`Cuando no se ve número, el coeficiente es 1: ${E('x = 1x')} y ${E('−x = −1x')}.`,`${E('3x²')} y ${E('−7x²')}: sí son semejantes (x² en los dos).`,`${E('3x²')} y ${E('3x')}: no son semejantes (exponentes distintos).`,`${E('4xy')} y ${E('4x')}: no son semejantes (uno tiene y).`],
+  mal:[['3x² + 2x = 5x³','3x² + 2x no se puede juntar','Solo se suman términos semejantes.'],['En x, el coeficiente es 0','En x, el coeficiente es 1','Cuando no se ve número, hay un 1 escondido.']],
+  tip:'Para saber si son semejantes, tapa los números con el dedo y compara solo las letras con sus exponentes.'}),
+ gen(){if(Math.random()<.5){const c=RNZ(-9,9),n=R(1,4),k=R(0,2);const lit=vx('x',n)+vx('y',k),t=poly([[c,lit]]);
+   return {q:`En el término ${E(t)}, ¿cuál es el coeficiente (el número con su signo)?`,fields:[num('Coeficiente',c)],hint:'Es el número que está delante, con su signo. Si no se ve número, es 1 (o −1).',
+    steps:[Math.abs(c)===1?`No se ve número, pero hay un 1 escondido: ${E(t)} es ${E(`${c<0?'−':''}1·${lit}`)}.`:`El número delante es ${Math.abs(c)} y el signo es ${c<0?'menos':'más'}.`,`Coeficiente: <b>${nm(c)}</b>.`]};}
+  const n=R(1,3),k=R(0,2),same=Math.random()<.5;let n2=n,k2=k;if(!same){if(Math.random()<.5)n2=n===1?2:n-1;else k2=k===0?1:k-1;}
+  const L1=vx('x',n)+vx('y',k),L2=vx('x',n2)+vx('y',k2);
+  return {q:`¿Son semejantes ${E(poly([[RNZ(-9,9),L1]]))} y ${E(poly([[RNZ(-9,9),L2]]))}?`,fields:[ch('Respuesta',same?'Sí':'No',['Sí','No'],1)],hint:'Mira solo las letras y sus exponentes. Los números no importan.',
+   steps:[`Parte literal del primero: ${E(L1)}. Del segundo: ${E(L2)}.`,same?'Son iguales, así que <b>sí son semejantes</b>.':'No son iguales, así que <b>no son semejantes</b> y no se pueden juntar.']};}},
+
+{id:'reducir',blk:2,name:'Reducir términos semejantes',need:4,
+ lesson:LS({idea:'<p>Reducir es juntar los términos semejantes en uno solo, sumando sus coeficientes. La parte literal se copia igual.</p>',
+  pasos:['Cada término se lleva el signo que tiene <b>adelante</b>. En 5 − 7x, el término es −7x.','Subraya con un color los términos con x², con otro los de x y con otro los números solos.','Suma los coeficientes de cada grupo, cuidando los signos.','Escribe el resultado en orden: primero x², luego x, al final el número.'],
+  ej:[['Reduce 3x + 5 − 7x + 2 + x','Las x: 3 − 7 + 1 = −3 → −3x.','Los números: 5 + 2 = 7.',`Resultado: ${E('−3x + 7')}.`]],
+  mal:[['3x + 2 = 5x','3x + 2 se queda así','x y un número solo no son semejantes.'],['5x − x = 5','5x − x = 4x','La x sola vale 1x: 5x − 1x = 4x.'],['2x + 3x = 5x²','2x + 3x = 5x','Al SUMAR el exponente no cambia; solo cambia al multiplicar.']],
+  tip:'Tacha cada término cuando ya lo usaste. Así no se te queda ninguno ni lo cuentas dos veces.'}),
+ gen(){if(Math.random()<.6){const T=shuf([[RNZ(-9,9),'x'],[RNZ(-9,9),''],[RNZ(-9,9),'x'],[RNZ(-9,9),''],[RNZ(-5,5),'x']]);const xs=T.filter(t=>t[1]).map(t=>t[0]),ks=T.filter(t=>!t[1]).map(t=>t[0]);const X=xs.reduce((a,b)=>a+b,0),K=ks.reduce((a,b)=>a+b,0);
+   return {q:`Reduce: ${E(poly(T))}`,fields:[num('Número que acompaña a la x',X),num('Número solo',K)],hint:'Junta las x con las x y los números con los números. Cada término lleva el signo que tiene adelante.',
+    steps:[`Las x: ${E(xs.map(pa).join(' + '))} = ${nm(X)} → ${E(poly([[X,'x']]))}.`,`Los números: ${E(ks.map(pa).join(' + '))} = ${nm(K)}.`,`Resultado: <b>${E(poly([[X,'x'],[K,'']]))}</b>.`]};}
+  const T=shuf([[RNZ(-9,9),'x²'],[RNZ(-9,9),'x'],[RNZ(-9,9),'x²'],[RNZ(-9,9),'x']]);const a=T.filter(t=>t[1]==='x²').map(t=>t[0]),b=T.filter(t=>t[1]==='x').map(t=>t[0]);const A=a[0]+a[1],B=b[0]+b[1];
+  return {q:`Reduce: ${E(poly(T))}`,fields:[num('Número de x²',A),num('Número de x',B)],hint:'x² solo se junta con x², y x solo con x.',
+   steps:[`Las x²: ${E(a.map(pa).join(' + '))} = ${nm(A)}.`,`Las x: ${E(b.map(pa).join(' + '))} = ${nm(B)}.`,`Resultado: <b>${E(poly([[A,'x²'],[B,'x']]))}</b>.`]};}},
+
+{id:'valor',blk:2,name:'Reemplazar un valor (valor numérico)',need:4,
+ lesson:LS({idea:'<p>Reemplazar es cambiar la letra por un número y calcular. Lo usarás muchísimo, sobre todo para <b>comprobar</b> si una respuesta está bien.</p>',
+  pasos:['Copia la expresión y cambia cada letra por el número <b>entre paréntesis</b>, sobre todo si es negativo.','Calcula en orden: primero potencias, después multiplicaciones y al final sumas y restas.',`Recuerda: ${E('3x')} significa ${E('3·x')}.`],
+  ej:[['Valor de 2x² − 3x + 1 cuando x = −2',`Reemplazo: ${E('2·(−2)² − 3·(−2) + 1')}.`,`Potencia: ${E('(−2)² = 4')} → ${E('2·4 − 3·(−2) + 1')}.`,`Multiplicaciones: ${E('8 + 6 + 1')}.`,'Resultado: <b>15</b>.']],
+  mal:[['x = −3: x² = −3² = −9','x = −3: x² = (−3)² = 9','Sin paréntesis el resultado sale mal.'],['x = 2: 3x = 32','x = 2: 3x = 3·2 = 6','3x significa 3 por x.']],
+  tip:'Escribe siempre el renglón del reemplazo con paréntesis antes de calcular. Ese renglón evita la mitad de los errores.'}),
+ gen(){const p=pk([1,1,2,-1,3]),q=R(-6,6),r=R(-9,9),x=RNZ(-4,4);const v=p*x*x+q*x+r;
+  const sub=(p===1?'':p===-1?'−':`${p}·`)+`${pa(x)}²`+(q?` ${q<0?'−':'+'} ${Math.abs(q)===1?'':Math.abs(q)+'·'}${pa(x)}`:'')+(r?` ${r<0?'−':'+'} ${Math.abs(r)}`:'');
+  return {q:`¿Cuánto vale ${E(poly([[p,'x²'],[q,'x'],[r,'']]))} cuando ${E(`x = ${nm(x)}`)}?`,fields:[num('Resultado',v)],hint:'Reemplaza la x con el número entre paréntesis y calcula primero la potencia.',
+   steps:[`Reemplazo: ${E(sub)}.`,`Potencia: ${E(`${pa(x)}² = ${x*x}`)}.`,`Multiplicaciones: ${E(poly([[p*x*x,''],[q*x,''],[r,'']]))}.`,`Resultado: <b>${nm(v)}</b>.`]};}},
+
+{id:'monomios',blk:2,name:'Multiplicar términos',need:4,
+ lesson:LS({idea:`<p>Para multiplicar dos términos, los <b>números se multiplican</b> (con la ley de los signos) y en las <b>letras iguales se suman los exponentes</b>.</p>`,
+  pasos:['Decide el signo (iguales +, distintos −).','Multiplica los números.',`Junta cada letra sumando exponentes. Una x sola tiene exponente 1: ${E('x = x¹')}.`],
+  ej:[['(3x²)·(−4x⁵)','Signos distintos → negativo.','3·4 = 12.',`${E('x²·x⁵ = x⁷')}.`,`Resultado: ${E('−12x⁷')}.`]],
+  mal:[['(3x²)(4x³) = 7x⁵','(3x²)(4x³) = 12x⁵','Los números se MULTIPLICAN, no se suman.'],['x·x = 2x','x·x = x²','x + x = 2x, pero x·x = x².']],
+  tip:'Separa en tu cabeza: primero números, después letras. Nunca las dos cosas al mismo tiempo.'}),
+ gen(){const a=RNZ(-9,9),b=RNZ(-9,9),m=R(1,6),n=R(1,6);
+  return {q:`Multiplica: ${E(`(${poly([[a,vx('x',m)]])})·(${poly([[b,vx('x',n)]])})`)}`,fields:[num('Coeficiente (número con signo)',a*b),num('Exponente de x',m+n)],hint:'Multiplica los números cuidando el signo y suma los exponentes.',
+   steps:[`Números: ${E(`${pa(a)}·${pa(b)} = ${nm(a*b)}`)}.`,`Letras: ${E(`${vx('x',m)}·${vx('x',n)} = x${sup(m+n)}`)} (${m} + ${n} = ${m+n}).`,`Resultado: <b>${E(poly([[a*b,'x'+sup(m+n)]]))}</b>.`]};}},
+
+{id:'distributiva',blk:2,name:'Quitar paréntesis (distributiva)',need:4,
+ lesson:LS({idea:`<p>El número de afuera multiplica a <b>cada</b> término de adentro, como cuando repartes algo a cada persona: ${E('a(b + c) = a·b + a·c')}.</p><p>Un signo menos delante del paréntesis es como multiplicar por −1: <b>cambia el signo de todo lo de adentro</b>.</p>`,
+  pasos:['Flechas: dibuja una flecha del número de afuera a cada término de adentro.','Multiplica cada pareja, con la ley de los signos.','Escribe todos los resultados.'],
+  ej:[['−3(2x − 5)',`${E('−3·2x = −6x')}.`,`${E('−3·(−5) = +15')}.`,`Resultado: ${E('−6x + 15')}.`]],
+  mal:[['2(x + 5) = 2x + 5','2(x + 5) = 2x + 10','El número multiplica a TODOS los términos del paréntesis.'],['−(x − 3) = −x − 3','−(x − 3) = −x + 3','El menos de adelante cambia TODOS los signos de adentro.']],
+  tip:'Cuenta: si adentro hay 2 términos, afuera del paréntesis te tienen que quedar 2 términos. Si te queda uno solo, te olvidaste de multiplicar algo.'}),
+ gen(){const f=R(0,2);let a;if(f<2){a=RNZ(-6,6);if(Math.abs(a)===1)a=pk([2,-2,3,-4]);}else a=-1;const b=RNZ(-6,6),c=RNZ(-9,9);const inside=poly([[b,'x'],[c,'']]);
+  return {q:`Quita el paréntesis: ${E(a===-1?`−(${inside})`:`${a}(${inside})`)}`,fields:[num('Número de la x',a*b),num('Número solo',a*c)],hint:a===-1?'El menos de adelante cambia el signo de todo lo de adentro.':`El ${nm(a)} multiplica a cada término de adentro.`,
+   steps:[a===-1?'El menos de adelante es multiplicar por −1: cambia cada signo de adentro.':`Multiplicas ${E(nm(a))} por cada término.`,`${E(`${pa(a)}·${pa(b)}x = ${poly([[a*b,'x']])}`)}`,`${E(`${pa(a)}·${pa(c)} = ${nm(a*c)}`)}`,`Resultado: <b>${E(poly([[a*b,'x'],[a*c,'']]))}</b>.`]};}},
+
+{id:'binomios',blk:2,name:'Multiplicar paréntesis',need:4,
+ lesson:LS({idea:`<p>Para multiplicar dos paréntesis, cada término del primero multiplica a cada término del segundo: <b>todos con todos</b>.</p><p>${E('(a + b)(c + d) = ac + ad + bc + bd')}</p>`,
+  pasos:['Primero del primero por cada uno del segundo.','Segundo del primero por cada uno del segundo.','Junta los términos semejantes (normalmente las x del medio).',`Atajo: ${E('(x + a)(x + b) = x² + (a + b)x + a·b')}.`],
+  ej:[['(x + 3)(x − 5)',`${E('x·x = x²')}, ${E('x·(−5) = −5x')}.`,`${E('3·x = 3x')}, ${E('3·(−5) = −15')}.`,`Juntas: ${E('x² − 5x + 3x − 15 = x² − 2x − 15')}.`]],
+  mal:[['(x + 3)(x + 2) = x² + 6','(x + 3)(x + 2) = x² + 5x + 6','Faltan los términos del medio: x·2 y 3·x.']],
+  tip:'Con 2 términos en cada paréntesis, deben salir 4 multiplicaciones. Cuéntalas antes de juntar.'}),
+ gen(){if(Math.random()<.6){const a=RNZ(-9,9),b=RNZ(-9,9);return {q:`Multiplica: ${E(`(x${tm(a)})(x${tm(b)})`)}`,fields:[num('Número de la x',a+b),num('Número solo',a*b)],hint:'Todos con todos: x·x, x·b, a·x, a·b. Luego junta las x.',
+   steps:[`${E('x·x = x²')}`,`${E(`x·${pa(b)} = ${poly([[b,'x']])}`)} y ${E(`${pa(a)}·x = ${poly([[a,'x']])}`)}`,`${E(`${pa(a)}·${pa(b)} = ${nm(a*b)}`)}`,`Juntas: ${E(poly([[1,'x²'],[b,'x'],[a,'x'],[a*b,'']]))} = <b>${E(poly([[1,'x²'],[a+b,'x'],[a*b,'']]))}</b>.`]};}
+  const p=R(2,3),a=RNZ(-6,6),b=RNZ(-6,6);return {q:`Multiplica: ${E(`(${p}x${tm(a)})(x${tm(b)})`)}`,fields:[num('Número de x²',p),num('Número de la x',p*b+a),num('Número solo',a*b)],hint:'Todos con todos: son 4 multiplicaciones. Luego junta las x.',
+   steps:[`${E(`${p}x·x = ${p}x²`)}`,`${E(`${p}x·${pa(b)} = ${poly([[p*b,'x']])}`)} y ${E(`${pa(a)}·x = ${poly([[a,'x']])}`)}`,`${E(`${pa(a)}·${pa(b)} = ${nm(a*b)}`)}`,`Resultado: <b>${E(poly([[p,'x²'],[p*b+a,'x'],[a*b,'']]))}</b>.`]};}},
+
+/* ---------- BLOQUE 3: productos notables ---------- */
+{id:'cuad-binomio',blk:3,name:'Cuadrado de un binomio',need:4,
+ lesson:LS({idea:`<p>Un <b>producto notable</b> es una multiplicación que aparece tanto que conviene saberla de memoria. La más usada:</p><div class="formula">(a + b)² = a² + 2ab + b² &nbsp;&nbsp;&nbsp; (a − b)² = a² − 2ab + b²</div><p>Sale de multiplicar ${E('(a + b)(a + b)')} todos con todos. En palabras: <b>el primero al cuadrado, más (o menos) el doble del primero por el segundo, más el segundo al cuadrado.</b></p>`,
+  pasos:['Identifica el primero (a) y el segundo (b).','Primero al cuadrado.','Doble del primero por el segundo (2·a·b), con el signo del paréntesis.','Segundo al cuadrado: siempre positivo.'],
+  ej:[['(2x − 3)²',`Primero al cuadrado: ${E('(2x)² = 4x²')}.`,`Doble producto: ${E('2·2x·3 = 12x')}, con menos.`,`Segundo al cuadrado: ${E('3² = 9')}.`,`Resultado: ${E('4x² − 12x + 9')}.`]],
+  mal:[['(x + 3)² = x² + 9','(x + 3)² = x² + 6x + 9','Falta el doble producto 2·x·3.'],['(x − 5)² = x² − 10x − 25','(x − 5)² = x² − 10x + 25','El último siempre es +, porque es un cuadrado.'],['(2x)² = 2x²','(2x)² = 4x²','El cuadrado afecta al 2 y a la x.']],
+  tip:'Si dudas, escríbelo como (x + 3)(x + 3) y multiplica todos con todos. Llegas a lo mismo.'}),
+ gen(){const k=pk([1,1,2,3]),a=R(1,9),s=Math.random()<.5?1:-1,kx=kxs(k);
+  return {q:`Desarrolla: ${E(`(${kx} ${s<0?'−':'+'} ${a})²`)}`,fields:[num('Número de x²',k*k),num('Número de la x',2*k*a*s),num('Número solo',a*a)],hint:'Primero al cuadrado, doble del primero por el segundo, segundo al cuadrado.',
+   steps:[`Primero al cuadrado: ${E(`(${kx})² = ${poly([[k*k,'x²']])}`)}.`,`Doble producto: ${E(`2·${kx}·${a} = ${2*k*a}x`)}, con signo ${s<0?'menos':'más'}.`,`Segundo al cuadrado: ${E(`${a}² = ${a*a}`)} (siempre +).`,`Resultado: <b>${E(poly([[k*k,'x²'],[2*k*a*s,'x'],[a*a,'']]))}</b>.`]};}},
+
+{id:'suma-dif',blk:3,name:'Suma por diferencia',need:4,
+ lesson:LS({idea:`<div class="formula">(a + b)(a − b) = a² − b²</div><p>Al multiplicar, los dos términos del medio son iguales pero con signo contrario (+ab y −ab), así que <b>se cancelan</b>. Queda el primero al cuadrado menos el segundo al cuadrado.</p>`,
+  pasos:['Verifica que sean los mismos términos, uno con + y otro con −.','Primero al cuadrado.','Menos el segundo al cuadrado.'],
+  ej:[['(3x + 5)(3x − 5)',`${E('(3x)² = 9x²')}.`,`${E('5² = 25')}.`,`Resultado: ${E('9x² − 25')}.`]],
+  mal:[['(x + 4)(x − 4) = x² − 8x − 16','(x + 4)(x − 4) = x² − 16','Los del medio (−4x y +4x) se cancelan.'],['(x + 4)(x − 4) = x² + 16','(x + 4)(x − 4) = x² − 16','El resultado siempre es una RESTA.']],
+  tip:'Este producto, leído al revés, es el caso de factoreo "diferencia de cuadrados". Si lo dominas aquí, el factoreo te sale solo.'}),
+ gen(){const k=pk([1,1,2,3,4]),a=R(1,10),kx=kxs(k);
+  return {q:`Multiplica: ${E(`(${kx} + ${a})(${kx} − ${a})`)}`,fields:[num('Número de x²',k*k),num('Número solo (con signo)',-a*a)],hint:'Los del medio se cancelan: primero al cuadrado menos segundo al cuadrado.',
+   steps:[`Primero al cuadrado: ${E(`(${kx})² = ${poly([[k*k,'x²']])}`)}.`,`Segundo al cuadrado: ${E(`${a}² = ${a*a}`)}.`,`Los del medio se cancelan: ${E(`${poly([[-k*a,'x']])} + ${poly([[k*a,'x']])} = 0`)}.`,`Resultado: <b>${E(poly([[k*k,'x²'],[-a*a,'']]))}</b>.`]};}},
+
+{id:'cubo-binomio',blk:3,name:'Cubo de un binomio',need:3,
+ lesson:LS({idea:`<div class="formula">(a + b)³ = a³ + 3a²b + 3ab² + b³<br>(a − b)³ = a³ − 3a²b + 3ab² − b³</div><p>Los números de adelante son siempre <b>1, 3, 3, 1</b>. El exponente de a va bajando (3, 2, 1, 0) y el de b va subiendo (0, 1, 2, 3). Con resta, los signos se alternan: + − + −.</p>`,
+  pasos:['Primero al cubo.','3 por el primero al cuadrado por el segundo.','3 por el primero por el segundo al cuadrado.','Segundo al cubo.','Si es resta, alterna signos.'],
+  ej:[['(x + 2)³',`${E('x³')}`,`${E('3·x²·2 = 6x²')}`,`${E('3·x·2² = 12x')}`,`${E('2³ = 8')}`,`Resultado: ${E('x³ + 6x² + 12x + 8')}.`]],
+  mal:[['(x + 2)³ = x³ + 8','(x + 2)³ = x³ + 6x² + 12x + 8','Faltan los dos términos del medio.']],
+  tip:'Cubos que conviene saber: 1, 8, 27, 64, 125. Los vas a usar también en suma y diferencia de cubos.'}),
+ gen(){const a=R(1,4),s=Math.random()<.5?1:-1;
+  return {q:`Desarrolla: ${E(`(x ${s<0?'−':'+'} ${a})³`)}`,fields:[num('Número de x²',3*a*s),num('Número de x',3*a*a),num('Número solo',s*a**3)],hint:'Coeficientes 1, 3, 3, 1. Si es resta, alterna los signos.',
+   steps:[`${E('x³')}`,`${E(`3·x²·${pa(s*a)} = ${poly([[3*a*s,'x²']])}`)}`,`${E(`3·x·${pa(s*a)}² = ${poly([[3*a*a,'x']])}`)}`,`${E(`${pa(s*a)}³ = ${nm(s*a**3)}`)}`,`Resultado: <b>${E(poly([[1,'x³'],[3*a*s,'x²'],[3*a*a,'x'],[s*a**3,'']]))}</b>.`]};}},
+
+/* ---------- BLOQUE 4: casos de factoreo ---------- */
+{id:'que-es-factorizar',blk:4,name:'¿Qué es factorizar?',need:3,
+ lesson:LS({idea:`<p><b>Factorizar</b> es escribir algo como una <b>multiplicación</b>. Es lo contrario de quitar paréntesis.</p><p>Con números: ${E('12 = 3·4')}. Con álgebra: ${E('x² + 5x + 6 = (x + 2)(x + 3)')}.</p><p>¿Para qué sirve? Para simplificar fracciones y, sobre todo, para <b>resolver ecuaciones</b>: si una multiplicación da 0, uno de los factores es 0.</p><p><b>Mapa de los casos de factoreo</b> (los verás uno por uno):</p><ol><li>Factor común</li><li>Agrupación de términos</li><li>Trinomio cuadrado perfecto</li><li>Diferencia de cuadrados</li><li>Trinomio x² + bx + c</li><li>Trinomio ax² + bx + c</li><li>Suma y diferencia de cubos</li><li>Trinomio con x⁴ (bicuadrado)</li></ol>`,
+  pasos:['Factorizado significa que TODO es una multiplicación: no puede quedar ninguna suma "suelta" afuera.','Para comprobar una factorización, multiplica de vuelta. Si llegas a lo original, está bien.'],
+  ej:[['¿Es (x + 2)(x + 3) la factorización de x² + 5x + 6?',`Multiplico: ${E('x² + 3x + 2x + 6')}.`,`Junto: ${E('x² + 5x + 6')}. Sí es igual.`,'Está bien factorizado.']],
+  mal:[['x² + 5x + 6 = x(x + 5) + 6 ya está factorizado','No: todavía hay una suma afuera (+ 6)','Factorizado = todo es una sola multiplicación.']],
+  tip:'Nunca entregues una factorización sin multiplicarla de vuelta. Tarda 20 segundos y te dice si está bien.'}),
+ gen(){let m,n;do{m=RNZ(-7,7);n=RNZ(-7,7);}while(m+n===0);const good=Math.random()<.5;let M=m,N=n;if(!good){if(Math.random()<.5)M=-m;else{M=-m;N=-n;}}
+  const tri=poly([[1,'x²'],[m+n,'x'],[m*n,'']]),ok=(M+N===m+n&&M*N===m*n);
+  return {q:`¿Es correcta esta factorización? ${E(`${tri} = (x${tm(M)})(x${tm(N)})`)}`,fields:[ch('Respuesta',ok?'Sí':'No',['Sí','No'],1)],hint:'Multiplica los paréntesis (todos con todos) y compara.',
+   steps:[`Multiplico: ${E('x·x = x²')}; ${E(`x·${pa(N)} + ${pa(M)}·x = ${poly([[M+N,'x']])}`)}; ${E(`${pa(M)}·${pa(N)} = ${nm(M*N)}`)}.`,`Da ${E(poly([[1,'x²'],[M+N,'x'],[M*N,'']]))}.`,ok?'Es igual al original: <b>sí es correcta</b>.':`No es igual a ${E(tri)}: <b>no es correcta</b>. La correcta es ${E(`(x${tm(m)})(x${tm(n)})`)}.`]};}},
+
+{id:'factor-comun',blk:4,name:'Caso 1: Factor común',need:4,
+ lesson:LS({idea:`<p><b>¿Cómo lo reconozco?</b> Todos los términos comparten algo: un número, una letra o los dos.</p><p>Es el primer caso que debes revisar <b>siempre</b>, antes que cualquier otro.</p>`,
+  pasos:['Busca el número más grande que divida a todos los coeficientes (MCD).','Busca las letras que están en <b>todos</b> los términos y tómalas con su <b>menor</b> exponente.','Ese es el factor común: va afuera del paréntesis.','Divide cada término entre el factor común: lo que sale va adentro.','Comprueba multiplicando.'],
+  ej:[['12x³ − 18x² + 6x','MCD de 12, 18 y 6: 6.','x está en todos; menor exponente: 1. Factor común: 6x.',`Divido: ${E('12x³ ÷ 6x = 2x²')}, ${E('−18x² ÷ 6x = −3x')}, ${E('6x ÷ 6x = 1')}.`,`Resultado: ${E('6x(2x² − 3x + 1)')}.`]],
+  mal:[['6x² + 9x = 3(2x² + 3x)','6x² + 9x = 3x(2x + 3)','Saca TODO lo común: el número y también la letra.'],['4x + 4 = 4x','4x + 4 = 4(x + 1)','Cuando sacas un término completo, adentro queda 1, no 0.']],
+  tip:'Adentro del paréntesis tienen que quedar tantos términos como había al principio. Si había 3, adentro van 3.'}),
+ gen(){const g=R(2,6);let p,q;do{p=R(1,5);q=RNZ(-9,9);}while(gcd(p,q)!==1);
+  if(Math.random()<.6){const ex=poly([[g*p,'x²'],[g*q,'x']]),ok=`${g}x(${poly([[p,'x'],[q,'']])})`;
+   return {q:`Factoriza: ${E(ex)}`,fields:[ch('Factorización completa',ok,[`${g}(${poly([[p,'x²'],[q,'x']])})`,`x(${poly([[g*p,'x'],[g*q,'']])})`,`${g}x(${poly([[p,'x'],[g*q,'']])})`])],hint:'Número más grande que divida a los dos, y la letra que está en los dos con su menor exponente.',
+    steps:[`Números: el MCD de ${g*p} y ${Math.abs(g*q)} es ${g}.`,'Letras: x está en los dos términos; su menor exponente es 1.',`Factor común: ${E(`${g}x`)}.`,`Divido: ${E(`${poly([[g*p,'x²']])} ÷ ${g}x = ${poly([[p,'x']])}`)} y ${E(`${poly([[g*q,'x']])} ÷ ${g}x = ${nm(q)}`)}.`,`Resultado: <b>${E(ok)}</b>.`]};}
+  const ex=poly([[g*p,'x'],[g*q,'']]),ok=`${g}(${poly([[p,'x'],[q,'']])})`;
+  return {q:`Factoriza: ${E(ex)}`,fields:[ch('Factorización completa',ok,[`${g}(${poly([[p,'x'],[-q,'']])})`,`${g}(${poly([[p,'x'],[g*q,'']])})`,`${g}x(${poly([[p,''],[q,'']])})`])],hint:'Busca el número más grande que divida a los dos coeficientes.',
+   steps:[`El MCD de ${g*p} y ${Math.abs(g*q)} es ${g}. La x no está en los dos términos, así que no sale.`,`Divido: ${E(`${poly([[g*p,'x']])} ÷ ${g} = ${poly([[p,'x']])}`)} y ${E(`${nm(g*q)} ÷ ${g} = ${nm(q)}`)}.`,`Resultado: <b>${E(ok)}</b>.`]};}},
+
+{id:'agrupacion',blk:4,name:'Caso 2: Agrupación de términos',need:3,
+ lesson:LS({idea:'<p><b>¿Cómo lo reconozco?</b> Hay <b>4 términos</b> y no hay nada común a los 4, pero sí entre parejas.</p>',
+  pasos:['Agrupa los términos de 2 en 2 con paréntesis.','Saca factor común en cada grupo.','Debe aparecer el <b>mismo paréntesis</b> en los dos grupos.','Ese paréntesis es un factor común: sácalo.'],
+  ej:[['x³ + 2x² + 5x + 10',`Agrupo: ${E('(x³ + 2x²) + (5x + 10)')}.`,`Factor común en cada uno: ${E('x²(x + 2) + 5(x + 2)')}.`,`(x + 2) se repite: ${E('(x + 2)(x² + 5)')}.`]],
+  mal:[['ax − ay + bx − by = a(x − y) + b(x + y)','… = a(x − y) + b(x − y) = (x − y)(a + b)','Si los paréntesis no salen iguales, revisa los signos.']],
+  tip:'Si el tercer término es negativo, saca factor común con el signo menos incluido: −2x − 6 = −2(x + 3). Así te sale el paréntesis repetido.'}),
+ gen(){let a,b;do{a=RNZ(-6,6);b=RNZ(-6,6);}while(a===b||a===-b);
+  if(Math.random()<.5){const ex=poly([[1,'x²'],[a,'x'],[b,'x'],[a*b,'']]),ok=`(x${tm(a)})(x${tm(b)})`;
+   return {q:`Factoriza por agrupación: ${E(ex)}`,fields:[ch('Factorización',ok,[`(x${tm(-a)})(x${tm(b)})`,`(x${tm(a)})(x${tm(-b)})`,`x(x${tm(a+b)})${tm(a*b)}`])],hint:'Agrupa los dos primeros y los dos últimos, y saca factor común en cada grupo.',
+    steps:[`Agrupo: ${E(`(x²${tm(a,'x')}) + (${poly([[b,'x'],[a*b,'']])})`)}.`,`Factor común en cada grupo: ${E(`x(x${tm(a)}) ${b<0?'−':'+'} ${Math.abs(b)}(x${tm(a)})`)}.`,`Se repite ${E(`(x${tm(a)})`)}: <b>${E(ok)}</b>.`]};}
+  const ex=poly([[1,'x³'],[a,'x²'],[b,'x'],[a*b,'']]),ok=`(x${tm(a)})(x²${tm(b)})`;
+  return {q:`Factoriza por agrupación: ${E(ex)}`,fields:[ch('Factorización',ok,[`(x${tm(-a)})(x²${tm(b)})`,`(x${tm(a)})(x²${tm(-b)})`,`(x²${tm(a)})(x${tm(b)})`])],hint:'Agrupa los dos primeros y los dos últimos.',
+   steps:[`Agrupo: ${E(`(x³${tm(a,'x²')}) + (${poly([[b,'x'],[a*b,'']])})`)}.`,`Factor común: ${E(`x²(x${tm(a)}) ${b<0?'−':'+'} ${Math.abs(b)}(x${tm(a)})`)}.`,`Se repite ${E(`(x${tm(a)})`)}: <b>${E(ok)}</b>.`]};}},
+
+{id:'tcp',blk:4,name:'Caso 3: Trinomio cuadrado perfecto',need:4,
+ lesson:LS({idea:`<p>Es el cuadrado de un binomio leído al revés: ${E('a² ± 2ab + b² = (a ± b)²')}.</p><p><b>¿Cómo lo reconozco?</b> Tiene 3 términos, el primero y el último son cuadrados perfectos <b>positivos</b>, y el del medio es el <b>doble</b> de sus raíces multiplicadas.</p>`,
+  pasos:['Saca la raíz del primer término.','Saca la raíz del último término.','Comprueba: 2 · (raíz 1) · (raíz 2) tiene que ser igual al término del medio.','Si se cumple: (raíz 1 ± raíz 2)², con el signo del término del medio.'],
+  ej:[['9x² − 30x + 25',`${E('√9x² = 3x')} y ${E('√25 = 5')}.`,`Compruebo: ${E('2·3x·5 = 30x')} ✓.`,`El medio es negativo: ${E('(3x − 5)²')}.`]],
+  mal:[['x² + 10x + 9 = (x + 3)²','x² + 10x + 9 = (x + 9)(x + 1)','2·x·3 = 6x, no 10x: no es TCP.'],['x² − 6x − 9 = (x − 3)²','(x − 3)² = x² − 6x + 9','En un TCP el último término siempre es positivo.']],
+  tip:'Antes de usar este caso, comprueba el doble producto. Si no se cumple, prueba con el trinomio x² + bx + c.'}),
+ gen(){const k=pk([1,1,2,3]),a=R(1,8),s=Math.random()<.5?1:-1,kx=kxs(k);
+  if(Math.random()<.5){const real=Math.random()<.5;let mid=2*k*a*s,last=a*a;if(!real){if(Math.random()<.5)mid=k*a*s*pk([1,3]);else last=-a*a;}
+   const ex=poly([[k*k,'x²'],[mid,'x'],[last,'']]);
+   return {q:`¿${E(ex)} es un trinomio cuadrado perfecto?`,fields:[ch('Respuesta',real?'Sí':'No',['Sí','No'],1)],hint:'¿El primero y el último son cuadrados positivos? ¿El del medio es el doble de sus raíces multiplicadas?',
+    steps:last<0?[`El último término (${nm(last)}) es negativo, y un cuadrado nunca es negativo.`,'<b>No es TCP</b>.']:[`Raíces: ${E(`√${poly([[k*k,'x²']])} = ${kx}`)} y ${E(`√${last} = ${a}`)}.`,`Doble producto: ${E(`2·${kx}·${a} = ${2*k*a}x`)}.`,`El del medio es ${E(poly([[mid,'x']]))}. ${Math.abs(mid)===2*k*a?'Coincide: <b>sí es TCP</b>.':'No coincide: <b>no es TCP</b>.'}`]};}
+  const sg=s<0?'−':'+',ok=`(${kx} ${sg} ${a})²`;
+  return {q:`Factoriza: ${E(poly([[k*k,'x²'],[2*k*a*s,'x'],[a*a,'']]))}`,fields:[ch('Factorización',ok,[`(${kx} ${s<0?'+':'−'} ${a})²`,`(${kx} + ${a})(${kx} − ${a})`,`(${kx} ${sg} ${a*a})²`])],hint:'Saca la raíz del primero y del último, y comprueba el doble producto.',
+   steps:[`Raíces: ${E(`√${poly([[k*k,'x²']])} = ${kx}`)} y ${E(`√${a*a} = ${a}`)}.`,`Doble producto: ${E(`2·${kx}·${a} = ${2*k*a}x`)} ✓.`,`El medio es ${s<0?'negativo':'positivo'}: <b>${E(ok)}</b>.`]};}},
+
+{id:'dif-cuadrados',blk:4,name:'Caso 4: Diferencia de cuadrados',need:4,
+ lesson:LS({idea:`<div class="formula">a² − b² = (a + b)(a − b)</div><p><b>¿Cómo lo reconozco?</b> Hay <b>2 términos</b>, están <b>restando</b> y los dos son cuadrados perfectos.</p>`,
+  pasos:['Saca la raíz de cada término.','Escribe dos paréntesis con esas raíces: uno con + y otro con −.','Comprueba multiplicando (suma por diferencia).'],
+  ej:[['16x² − 49',`${E('√16x² = 4x')} y ${E('√49 = 7')}.`,`Resultado: ${E('(4x + 7)(4x − 7)')}.`]],
+  mal:[['x² + 9 = (x + 3)(x − 3)','x² − 9 = (x + 3)(x − 3)','Tiene que ser una RESTA. x² + 9 no se puede factorizar con números reales.'],['x² − 16 = (x − 4)²','x² − 16 = (x + 4)(x − 4)','(x − 4)² da x² − 8x + 16, que es otra cosa.'],['x² − 16 = (x + 8)(x − 8)','x² − 16 = (x + 4)(x − 4)','Se saca la RAÍZ de cada término, no la mitad.']],
+  tip:'Memoriza los cuadrados hasta 15² = 225. Así reconoces este caso en un segundo.'}),
+ gen(){const k=pk([1,1,2,3,4,5]),a=R(1,10),kx=kxs(k),sum=Math.random()<.25,NF='No se puede factorizar';const ex=`${poly([[k*k,'x²']])} ${sum?'+':'−'} ${a*a}`,ok=sum?NF:`(${kx} + ${a})(${kx} − ${a})`;
+  return {q:`Factoriza: ${E(ex)}`,fields:[ch('Respuesta',ok,[`(${kx} + ${a})(${kx} − ${a})`,`(${kx} − ${a})²`,`(${kx} + ${a})²`,NF])],hint:'¿Son dos cuadrados que están restando?',
+   steps:sum?['Es una SUMA de cuadrados, no una resta.','La diferencia de cuadrados solo funciona con resta: <b>no se puede factorizar</b> con números reales.']:['Son dos cuadrados restando.',`Raíces: ${E(`√${poly([[k*k,'x²']])} = ${kx}`)} y ${E(`√${a*a} = ${a}`)}.`,`Un paréntesis con +, otro con −: <b>${E(ok)}</b>.`]};}},
+
+{id:'dos-numeros',blk:4,name:'Dos números: producto y suma',need:4,
+ lesson:LS({idea:'<p>Este es el corazón del siguiente caso. Te piden <b>dos números</b> que multiplicados den un valor y sumados den otro.</p>',
+  pasos:['<b>Mira el signo del producto.</b> Positivo: los dos tienen el mismo signo. Negativo: tienen signos distintos.','<b>Mira la suma.</b> Si el producto es positivo, los dos llevan el signo de la suma. Si es negativo, el número más grande lleva el signo de la suma.','<b>Prueba las parejas</b> que dan ese producto (1 y el número, 2 y la mitad…) hasta que una dé la suma.'],
+  ej:[['Producto −12, suma 1','Signos distintos; gana el positivo.','12 y −1 → suman 11. 6 y −2 → suman 4. 4 y −3 → suman 1 ✓.','Los números son 4 y −3.']],
+  mal:[['Producto 12, suma −7: 3 y 4','Producto 12, suma −7: −3 y −4','Si el producto es + y la suma −, los dos son negativos.']],
+  tip:'Escribe las parejas en orden (1·12, 2·6, 3·4…). Así no te saltas ninguna.'}),
+ gen(){const [m,n]=twoNums();const P=m*n,S=m+n;
+  return {q:`Encuentra dos números que multiplicados den ${E(nm(P))} y sumados den ${E(nm(S))}.`,fields:[num('Primer número',m,'g'),num('Segundo número',n,'g')],hint:P<0?'El producto es negativo: un número es positivo y el otro negativo.':'El producto es positivo: los dos tienen el signo de la suma.',
+   steps:[P<0?'Producto negativo → signos distintos.':`Producto positivo → los dos ${S>0?'positivos':'negativos'}.`,`Pruebo parejas:<br>${pairSteps(P,S)}`,`Respuesta: <b>${nm(m)} y ${nm(n)}</b>.`]};}},
+
+{id:'trinomio-simple',blk:4,name:'Caso 5: Trinomio x² + bx + c',need:4,
+ lesson:LS({idea:`<p><b>¿Cómo lo reconozco?</b> 3 términos, x² <b>sin número delante</b>, y no es trinomio cuadrado perfecto.</p><div class="formula">x² + bx + c = (x + m)(x + n) &nbsp; con &nbsp; m·n = c &nbsp; y &nbsp; m + n = b</div>`,
+  pasos:['Busca dos números que multiplicados den c (el número solo).','Que sumados den b (el número de la x).','Escribe (x + primero)(x + segundo), cada uno con su signo.','Comprueba multiplicando.'],
+  ej:[['x² − 7x + 12','Producto +12 y suma −7: los dos negativos.','−3 y −4: (−3)(−4) = 12 ✓, −3 − 4 = −7 ✓.',`Resultado: ${E('(x − 3)(x − 4)')}.`],['x² + x − 12','Producto −12 y suma +1: signos distintos, gana el +.','4 y −3 ✓.',`Resultado: ${E('(x + 4)(x − 3)')}.`]],
+  mal:[['x² − 7x + 12 = (x + 3)(x + 4)','x² − 7x + 12 = (x − 3)(x − 4)','Producto + y suma − → los dos números son negativos.'],['x² + x − 12 = (x − 4)(x + 3)','x² + x − 12 = (x + 4)(x − 3)','Esa da −x en el medio: el más grande debe llevar el signo de la suma.']],
+  tip:'Si la x no tiene número, ese número es 1: x² + x − 12 es x² + 1x − 12.'}),
+ gen(){const [m,n]=twoNums();const f=(a,b)=>`(x${tm(a)})(x${tm(b)})`,ok=f(m,n);
+  return {q:`Factoriza: ${E(poly([[1,'x²'],[m+n,'x'],[m*n,'']]))}`,fields:[ch('Factorización',ok,[f(-m,-n),f(m,-n),f(-m,n)])],hint:`Busca dos números que sumen ${nm(m+n)} y multipliquen ${nm(m*n)}.`,
+   steps:[`Necesito m·n = ${nm(m*n)} y m + n = ${nm(m+n)}.`,`Son ${nm(m)} y ${nm(n)}.`,`Resultado: <b>${E(ok)}</b>.`]};}},
+
+{id:'trinomio-a',blk:4,name:'Caso 6: Trinomio ax² + bx + c',need:3,
+ lesson:LS({idea:'<p><b>¿Cómo lo reconozco?</b> 3 términos y x² <b>tiene un número delante</b> (distinto de 1). El atajo de los dos números no basta: usamos el <b>método a·c</b>.</p>',
+  pasos:['Multiplica a·c (el número de x² por el número solo).','Busca dos números que multiplicados den a·c y sumados den b.','Parte el término del medio en esos dos números.','Ahora hay 4 términos: factoriza por agrupación.'],
+  ej:[['2x² + 7x + 3','a·c = 2·3 = 6. Dos números que multipliquen 6 y sumen 7: 6 y 1.',`Parto el medio: ${E('2x² + 6x + x + 3')}.`,`Agrupo: ${E('2x(x + 3) + 1(x + 3)')}.`,`Resultado: ${E('(x + 3)(2x + 1)')}.`]],
+  mal:[['2x² + 7x + 3 = (x + 6)(x + 1)','2x² + 7x + 3 = (2x + 1)(x + 3)','Con número delante de x² no sirve solo el atajo. Usa a·c y comprueba.']],
+  tip:'Antes de empezar, revisa si hay factor común. 4x² + 14x + 6 primero es 2(2x² + 7x + 3).'}),
+ gen(){const p=pk([2,3,5]);let m,n;do{m=RNZ(-5,5);n=RNZ(-5,5);}while(m===n||gcd(p,m)!==1||p*n+m===0);
+  const B=p*n+m,C=m*n,ok=`(${p}x${tm(m)})(x${tm(n)})`;
+  return {q:`Factoriza: ${E(poly([[p,'x²'],[B,'x'],[C,'']]))}`,fields:[ch('Factorización',ok,[`(${p}x${tm(n)})(x${tm(m)})`,`(${p}x${tm(-m)})(x${tm(-n)})`,`(x${tm(m)})(x${tm(n)})`])],hint:`Multiplica a·c = ${p}·${pa(C)} y busca dos números que den eso y sumen ${nm(B)}.`,
+   steps:[`a·c = ${p}·${pa(C)} = ${nm(p*C)}.`,`Dos números con producto ${nm(p*C)} y suma ${nm(B)}: ${nm(p*n)} y ${nm(m)}.`,`Parto el medio: ${E(poly([[p,'x²'],[p*n,'x'],[m,'x'],[C,'']]))}.`,`Agrupo: ${E(`${p}x(x${tm(n)}) ${m<0?'−':'+'} ${Math.abs(m)}(x${tm(n)})`)}.`,`Resultado: <b>${E(ok)}</b>.`]};}},
+
+{id:'cubos',blk:4,name:'Caso 7: Suma y diferencia de cubos',need:3,
+ lesson:LS({idea:`<div class="formula">a³ + b³ = (a + b)(a² − ab + b²)<br>a³ − b³ = (a − b)(a² + ab + b²)</div><p><b>¿Cómo lo reconozco?</b> 2 términos que son <b>cubos perfectos</b>: 1, 8, 27, 64, 125, x³…</p><p>Signos: el primer paréntesis lleva el <b>mismo</b> signo; el del medio del segundo, el <b>opuesto</b>; el último, <b>siempre positivo</b>.</p>`,
+  pasos:['Saca la raíz cúbica de cada término (a y b).','Primer paréntesis: (a ± b), con el mismo signo.','Segundo: a² (signo opuesto) ab + b².'],
+  ej:[['x³ − 27','Raíces cúbicas: x y 3.','(x − 3)(x² + 3x + 9).']],
+  mal:[['x³ + 8 = (x + 2)³','x³ + 8 = (x + 2)(x² − 2x + 4)','(x + 2)³ tiene más términos: x³ + 6x² + 12x + 8.']],
+  tip:'Signos: "mismo, opuesto, siempre positivo".'}),
+ gen(){const a=R(1,5),plus=Math.random()<.5;const ok=plus?`(x + ${a})(${poly([[1,'x²'],[-a,'x'],[a*a,'']])})`:`(x − ${a})(${poly([[1,'x²'],[a,'x'],[a*a,'']])})`;
+  const ds=plus?[`(x + ${a})(${poly([[1,'x²'],[a,'x'],[a*a,'']])})`,`(x + ${a})³`,`(x − ${a})(${poly([[1,'x²'],[-a,'x'],[a*a,'']])})`]:[`(x − ${a})(${poly([[1,'x²'],[-a,'x'],[a*a,'']])})`,`(x − ${a})³`,`(x + ${a})(${poly([[1,'x²'],[a,'x'],[a*a,'']])})`];
+  return {q:`Factoriza: ${E(`x³ ${plus?'+':'−'} ${a**3}`)}`,fields:[ch('Factorización',ok,ds)],hint:'Saca la raíz cúbica de cada término. Signos: mismo, opuesto, siempre positivo.',
+   steps:[`Raíces cúbicas: ${E('∛x³ = x')} y ${E(`∛${a**3} = ${a}`)}.`,`Primer paréntesis con el mismo signo: ${E(`(x ${plus?'+':'−'} ${a})`)}.`,`Segundo: ${E(`x² ${plus?'−':'+'} ${a}x + ${a*a}`)} (opuesto, siempre positivo).`,`Resultado: <b>${E(ok)}</b>.`]};}},
+
+{id:'bicuadrado',blk:4,name:'Caso 8: Trinomio con x⁴',need:3,
+ lesson:LS({idea:`<p><b>¿Cómo lo reconozco?</b> Tiene x⁴, x² y un número: ${E('x⁴ + bx² + c')}.</p><p>El truco es ver que ${E('x⁴ = (x²)²')}. Si llamas <b>m</b> a x², queda un trinomio normal: ${E('m² + bm + c')}.</p>`,
+  pasos:['Cambia x² por m: x⁴ se vuelve m² y x² se vuelve m.','Factoriza m² + bm + c con los dos números.','Regresa: cambia m por x².','Revisa si algún paréntesis es diferencia de cuadrados y sigue factorizando.'],
+  ej:[['x⁴ − 7x² + 6',`Con m = x²: ${E('m² − 7m + 6')}.`,`Dos números: −6 y −1 → ${E('(m − 6)(m − 1)')}.`,`Regreso: ${E('(x² − 6)(x² − 1)')}.`,`x² − 1 es diferencia de cuadrados: ${E('(x² − 6)(x + 1)(x − 1)')}.`]],
+  mal:[['x⁴ = x²·2','x⁴ = (x²)² = x²·x²','Por eso, al cambiar x² por m, x⁴ se vuelve m².'],['Dejar la respuesta con m','Siempre regresa a x²','m es solo un ayudante; la respuesta es en x.']],
+  tip:'Este truco también resuelve ecuaciones como x⁴ − 7x² + 6 = 0.'}),
+ gen(){const [m,n]=twoNums(50);const ok=`(x²${tm(m)})(x²${tm(n)})`;
+  return {q:`Factoriza: ${E(poly([[1,'x⁴'],[m+n,'x²'],[m*n,'']]))}`,fields:[ch('Factorización',ok,[`(x²${tm(-m)})(x²${tm(-n)})`,`(x${tm(m)})(x${tm(n)})`,`(x²${tm(m)})(x${tm(n)})`])],hint:'Cambia x² por m y factoriza como un trinomio normal.',
+   steps:[`Con m = x²: ${E(poly([[1,'m²'],[m+n,'m'],[m*n,'']]))}.`,`Dos números: ${nm(m)} y ${nm(n)} → ${E(`(m${tm(m)})(m${tm(n)})`)}.`,`Regreso a x²: <b>${E(ok)}</b>.`]};}},
+
+{id:'que-caso',blk:4,name:'¿Qué caso uso?',need:5,
+ lesson:LS({idea:'<p>En los exámenes nadie te dice qué caso usar: tú lo tienes que reconocer. Usa esta <b>lista en orden</b>, siempre la misma:</p>',
+  pasos:['<b>¿Hay factor común?</b> Sácalo primero, siempre.','<b>Cuenta los términos.</b>','<b>2 términos:</b> ¿resta de cuadrados? → diferencia de cuadrados. ¿Cubos? → suma o diferencia de cubos.','<b>3 términos:</b> ¿primero y último cuadrados y medio = doble producto? → trinomio cuadrado perfecto. Si no: ¿x² sin número? → x² + bx + c. ¿x² con número? → ax² + bx + c. ¿Tiene x⁴ y x²? → trinomio con x⁴.','<b>4 términos:</b> agrupación.','Al terminar, revisa si algún paréntesis se puede factorizar más.'],
+  mal:[['Empezar por el trinomio sin revisar factor común','Primero factor común, después lo demás','Si no sacas el factor común primero, los otros casos salen más difíciles o no salen.']],
+  tip:'Escribe la lista en una tarjeta y tenla al lado mientras practicas. Después de unos días ya no la necesitarás.'}),
+ gen(){const C=['Factor común','Agrupación de términos','Trinomio cuadrado perfecto','Diferencia de cuadrados','Trinomio x² + bx + c','Trinomio ax² + bx + c','Suma o diferencia de cubos','Trinomio con x⁴'];const c=R(0,7);let ex,why;
+  if(c===0){const g=R(2,5);let p,q;do{p=R(1,4);q=RNZ(-7,7);}while(gcd(p,q)!==1);ex=poly([[g*p,'x³'],[g*q,'x²']]);why=`Los dos términos tienen ${g}x² en común.`;}
+  else if(c===1){let a,b;do{a=RNZ(-6,6);b=RNZ(-6,6);}while(a===b);ex=poly([[1,'x³'],[a,'x²'],[b,'x'],[a*b,'']]);why='Tiene 4 términos sin nada común a los 4: se agrupan de 2 en 2.';}
+  else if(c===2){const a=R(1,9),s=pk([1,-1]);ex=poly([[1,'x²'],[2*a*s,'x'],[a*a,'']]);why=`Primero y último son cuadrados (x² y ${a*a}) y el medio es 2·x·${a} = ${2*a}x.`;}
+  else if(c===3){const k=pk([1,2,3]),a=R(1,9);ex=`${poly([[k*k,'x²']])} − ${a*a}`;why='Dos cuadrados restando.';}
+  else if(c===4){const [m,n]=twoNums();ex=poly([[1,'x²'],[m+n,'x'],[m*n,'']]);why='3 términos, x² sin número y no es cuadrado perfecto.';}
+  else if(c===5){const p=pk([2,3,5]);let m,n;do{m=RNZ(-5,5);n=RNZ(-5,5);}while(m===n||gcd(p,m)!==1||p*n+m===0);ex=poly([[p,'x²'],[p*n+m,'x'],[m*n,'']]);why=`3 términos y x² tiene número delante (${p}).`;}
+  else if(c===6){const a=R(1,5);ex=`x³ ${pk(['+','−'])} ${a**3}`;why=`Dos cubos perfectos (x³ y ${a**3} = ${a}³).`;}
+  else{const [m,n]=twoNums(40);ex=poly([[1,'x⁴'],[m+n,'x²'],[m*n,'']]);why='Tiene x⁴, x² y un número: se cambia x² por m.';}
+  return {q:`¿Qué caso de factoreo usas para ${E(ex)}?`,fields:[ch('Caso',C[c],shuf(C.filter((_,i)=>i!==c)).slice(0,3),1)],hint:'Sigue la lista: factor común → cuenta los términos → revisa la forma.',steps:[why,`Caso: <b>${C[c]}</b>.`]};}},
+
+{id:'factor-total',blk:4,name:'Factorizar por completo',need:3,
+ lesson:LS({idea:'<p>Factorizar <b>por completo</b> es seguir hasta que ningún paréntesis se pueda factorizar más. Casi siempre son dos pasos: factor común y después otro caso.</p>',
+  pasos:['Saca el factor común.','Mira el paréntesis que quedó: ¿es otro caso?','Factorízalo.','Repite hasta que no se pueda más.'],
+  ej:[['2x³ − 8x',`Factor común: ${E('2x(x² − 4)')}.`,`x² − 4 es diferencia de cuadrados: ${E('2x(x + 2)(x − 2)')}.`]],
+  mal:[['3x² − 27 = 3(x² − 9)','3x² − 27 = 3(x + 3)(x − 3)','x² − 9 todavía se puede factorizar.'],['2x² − 18 = (x + 3)(x − 3)','2x² − 18 = 2(x + 3)(x − 3)','No te olvides del factor común que sacaste.']],
+  tip:'Cuando termines, pregúntate en voz alta: "¿algún paréntesis se puede factorizar más?".'}),
+ gen(){const f=R(0,2);
+  if(f===0){const g=R(2,5),a=R(1,7),ok=`${g}(x + ${a})(x − ${a})`;return {q:`Factoriza por completo: ${E(`${g}x² − ${g*a*a}`)}`,fields:[ch('Factorización',ok,[`${g}(x² − ${a*a})`,`${g}(x − ${a})²`,`(x + ${a})(x − ${a})`])],hint:'Primero factor común; después mira qué quedó en el paréntesis.',
+   steps:[`Factor común ${g}: ${E(`${g}(x² − ${a*a})`)}.`,`x² − ${a*a} es diferencia de cuadrados: ${E(`(x + ${a})(x − ${a})`)}.`,`Resultado: <b>${E(ok)}</b>.`]};}
+  if(f===1){const g=R(2,4),[m,n]=twoNums(30),ok=`${g}(x${tm(m)})(x${tm(n)})`;return {q:`Factoriza por completo: ${E(poly([[g,'x²'],[g*(m+n),'x'],[g*m*n,'']]))}`,fields:[ch('Factorización',ok,[`(x${tm(m)})(x${tm(n)})`,`${g}(x${tm(-m)})(x${tm(-n)})`,`${g}(${poly([[1,'x²'],[m+n,'x'],[m*n,'']])})`])],hint:'Primero factor común; después trinomio x² + bx + c.',
+   steps:[`Factor común ${g}: ${E(`${g}(${poly([[1,'x²'],[m+n,'x'],[m*n,'']])})`)}.`,`Dos números: ${nm(m)} y ${nm(n)}.`,`Resultado: <b>${E(ok)}</b>.`]};}
+  const a=R(1,7),ok=`x(x + ${a})(x − ${a})`;return {q:`Factoriza por completo: ${E(`x³ − ${a*a}x`)}`,fields:[ch('Factorización',ok,[`x(x² − ${a*a})`,`x(x − ${a})²`,`(x + ${a})(x − ${a})`])],hint:'Saca x de factor común y mira qué queda.',
+   steps:[`Factor común x: ${E(`x(x² − ${a*a})`)}.`,`Diferencia de cuadrados: ${E(`(x + ${a})(x − ${a})`)}.`,`Resultado: <b>${E(ok)}</b>.`]};}},
+
+/* ---------- BLOQUE 5: ecuaciones ---------- */
+{id:'ec-lineal',blk:5,name:'Ecuación de primer grado',need:4,
+ lesson:LS({idea:'<p>Una ecuación es como una <b>balanza</b> en equilibrio: lo que hagas de un lado lo haces del otro. Resolver es dejar la x sola.</p>',
+  pasos:['Quita primero lo que <b>suma o resta</b> a la x: pasa al otro lado con la operación contraria.','Después quita lo que <b>multiplica</b>: pasa dividiendo.','Comprueba reemplazando el resultado.'],
+  ej:[['3x + 5 = 20','El +5 pasa restando: 3x = 15.','El 3 multiplica: pasa dividiendo. x = 15 ÷ 3 = 5.',`Compruebo: ${E('3·5 + 5 = 20')} ✓.`]],
+  mal:[['3x = 15 → x = 15 − 3','3x = 15 → x = 15 ÷ 3','El 3 multiplica a la x, así que pasa dividiendo.'],['−x = 5 → x = 5','−x = 5 → x = −5','Si queda −x, cambia el signo de los dos lados.'],['x − 4 = 10 → x = 6','x − 4 = 10 → x = 14','El −4 pasa sumando, no restando.']],
+  tip:'"Pasar al otro lado" es un atajo de hacer lo mismo en los dos lados. Si te confundes, escribe la operación en los dos lados.'}),
+ gen(){const x=RNZ(-9,9),a=R(2,9),b=RNZ(-15,15),c=a*x+b;
+  return {q:`Resuelve: ${E(`${a}x${tm(b)} = ${nm(c)}`)}`,fields:[num('x =',x)],hint:`Primero pasa el ${nm(Math.abs(b))} al otro lado con la operación contraria. Luego divide.`,
+   steps:[`El ${Math.abs(b)} está ${b>0?'sumando: pasa restando':'restando: pasa sumando'}. ${E(`${a}x = ${nm(c)} ${b>0?'−':'+'} ${Math.abs(b)} = ${nm(c-b)}`)}.`,`El ${a} multiplica: pasa dividiendo. ${E(`x = ${nm(c-b)} ÷ ${a}`)} = <b>${nm(x)}</b>.`,`Compruebo: ${E(`${a}·${pa(x)}${tm(b)} = ${nm(c)}`)} ✓.`]};}},
+
+{id:'ec-ambos',blk:5,name:'Ecuación con paréntesis y x a los dos lados',need:3,
+ lesson:LS({idea:'<p>Cuando hay paréntesis y x en los dos lados, primero ordenas y después despejas.</p>',
+  pasos:['Quita los paréntesis (distributiva).','Pasa todas las x a la izquierda y los números a la derecha. Al cambiar de lado, cambian de signo.','Reduce cada lado.','Despeja.','Comprueba.'],
+  ej:[['3(x − 2) = x + 4',`Quito paréntesis: ${E('3x − 6 = x + 4')}.`,`Ordeno: ${E('3x − x = 4 + 6')}.`,`Reduzco: ${E('2x = 10')}.`,`${E('x = 5')}.`]],
+  mal:[['3(x − 2) = 3x − 2','3(x − 2) = 3x − 6','Distribuye a todos los términos.'],['3x = x + 4 → 3x + x = 4','3x − x = 4','La x que pasa de lado cambia de signo.']],
+  tip:'Pon todas las x en el lado donde quedan positivas. Así evitas terminar con −x.'}),
+ gen(){let a,c;do{a=R(2,5);c=R(1,4);}while(a===c);const b=RNZ(-6,6),x=RNZ(-6,6),d=a*(x-b)-c*x;
+  return {q:`Resuelve: ${E(`${a}(x${tm(-b)}) = ${poly([[c,'x'],[d,'']])}`)}`,fields:[num('x =',x)],hint:'Quita el paréntesis, pasa las x a la izquierda y los números a la derecha.',
+   steps:[`Quito el paréntesis: ${E(`${poly([[a,'x'],[-a*b,'']])} = ${poly([[c,'x'],[d,'']])}`)}.`,`Ordeno: ${E(`${a}x − ${kxs(c)} = ${nm(d)} ${-a*b<0?'+':'−'} ${Math.abs(a*b)}`)}.`,`Reduzco: ${E(`${poly([[a-c,'x']])} = ${nm(d+a*b)}`)}.`,`${E(`x = ${nm(d+a*b)} ÷ ${pa(a-c)}`)} = <b>${nm(x)}</b>.`]};}},
+
+{id:'ec-fracciones',blk:5,name:'Ecuación con fracciones',need:3,
+ lesson:LS({idea:'<p>Las fracciones asustan, pero hay un truco: <b>multiplica toda la ecuación por el mcm de los denominadores</b>. Así desaparecen todas las fracciones.</p>',
+  pasos:['Busca el mcm de todos los denominadores.','Multiplica <b>cada término</b> (los de los dos lados) por ese número.','Simplifica: ya no quedan fracciones.','Resuelve como siempre.'],
+  ej:[['x/2 + x/3 = 10','mcm de 2 y 3: 6.',`Multiplico todo por 6: ${E('3x + 2x = 60')}.`,`${E('5x = 60')} → ${E('x = 12')}.`]],
+  mal:[['x/2 + x/3 = 10 → 3x + 2x = 10','… → 3x + 2x = 60','Multiplica TODOS los términos, también el de la derecha.']],
+  tip:'Comprueba al final: 12/2 + 12/3 = 6 + 4 = 10 ✓.'}),
+ gen(){const p=pk([2,3,4,5,6]);let q;do{q=pk([2,3,4,5,6]);}while(q===p);const L=lcm(p,q),k=RNZ(-3,4),x=L*k,r=x/p+x/q;
+  return {q:`Resuelve: ${E(`x/${p} + x/${q} = ${nm(r)}`)}`,fields:[num('x =',x)],hint:`Multiplica todo por ${L}, el mcm de ${p} y ${q}.`,
+   steps:[`mcm de ${p} y ${q}: ${L}.`,`Multiplico todo por ${L}: ${E(`${kxs(L/p)} + ${kxs(L/q)} = ${nm(L*r)}`)}.`,`${E(`${L/p+L/q}x = ${nm(L*r)}`)}.`,`${E(`x = ${nm(L*r)} ÷ ${L/p+L/q}`)} = <b>${nm(x)}</b>.`]};}},
+
+{id:'cuad-incompleta',blk:5,name:'Cuadráticas incompletas',need:3,
+ lesson:LS({idea:`<p>Una ecuación <b>cuadrática</b> (de segundo grado) tiene x². Cuando le falta un término es más fácil:</p><ul><li><b>Sin x:</b> ${E('ax² = c')}. Despejas x² y sacas raíz con ±.</li><li><b>Sin número solo:</b> ${E('ax² + bx = 0')}. Sacas factor común x.</li></ul>`,
+  pasos:[`${E('2x² = 50')} → ${E('x² = 25')} → ${E('x = ±5')}.`,`${E('x² − 5x = 0')} → ${E('x(x − 5) = 0')} → ${E('x = 0')} o ${E('x = 5')}.`,'Si un producto da 0, cada factor puede ser 0.'],
+  mal:[['x² = 5x → x = 5','x² − 5x = 0 → x(x − 5) = 0 → x = 0 o x = 5','Si divides entre x, pierdes la solución x = 0.'],['x² = 25 → x = 5','x² = 25 → x = ±5','Olvidar el ± es perder una solución.']],
+  tip:'Nunca dividas entre x en una ecuación: mejor saca factor común.'}),
+ gen(){if(Math.random()<.5){const a=R(1,5),k=R(1,9);return {q:`Resuelve: ${E(`${kxs(a,'x²')} = ${a*k*k}`)}`,fields:[num('x₁ =',k,'g'),num('x₂ =',-k,'g')],hint:'Despeja x² y saca raíz. No olvides el ±.',
+    steps:[a>1?`${E(`x² = ${a*k*k} ÷ ${a} = ${k*k}`)}.`:`${E(`x² = ${k*k}`)}.`,`${E(`x = ±√${k*k} = ±${k}`)}.`,`Soluciones: <b>${k} y −${k}</b>.`]};}
+  const k=RNZ(-9,9);return {q:`Resuelve: ${E(`x²${tm(-k,'x')} = 0`)}`,fields:[num('x₁ =',0,'g'),num('x₂ =',k,'g')],hint:'Saca factor común x.',
+   steps:[`Factor común: ${E(`x(x${tm(-k)}) = 0`)}.`,`${E('x = 0')} o ${E(`x${tm(-k)} = 0 → x = ${nm(k)}`)}.`,`Soluciones: <b>0 y ${nm(k)}</b>.`]};}},
+
+{id:'cuad-factor',blk:5,name:'Cuadrática por factorización',need:4,
+ lesson:LS({idea:'<p>Si un producto da cero, <b>al menos uno de los factores es cero</b>. Esa regla resuelve las cuadráticas.</p>',
+  pasos:['Ordena para que quede = 0.','Factoriza (normalmente con los dos números).','Iguala cada paréntesis a 0.','Despeja cada uno.'],
+  ej:[['y² + y − 12 = 0','Dos números: 4 y −3 → (y + 4)(y − 3) = 0.','y + 4 = 0 → y = −4.','y − 3 = 0 → y = 3.']],
+  mal:[['(y + 4)(y − 3) = 0 → y = 4 y y = −3','y = −4 y y = 3','La solución tiene el signo CONTRARIO al número del paréntesis.'],['x² + x = 12 → x(x + 1) = 12','x² + x − 12 = 0 → (x + 4)(x − 3) = 0','La regla del cero solo funciona si el otro lado es 0.']],
+  tip:'Comprueba cada solución reemplazándola en la ecuación original.'}),
+ gen(){const [m,n]=twoNums();
+  return {q:`Resuelve: ${E(`${poly([[1,'x²'],[m+n,'x'],[m*n,'']])} = 0`)}`,fields:[num('x₁ =',-m,'g'),num('x₂ =',-n,'g')],hint:`Factoriza: dos números que sumen ${nm(m+n)} y multipliquen ${nm(m*n)}.`,
+   steps:[`Dos números: ${nm(m)} y ${nm(n)}.`,`${E(`(x${tm(m)})(x${tm(n)}) = 0`)}.`,`${E(`x${tm(m)} = 0 → x = ${nm(-m)}`)}`,`${E(`x${tm(n)} = 0 → x = ${nm(-n)}`)}`]};}},
+
+{id:'discriminante',blk:5,name:'El discriminante',need:3,
+ lesson:LS({idea:`<p>Para ${E('ax² + bx + c = 0')}, el <b>discriminante</b> ${E('Δ = b² − 4ac')} te dice cuántas soluciones hay, antes de calcularlas:</p><ul><li>Δ positivo: <b>dos</b> soluciones.</li><li>Δ = 0: <b>una</b> solución.</li><li>Δ negativo: <b>ninguna</b> solución real (no existe la raíz de un negativo).</li></ul>`,
+  pasos:['Ordena la ecuación = 0 e identifica a, b y c <b>con su signo</b>.','Reemplaza en b² − 4ac, con paréntesis.','Mira el signo del resultado.'],
+  ej:[['x² + 2x + 5 = 0','a = 1, b = 2, c = 5.',`${E('Δ = 2² − 4·1·5 = 4 − 20 = −16')}.`,'Negativo: no tiene solución real.']],
+  mal:[['b = −3 → b² = −9','b = −3 → b² = (−3)² = 9','b² nunca es negativo.'],['Δ = 4ac − b²','Δ = b² − 4ac','Primero b², después se resta 4ac.']],
+  tip:'Si Δ es un cuadrado perfecto (1, 4, 9, 16…), la ecuación también se podía factorizar.'}),
+ gen(){const a=R(1,3),b=R(-8,8),c=RNZ(-9,9),D=b*b-4*a*c;
+  return {q:`En ${E(`${poly([[a,'x²'],[b,'x'],[c,'']])} = 0`)}, calcula el discriminante y di cuántas soluciones reales tiene.`,fields:[num('Δ =',D),ch('Soluciones reales',D>0?'Dos':D===0?'Una':'Ninguna',['Dos','Una','Ninguna'],1)],hint:'Identifica a, b y c con su signo. Luego Δ = b² − 4·a·c.',
+   steps:[`a = ${a}, b = ${nm(b)}, c = ${nm(c)}.`,`${E(`Δ = ${pa(b)}² − 4·${a}·${pa(c)} = ${b*b} ${-4*a*c>=0?'+':'−'} ${Math.abs(4*a*c)}`)} = <b>${nm(D)}</b>.`,D>0?'Positivo: <b>dos</b> soluciones.':D===0?'Cero: <b>una</b> solución.':'Negativo: <b>ninguna</b> solución real.']};}},
+
+{id:'formula-general',blk:5,name:'Fórmula general',need:3,
+ lesson:LS({idea:`<p>Cuando no encuentras los dos números, la <b>fórmula general</b> resuelve cualquier cuadrática ${E('ax² + bx + c = 0')}:</p><div class="formula frac"><span>x =</span><span class="fr"><span>−b ± √(b² − 4ac)</span><span>2a</span></span></div>`,
+  pasos:['Ordena = 0 e identifica a, b y c con su signo.','Calcula primero lo de adentro de la raíz: b² − 4ac.','Saca la raíz.','Calcula dos veces: una con + y otra con −.','Divide cada una entre 2a.'],
+  ej:[['m² − 7m + 6 = 0','a = 1, b = −7, c = 6.',`Adentro: ${E('(−7)² − 4·1·6 = 49 − 24 = 25')}; ${E('√25 = 5')}.`,`${E('−b = −(−7) = 7')}.`,`${E('m = (7 + 5)/2 = 6')} y ${E('m = (7 − 5)/2 = 1')}.`]],
+  mal:[['x = −b ± √(4ac − b)/2a','x = (−b ± √(b² − 4ac)) / 2a','Dentro va b² − 4ac, y la raya va debajo de TODO.'],['b = −7 → −b = −7','−b = −(−7) = 7','−b es el contrario de b.'],['(−7)² = −49','(−7)² = 49','Negativo al cuadrado da positivo.']],
+  tip:'Calcula por separado: primero el discriminante, luego −b, luego 2a. Después juntas. Así no te pierdes.'}),
+ gen(){const p=pk([1,2,2,3]);let r1,r2;do{r1=RNZ(-7,7);r2=RNZ(-6,6);}while(r1===p*r2);const a=p,b=-(p*r2+r1),c=r1*r2,D=b*b-4*a*c,s=Math.sqrt(D);
+  return {q:`Resuelve con la fórmula general: ${E(`${poly([[a,'x²'],[b,'x'],[c,'']])} = 0`)}`,fields:[num('x₁ =',r1/p,'g'),num('x₂ =',r2,'g')],hint:'a, b y c con signo. Primero calcula b² − 4ac.',
+   steps:[`a = ${a}, b = ${nm(b)}, c = ${nm(c)}.`,`${E(`b² − 4ac = ${pa(b)}² − 4·${a}·${pa(c)} = ${D}`)}; ${E(`√${D} = ${s}`)}.`,`${E(`−b = ${nm(-b)}`)} y ${E(`2a = ${2*a}`)}.`,`${E(`x = (${nm(-b)} + ${s})/${2*a} = ${frs(-b+s,2*a)}`)}`,`${E(`x = (${nm(-b)} − ${s})/${2*a} = ${frs(-b-s,2*a)}`)}`]};}},
+
+{id:'bicuadrada',blk:5,name:'Ecuación con x⁴ (bicuadrada)',need:3,
+ lesson:LS({idea:`<p>Una ecuación como ${E('x⁴ − 7x² + 6 = 0')} parece difícil, pero con el cambio ${E('m = x²')} se vuelve una cuadrática normal.</p>`,
+  pasos:['Cambia x² por m (y x⁴ por m²).','Resuelve la cuadrática en m (factorizando o con la fórmula).','<b>Regresa a x:</b> x² = cada valor de m.','Saca raíz con ±. Si m es negativo, ese valor no da solución real.'],
+  ej:[['x⁴ − 7x² + 6 = 0',`${E('m² − 7m + 6 = 0')} → ${E('(m − 6)(m − 1) = 0')}.`,'m = 6 o m = 1.',`${E('x² = 6 → x = ±√6')}; ${E('x² = 1 → x = ±1')}.`,'Cuatro soluciones.']],
+  mal:[['m = 6 es la respuesta','x² = 6 → x = ±√6','m es solo un ayudante: hay que regresar a x.'],['x² = −4 → x = ±2','x² = −4 no tiene solución real','Ningún número al cuadrado da negativo.']],
+  tip:'Escribe "m = x²" arriba de tu hoja para no olvidar que hay que regresar.'}),
+ gen(){let m1,m2;do{m1=R(-4,9);m2=R(-4,9);}while(m1===m2||m1===0||m2===0||(m1<0&&m2<0));const S=m1+m2,P=m1*m2,cnt=x=>x>0?2:x===0?1:0,tot=cnt(m1)+cnt(m2);
+  return {q:`Resuelve: ${E(`${poly([[1,'x⁴'],[-S,'x²'],[P,'']])} = 0`)}`,fields:[num('m₁ =',m1,'g'),num('m₂ =',m2,'g'),num('¿Cuántas soluciones reales tiene x?',tot)],hint:'Cambia x² por m, resuelve en m y luego regresa a x.',
+   steps:[`Con m = x²: ${E(`${poly([[1,'m²'],[-S,'m'],[P,'']])} = 0`)}.`,`Dos números con suma ${nm(-S)} y producto ${nm(P)}: ${E(`(m${tm(-m1)})(m${tm(-m2)}) = 0`)} → m = ${nm(m1)} o m = ${nm(m2)}.`,...[m1,m2].map(v=>v>0?`${E(`x² = ${v} → x = ${rootTxt(v)}`)} (2 soluciones).`:`${E(`x² = ${nm(v)}`)}: negativo, no da solución real.`),`Total: <b>${tot} soluciones</b>.`]};}},
+
+/* ---------- BLOQUE 6: sistemas ---------- */
+{id:'sl-sustitucion',blk:6,name:'Sistema lineal por sustitución',need:3,
+ lesson:LS({idea:'<p>Un <b>sistema</b> son dos ecuaciones que se tienen que cumplir <b>al mismo tiempo</b>. La solución es la pareja (x, y) que funciona en las dos. Gráficamente, es donde se cruzan las dos rectas.</p>',
+  pasos:['Despeja una letra en una ecuación (la que sea más fácil, la que no tenga número delante).','Reemplázala en la <b>otra</b> ecuación, entre paréntesis.','Resuelve: queda una ecuación con una sola letra.','Regresa al despeje para encontrar la otra letra.','Comprueba en las dos ecuaciones.'],
+  ej:[['y = 2x − 1 y 3x + y = 9',`Reemplazo: ${E('3x + (2x − 1) = 9')}.`,`${E('5x − 1 = 9 → 5x = 10 → x = 2')}.`,`${E('y = 2·2 − 1 = 3')}.`,'Solución: (2, 3).']],
+  mal:[['2x + 3(x − 1) = 7 → 2x + 3x − 1','2x + 3x − 3','Distribuye a todo el paréntesis.'],['Reemplazar en la misma ecuación de donde despejaste','Reemplaza en la OTRA ecuación','Si no, llegas a 0 = 0 y no avanzas.']],
+  tip:'La respuesta de un sistema son DOS números. Si solo tienes x, todavía no terminas.'}),
+ gen(){let x,y,a,b,c,d;do{x=RNZ(-6,6);y=RNZ(-6,6);a=RNZ(-4,4);b=y-a*x;c=R(1,5);d=RNZ(-4,4);}while(c+d*a===0);const e=c*x+d*y;
+  return {q:`Resuelve el sistema: ${E(`y = ${poly([[a,'x'],[b,'']])}`)} &nbsp;y&nbsp; ${E(`${poly([[c,'x'],[d,'y']])} = ${nm(e)}`)}`,fields:[num('x =',x),num('y =',y)],hint:'La primera ya tiene la y despejada: reemplázala en la segunda, entre paréntesis.',
+   steps:[`Reemplazo en la segunda: ${E(`${kxs(c)} ${d<0?'−':'+'} ${Math.abs(d)===1?'':Math.abs(d)}(${poly([[a,'x'],[b,'']])}) = ${nm(e)}`)}.`,`Distribuyo: ${E(`${poly([[c,'x'],[d*a,'x'],[d*b,'']])} = ${nm(e)}`)}.`,`Reduzco: ${E(`${poly([[c+d*a,'x']])} = ${nm(e-d*b)}`)} → ${E(`x = ${nm(x)}`)}.`,`Regreso: ${E(`y = ${nm(a)}·${pa(x)}${tm(b)} = ${nm(y)}`)}.`,`Solución: <b>(${nm(x)}, ${nm(y)})</b>.`]};}},
+
+{id:'sl-reduccion',blk:6,name:'Sistema lineal por reducción',need:3,
+ lesson:LS({idea:'<p>En el método de <b>reducción</b> sumas o restas las ecuaciones para que una letra desaparezca. A veces primero hay que multiplicar una o las dos ecuaciones para que esa letra tenga el mismo número.</p>',
+  pasos:['Elige qué letra eliminar.','Multiplica cada ecuación (completa, los dos lados) para que esa letra tenga el mismo número en las dos.','Resta las ecuaciones (o súmalas si los signos son contrarios).','Despeja la letra que queda.','Reemplaza para hallar la otra.'],
+  ej:[['x + y = 7 y x − y = 1',`Sumo: ${E('2x = 8 → x = 4')}.`,`${E('4 + y = 7 → y = 3')}.`,'Solución: (4, 3).']],
+  mal:[['Multiplicar solo el lado izquierdo','Multiplica la ecuación completa','Si no, la ecuación deja de ser verdadera.'],['Restar y olvidar cambiar los signos','Al restar, cambia el signo de TODOS los términos de la segunda','Restar es sumar el contrario.']],
+  tip:'Si una letra tiene el mismo número pero signos contrarios, solo suma las ecuaciones.'}),
+ gen(){let a1,b1,a2,b2;do{a1=RNZ(-5,5);b1=RNZ(-5,5);a2=RNZ(-5,5);b2=RNZ(-5,5);}while(a1*b2-a2*b1===0);
+  const x=RNZ(-6,6),y=RNZ(-6,6),c1=a1*x+b1*y,c2=a2*x+b2*y,L=lcm(b1,b2),k1=L/b1,k2=L/b2;
+  return {q:`Resuelve: ${E(`${poly([[a1,'x'],[b1,'y']])} = ${nm(c1)}`)} &nbsp;y&nbsp; ${E(`${poly([[a2,'x'],[b2,'y']])} = ${nm(c2)}`)}`,fields:[num('x =',x),num('y =',y)],hint:`Haz que la y tenga el mismo número (${L}) en las dos ecuaciones y réstalas.`,
+   steps:[`Para eliminar la y, hago que tenga ${L} en las dos.`,`(1)·${pa(k1)}: ${E(`${poly([[k1*a1,'x'],[L,'y']])} = ${nm(k1*c1)}`)}.`,`(2)·${pa(k2)}: ${E(`${poly([[k2*a2,'x'],[L,'y']])} = ${nm(k2*c2)}`)}.`,`Resto: ${E(`${poly([[k1*a1-k2*a2,'x']])} = ${nm(k1*c1-k2*c2)}`)} → ${E(`x = ${nm(x)}`)}.`,`Reemplazo en (1): ${E(`${nm(a1)}·${pa(x)} ${b1<0?'−':'+'} ${Math.abs(b1)===1?'':Math.abs(b1)}y = ${nm(c1)}`)} → ${E(`y = ${nm(y)}`)}.`,`Solución: <b>(${nm(x)}, ${nm(y)})</b>.`]};}},
+
+{id:'lc-paso',blk:6,name:'Lineal–cuadrático: eliminar la x',need:3,
+ lesson:LS({idea:`<p>Sistemas como ${E('x² + y² = 17')} y ${E('y = x² − 5')} tienen dos caminos que llegan al mismo lugar:</p>`,
+  pasos:[`<b>Bloque (sustitución):</b> de la segunda, ${E('x² = y + 5')}. Lo reemplazas en la primera: ${E('(y + 5) + y² = 17')}.`,`<b>Reducción:</b> ordenas la segunda como ${E('−x² + y = −5')} y la sumas a la primera: el x² se cancela y queda ${E('y² + y = 12')}.`,`Por los dos caminos: ${E('y² + y − 12 = 0')}.`],
+  mal:[['Reemplazar y = x² − 5 en y² sin paréntesis: x² + x² − 5 = 17','x² + (x² − 5)² = 17','La y se cambia completa, con su ², entre paréntesis.']],
+  tip:'Despejar x² como bloque evita que aparezca x⁴. Es el camino más corto.'}),
+ gen(){const g=genLC(false);
+  return {q:`En ${E(`x² + y² = ${g.R}`)} y ${E(`y = x² − ${g.k}`)}, al eliminar la x queda ${E('y² + y + C = 0')}. ¿Cuánto vale C?`,fields:[num('C =',g.C)],hint:`Despeja x² = y + ${g.k}, reemplaza y pasa el ${g.R} al otro lado.`,
+   steps:[`Bloque: ${E(`x² = y + ${g.k}`)}.`,`Reemplazo: ${E(`(y + ${g.k}) + y² = ${g.R}`)}.`,`Ordeno: ${E(`y² + y + ${g.k} − ${g.R} = 0`)}.`,`C = <b>${nm(g.C)}</b>.`]};}},
+
+{id:'lc-completo',blk:6,name:'Lineal–cuadrático completo',need:2,
+ lesson:LS({idea:'<p>Juntamos todo para resolver un sistema lineal–cuadrático de principio a fin.</p>',
+  pasos:['Elimina la x (bloque o reducción): queda una cuadrática en y.','Resuélvela: salen dos valores de y.',`Regresa: ${E('x² = y + k')}. Saca raíz con <b>±</b>.`,'Si x² sale negativo, ese valor de y se descarta.','Escribe los puntos (x, y). Cada y que sirve da dos puntos.'],
+  ej:[['x² + y² = 17 y y = x² − 5',`${E('y² + y − 12 = 0')} → y = 3 o y = −4.`,`y = 3: ${E('x² = 8 → x = ±2√2')}.`,`y = −4: ${E('x² = 1 → x = ±1')}.`,'4 puntos: (2√2, 3), (−2√2, 3), (1, −4), (−1, −4).']],
+  mal:[['Olvidar el ±','x = ±2√2','Cada valor de y da dos puntos.'],['Aceptar x² = −3','Descartar ese valor de y','Ningún número al cuadrado es negativo.']],
+  tip:'Las soluciones se escriben como parejas (x, y): primero x, después y.'}),
+ gen(){const g=genLC(true);const pts=(g.xa>0?2:0)+(g.xb>0?2:g.xb===0?1:0);
+  return {q:`Resuelve: ${E(`x² + y² = ${g.R}`)} y ${E(`y = x² − ${g.k}`)}`,fields:[num('y₁ =',g.y1,'g'),num('y₂ =',g.y2,'g'),num('Número de puntos (soluciones)',pts)],hint:'Elimina la x, resuelve en y y revisa si algún x² sale negativo.',
+   steps:[`Bloque: ${E(`x² = y + ${g.k}`)}. Sustituyo y ordeno: ${E(`y² + y${tm(g.C)} = 0`)}.`,`Dos números: ${-g.y2} y ${nm(-g.y1)} → ${E(`(y + ${-g.y2})(y − ${g.y1}) = 0`)}.`,`${E(`y = ${g.y1}`)} → ${E(`x² = ${g.xa}`)} → ${E(`x = ${rootTxt(g.xa)}`)} (2 puntos).`,
+    g.xb>=0?`${E(`y = ${nm(g.y2)}`)} → ${E(`x² = ${g.xb}`)} → ${E(`x = ${rootTxt(g.xb)}`)}${g.xb>0?' (2 puntos)':' (1 punto)'}.`:`${E(`y = ${nm(g.y2)}`)} → ${E(`x² = ${nm(g.xb)}`)}: negativo, <b>se descarta</b>.`,`Total: <b>${pts} puntos</b>.`]};}},
+
+{id:'cc-suma',blk:6,name:'Truco (x + y)² y (x − y)²',need:3,
+ lesson:LS({idea:`<p>Cuando te dan ${E('x² + y² = R')} y ${E('xy = P')}, usa los productos notables:</p><div class="formula">(x + y)² = R + 2P &nbsp;&nbsp;&nbsp; (x − y)² = R − 2P</div><p>No necesitas saber cuánto valen x ni y: usas los datos como bloques.</p>`,
+  ej:[['x² + y² = 25, xy = 12',`${E('(x + y)² = 25 + 24 = 49')}.`,`${E('(x − y)² = 25 − 24 = 1')}.`]],
+  mal:[['(x + y)² = x² + y² = 25','(x + y)² = x² + 2xy + y² = 25 + 24 = 49','No olvides el 2xy.']],
+  tip:'Este truco ahorra mucho trabajo frente a despejar y = P/x.'}),
+ gen(){const g=genCC();return {q:`Si ${E(`x² + y² = ${g.R}`)} y ${E(`xy = ${g.P}`)}, calcula:`,fields:[num('(x + y)² =',g.R+2*g.P),num('(x − y)² =',g.R-2*g.P)],hint:'Suma o resta el doble del producto.',
+  steps:[`${E(`(x + y)² = ${g.R} + 2·${g.P}`)} = <b>${g.R+2*g.P}</b>.`,`${E(`(x − y)² = ${g.R} − 2·${g.P}`)} = <b>${g.R-2*g.P}</b>.`]};}},
+
+{id:'cc-completo',blk:6,name:'Cuadrático–cuadrático completo',need:2,
+ lesson:LS({idea:'<p>Con el truco anterior, el sistema se vuelve cuatro sistemas lineales muy fáciles.</p>',
+  pasos:['Calcula (x + y)² y (x − y)².','Saca raíz con ±: x + y = ±s y x − y = ±d.','Resuelve cada combinación sumando (para x) y restando (para y).'],
+  ej:[['x² + y² = 25, xy = 12','x + y = ±7 y x − y = ±1.','Con 7 y 1: 2x = 8 → x = 4; y = 3.','Soluciones: (4, 3), (3, 4), (−4, −3), (−3, −4).']],
+  mal:[['Quedarse con una sola solución','Son 4 combinaciones','Por el ±, salen 4 parejas.']],
+  tip:'Las soluciones salen simétricas: si (4, 3) sirve, (3, 4) también.'}),
+ gen(){const g=genCC(),s=g.a+g.b,d=g.a-g.b;
+  return {q:`Resuelve: ${E(`x² + y² = ${g.R}`)} y ${E(`xy = ${g.P}`)}. Escribe la solución con x > y > 0.`,fields:[num('x =',g.a),num('y =',g.b)],hint:'Calcula (x + y)² y (x − y)², saca raíz y suma las ecuaciones.',
+   steps:[`${E(`(x + y)² = ${s*s}`)} → ${E(`x + y = ±${s}`)}.`,`${E(`(x − y)² = ${d*d}`)} → ${E(`x − y = ±${d}`)}.`,`Con ${s} y ${d}: ${E(`2x = ${s+d} → x = ${g.a}`)}; ${E(`y = ${g.b}`)}.`,`Todas: ${E(`(${g.a}, ${g.b}), (${g.b}, ${g.a}), (−${g.a}, −${g.b}), (−${g.b}, −${g.a})`)}.`]};}},
+
+{id:'homogeneo',blk:6,name:'Sistema homogéneo',need:3,
+ lesson:LS({idea:`<p>Cuando todos los términos de la izquierda son de grado 2 (x², y², xy) y a la derecha hay solo números, igualas los números para que desaparezcan y llegas a algo como ${E('x² − 5xy + 6y² = 0')}.</p><p>Esa ecuación se factoriza pensando en y como si fuera un número: ${E('(x − 2y)(x − 3y) = 0')}. Cada factor da una relación: ${E('x = 2y')} o ${E('x = 3y')}.</p>`,
+  pasos:['Busca dos números que multipliquen el número de y² y sumen el número de xy.','Factoriza.','Cada paréntesis = 0 da una relación x = (número)·y.','Reemplaza cada relación en la ecuación más sencilla del sistema.'],
+  mal:[['(x − 2y) = 0 → x = −2y','x = 2y','Al pasar al otro lado cambia el signo.']],
+  tip:'Si te cuesta, divide todo entre y² y llama t = x/y: queda una cuadrática normal en t.'}),
+ gen(){let r,s;do{r=RNZ(-5,5);s=RNZ(-5,5);}while(r===s||r+s===0);
+  return {q:`En ${E(`${poly([[1,'x²'],[-(r+s),'xy'],[r*s,'y²']])} = 0`)}, encuentra las dos relaciones ${E('x = (número)·y')}.`,fields:[num('Primer número',r,'g'),num('Segundo número',s,'g')],hint:`Dos números que multipliquen ${nm(r*s)} y sumen ${nm(-(r+s))}. La respuesta es el signo contrario de cada uno.`,
+   steps:[`Dos números con producto ${nm(r*s)} y suma ${nm(-(r+s))}: ${nm(-r)} y ${nm(-s)}.`,`${E(`(x${tm(-r,'y')})(x${tm(-s,'y')}) = 0`)}.`,`Relaciones: <b>${E(`x = ${kxs(r,'y')}`)}</b> o <b>${E(`x = ${kxs(s,'y')}`)}</b>.`]};}},
+
+/* ---------- BLOQUE 7: logaritmos ---------- */
+{id:'que-es-log',blk:7,name:'¿Qué es un logaritmo?',need:4,
+ lesson:LS({idea:`<p>${E('log₂ 8')} pregunta: <b>¿a qué número elevo el 2 para obtener 8?</b> Como ${E('2³ = 8')}, entonces ${E('log₂ 8 = 3')}. Un logaritmo <b>es un exponente</b>.</p><div class="formula">log<sub>b</sub> A = c &nbsp;⇔&nbsp; b<sup>c</sup> = A</div><p>El número pequeño (b) es la <b>base</b>.</p>`,
+  pasos:[`${E('log_b b = 1')}, porque ${E('b¹ = b')}.`,`${E('log_b 1 = 0')}, porque ${E('b⁰ = 1')}.`,'Solo existen logaritmos de números positivos.','Potencias de 2: 2, 4, 8, 16, 32, 64. De 3: 3, 9, 27, 81. De 10: 10, 100, 1000.'],
+  mal:[['log₂ 8 = 4','log₂ 8 = 3','No es 8 ÷ 2: es el exponente de 2 que da 8.'],['log₃ 0 = 0','log₃ 0 no existe','No hay logaritmo de 0 ni de negativos.']],
+  tip:'Lee el logaritmo en voz alta como pregunta: "¿2 elevado a qué da 8?".'}),
+ gen(){const b=pk([2,2,3,5,10]),e=b===2?R(0,7):b===3?R(0,4):R(0,3),A=b**e;
+  return {q:`Calcula: ${E(lg(b,A))}`,fields:[num('Resultado',e)],hint:`Pregúntate: ¿${b} elevado a qué número da ${A}?`,steps:[`Busco c tal que ${E(`${b}<sup>c</sup> = ${A}`)}.`,`Como ${E(`${b}<sup>${e}</sup> = ${A}`)}, el logaritmo vale <b>${e}</b>.`]};}},
+
+{id:'dominio',blk:7,name:'Dominio de un logaritmo',need:3,
+ lesson:LS({idea:'<p>Como solo existen logaritmos de positivos, todo lo que está <b>dentro</b> de un logaritmo debe ser mayor que 0. Esa condición se llama <b>dominio</b>.</p>',
+  pasos:['Escribe una condición por cada logaritmo: lo de adentro > 0.','Despeja cada una.','Se tienen que cumplir todas: quédate con la más exigente.','Al final, descarta las respuestas que no estén en el dominio.'],
+  ej:[['log₂(x − 1) + log₂(x + 1)','x − 1 > 0 → x > 1.','x + 1 > 0 → x > −1.','Dominio: x > 1.']],
+  mal:[['No revisar el dominio','Siempre revisa al final','A veces sale una respuesta que hace negativo un logaritmo: esa se descarta.']],
+  tip:'Calcula el dominio ANTES de resolver y escríbelo en un recuadro.'}),
+ gen(){const a=R(-5,8),b=R(-5,8),ans=Math.max(a,-b);const t1=a===0?'x':`x${tm(-a)}`,t2=b===0?'x':`x${tm(b)}`;
+  return {q:`¿Cuál es el dominio de ${E(`log(${t1}) + log(${t2})`)}? Completa: ${E('x > ?')}`,fields:[num('x >',ans)],hint:'Cada paréntesis debe ser mayor que 0. Quédate con la condición más exigente.',
+   steps:[`${E(`${t1} > 0 → x > ${nm(a)}`)}.`,`${E(`${t2} > 0 → x > ${nm(-b)}`)}.`,`Las dos a la vez: <b>${E(`x > ${nm(ans)}`)}</b>.`]};}},
+
+{id:'propiedades',blk:7,name:'Propiedades de los logaritmos',need:4,
+ lesson:LS({idea:'<p>Con la <b>misma base</b> puedes juntar logaritmos:</p><ul><li><b>Producto:</b> log A + log B = log(A·B)</li><li><b>Cociente:</b> log A − log B = log(A/B)</li><li><b>Potencia:</b> n·log A = log Aⁿ (el número de adelante sube como exponente)</li></ul>',
+  ej:[['2·log₂(x − 1) + log₂(x + 1)',`Potencia: ${E('log₂(x − 1)² + log₂(x + 1)')}.`,`Producto: ${E('log₂[(x − 1)²(x + 1)]')}.`]],
+  mal:[['log(A + B) = log A + log B','log(A·B) = log A + log B','La propiedad es para el producto, no para la suma.'],['log₂ x + log₃ x = log₆ x','Primero cambia a la misma base','Las propiedades solo funcionan con la misma base.']],
+  tip:'Antes de juntar, sube los números de adelante como exponentes.'}),
+ gen(){const b=pk([2,3,10]),f=R(0,2);
+  if(f===0){const A=R(2,9),B=R(2,9);return {q:`Escribe como un solo logaritmo: ${E(`${lg(b,A)} + ${lg(b,B)} = ${lg(b,'?')}`)}`,fields:[num('? =',A*B)],hint:'Suma de logaritmos: se multiplica lo de adentro.',steps:[`Producto: ${E(`${lg(b,`(${A}·${B})`)}`)}.`,`${A}·${B} = <b>${A*B}</b>.`]};}
+  if(f===1){const A=R(2,5),n=R(2,3);return {q:`Escribe como un solo logaritmo: ${E(`${n}·${lg(b,A)} = ${lg(b,'?')}`)}`,fields:[num('? =',A**n)],hint:'El número de adelante sube como exponente.',steps:[`Potencia: ${E(lg(b,`${A}<sup>${n}</sup>`))}.`,`${A}<sup>${n}</sup> = <b>${A**n}</b>.`]};}
+  const A=R(2,4),B=R(2,6);return {q:`Escribe como un solo logaritmo: ${E(`2·${lg(b,A)} + ${lg(b,B)} = ${lg(b,'?')}`)}`,fields:[num('? =',A*A*B)],hint:'Primero sube el 2 como exponente; después usa el producto.',steps:[`Potencia: ${E(`2·${lg(b,A)} = ${lg(b,A*A)}`)}.`,`Producto: ${E(lg(b,`(${A*A}·${B})`))}.`,`${A*A}·${B} = <b>${A*A*B}</b>.`]};}},
+
+{id:'log-ecuacion',blk:7,name:'Quitar el logaritmo',need:4,
+ lesson:LS({idea:'<p>Cuando tienes <b>un solo logaritmo igual a un número</b>, usas la definición para quitarlo:</p><div class="formula">log<sub>b</sub>(algo) = c &nbsp;→&nbsp; algo = b<sup>c</sup></div>',
+  ej:[['log₂(x + 1) = 3',`${E('x + 1 = 2³ = 8')}.`,`${E('x = 7')}.`,`Dominio: ${E('7 + 1 > 0')} ✓.`]],
+  mal:[['log₂(x + 1) = 3 → x + 1 = 3·2','x + 1 = 2³ = 8','Es una potencia, no una multiplicación.']],
+  tip:'Primero junta todo en un solo logaritmo con las propiedades. Recién después quitas el logaritmo.'}),
+ gen(){const b=pk([2,2,3,10]),e=b===2?R(1,5):b===3?R(1,3):R(1,2),a=RNZ(-6,6),x=b**e-a;
+  return {q:`Resuelve: ${E(`${lg(b,`(x${tm(a)})`)} = ${e}`)}`,fields:[num('x =',x)],hint:`Lo de adentro es ${b} elevado a ${e}.`,
+   steps:[`${E(`x${tm(a)} = ${b}<sup>${e}</sup> = ${b**e}`)}.`,`${E(`x = ${b**e} ${a>0?'−':'+'} ${Math.abs(a)}`)} = <b>${nm(x)}</b>.`,`Dominio: ${E(`${nm(x)}${tm(a)} = ${b**e} > 0`)} ✓.`]};}},
+
+{id:'cambio-base',blk:7,name:'Cambio de base',need:3,
+ lesson:LS({idea:'<p>Las propiedades solo funcionan con la misma base. Si las bases son distintas, cámbialas a una sola:</p><div class="formula">log<sub>b</sub> x = log<sub>a</sub> x ÷ log<sub>a</sub> b</div><p><b>Atajo:</b> si la base es una potencia, como 8 = 2³, entonces log₈ x = log₂ x ÷ 3.</p>',
+  ej:[['log₄ x en base 2','4 = 2².','log₄ x = log₂ x ÷ 2.']],
+  mal:[['log₄ x = 2·log₂ x','log₄ x = log₂ x ÷ 2','El exponente de la base pasa a DIVIDIR.']],
+  tip:'Elige como base común la más pequeña: 2 para 2, 4 y 8; 3 para 3, 9 y 27.'}),
+ gen(){const [B,a,n]=pk([[4,2,2],[8,2,3],[16,2,4],[9,3,2],[27,3,3],[25,5,2],[100,10,2],[32,2,5]]);
+  return {q:`Completa: ${E(`${lg(B,'x')} = ${lg(a,'x')} ÷ ?`)}`,fields:[num('? =',n)],hint:`¿${a} elevado a qué número da ${B}?`,steps:[`${E(`${B} = ${a}<sup>${n}</sup>`)}, así que ${E(`${lg(a,B)} = ${n}`)}.`,`Respuesta: <b>${n}</b>.`]};}},
+
+{id:'bases-distintas',blk:7,name:'Ecuación con bases distintas',need:2,
+ lesson:LS({idea:'<p>Juntamos cambio de base y ecuación.</p>',
+  pasos:['Pasa todo a la base más pequeña.','Llama t al logaritmo que se repite: t = log₂ x.','Saca t como factor común y suma las fracciones.','Despeja t.','<b>Regresa a x:</b> x = 2ᵗ.'],
+  ej:[['log₂ x + log₄ x + log₈ x = 11/2','t + t/2 + t/3 = 11/2.','(11/6)·t = 11/2 → t = 3.','x = 2³ = 8.']],
+  mal:[['Responder t = 3','x = 2³ = 8','t es un ayudante: la respuesta es x.']],
+  tip:'Comprueba: log₂ 8 + log₄ 8 + log₈ 8 = 3 + 3/2 + 1 = 11/2 ✓.'}),
+ gen(){const [b,ns]=pk([[2,[1,2]],[2,[1,3]],[2,[1,2,3]],[3,[1,2]],[2,[1,4]],[2,[2,3]]]),t=R(1,4);let L=1;ns.forEach(n=>L=lcm(L,n));const S=ns.reduce((s,n)=>s+L/n,0);
+  return {q:`Resuelve: ${E(`${ns.map(n=>lg(b**n,'x')).join(' + ')} = ${frs(S*t,L)}`)}`,fields:[num('x =',b**t)],hint:`Cambia todo a base ${b} y llama t = log de x en base ${b}.`,
+   steps:[`Cambio de base: ${E(ns.map(n=>n===1?'t':`t/${n}`).join(' + ')+' = '+frs(S*t,L))}.`,`Factor común: ${E(`t·${frs(S,L)} = ${frs(S*t,L)}`)}.`,`${E(`t = ${t}`)}.`,`Regreso: ${E(`x = ${b}<sup>${t}</sup>`)} = <b>${b**t}</b>.`]};}},
+];
+
+const BLK={1:'Aritmética: los cimientos',2:'Lenguaje algebraico',3:'Productos notables',4:'Casos de factoreo',5:'Ecuaciones',6:'Sistemas de ecuaciones',7:'Logaritmos'};
+const MALS=LV.flatMap((l,i)=>(LSMAL[i]||[]).map(m=>({i,m})));
+
+/* ===================== UI ===================== */
+const $=s=>document.querySelector(s);
+let PROG={passed:{},streak:{},errs:[]},cur=0;
+try{const p=JSON.parse(localStorage.getItem('escalera-mat')||'null');if(p){PROG.passed=p.passed||{};PROG.streak=p.streak||{};PROG.errs=p.errs||[];if(p.cur>=0&&p.cur<LV.length)cur=p.cur;}}catch(e){}
+let DOC=null,writing=false,again=false;
+function save(){const d={passed:PROG.passed,streak:PROG.streak,errs:PROG.errs.slice(0,40),cur};try{localStorage.setItem('escalera-mat',JSON.stringify(d));}catch(e){}push(d);}
+async function push(d){if(!DOC)return;if(writing){again=true;return;}writing=true;try{await DOC.set({...d,updated:Date.now()});$('#sync').textContent='Tu progreso se guarda en tu cuenta: lo ves en cualquier dispositivo.';}catch(e){$('#sync').textContent='No se pudo guardar en tu cuenta; quedó guardado en este dispositivo.';}writing=false;if(again){again=false;save();}}
+(async()=>{try{if(!(window.claude&&typeof window.claude.use==='function'))return;const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);if(!db||!user)return;const id=await user.id();if(!id)return;
+  DOC=db.doc('data/users/'+id+'/escalera-matematicas');const snap=await DOC.get();
+  if(snap.exists){const d=snap.data()||{};for(const k in d.passed||{})if(d.passed[k])PROG.passed[k]=true;for(const k in d.streak||{})PROG.streak[k]=Math.max(PROG.streak[k]||0,d.streak[k]||0);
+    const seen=new Set(PROG.errs.map(e=>e.t));(d.errs||[]).forEach(e=>{if(!seen.has(e.t))PROG.errs.push(e);});PROG.errs.sort((a,b)=>b.t-a.t);PROG.errs=PROG.errs.slice(0,40);}
+  renderStair();renderHead();renderNB();save();}catch(e){}})();
+
+/* Vistas */
+function setView(v){document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===v));['escalera','errores','tips','cuaderno','diag'].forEach(k=>$('#v-'+k).hidden=k!==v);
+  if(v!=='escalera')stopLesson();if(v==='cuaderno')renderNB();if(v==='diag'&&!DG.started)renderDiagIntro();window.scrollTo(0,0);try{localStorage.setItem('escalera-mat-view',v);}catch(e){}}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
+
+/* Escalera */
+const passedN=()=>LV.filter(l=>PROG.passed[l.id]).length;
+function renderStair(){const viz=$('#viz');viz.innerHTML='';LV.forEach((l,i)=>{const b=document.createElement('button');b.className=(PROG.passed[l.id]?'ok ':'')+(i===cur?'cur':'');b.style.height=(12+Math.round(i/(LV.length-1)*70))+'px';b.title=`${i+1}. ${l.name}`;b.setAttribute('aria-label',`Escalón ${i+1}: ${l.name}`);b.onclick=()=>openLv(i);viz.appendChild(b);});
+  $('#nPass').textContent=passedN();$('#nTot').textContent=LV.length;const nx=LV.findIndex(l=>!PROG.passed[l.id]);$('#nextUp').innerHTML=nx<0?'¡Completaste toda la escalera!':`Siguiente por aprobar: <button class="lk" id="goNext">${nx+1}. ${esc(LV[nx].name)}</button>`;const g=$('#goNext');if(g)g.onclick=()=>openLv(nx);
+  let h='',blk=0;LV.forEach((l,i)=>{if(l.blk!==blk){if(blk)h+='</ol>';blk=l.blk;h+=`<h4>${blk}. ${BLK[blk]}</h4><ol>`;}h+=`<li><button class="srow${i===cur?' cur':''}${PROG.passed[l.id]?' ok':''}" data-i="${i}"><span class="n">${PROG.passed[l.id]?'✓':i+1}</span><span>${esc(l.name)}</span></button></li>`;});
+  $('#list').innerHTML=h+'</ol>';$('#list').querySelectorAll('.srow').forEach(b=>b.onclick=()=>{openLv(+b.dataset.i);if(matchMedia('(max-width:920px)').matches){$('#listBox').open=false;$('#lvHead').scrollIntoView({block:'start'});}});}
+function renderHead(){const l=LV[cur],s=PROG.streak[l.id]||0;
+  $('#lvHead').innerHTML=`<span class="label">Escalón ${cur+1} de ${LV.length} · ${esc(BLK[l.blk])}</span><h2>${esc(l.name)}</h2><div class="meter">${PROG.passed[l.id]?'<span class="badge">Aprobado</span>':''}<span>Aciertos seguidos para aprobar:</span>${Array.from({length:l.need},(_,k)=>`<i class="${PROG.passed[l.id]||k<s?'on':''}"></i>`).join('')}</div>`;}
+function openLv(i){cur=i;stopLesson();const l=LV[i];$('#lesson').innerHTML=l.lesson;$('#lessonBox').open=!PROG.passed[l.id];$('#prev').disabled=i===0;$('#next').disabled=i===LV.length-1;$('#askOut').innerHTML='';
+  renderStair();renderHead();newQ();save();}
+$('#prev').onclick=()=>openLv(Math.max(0,cur-1));$('#next').onclick=()=>openLv(Math.min(LV.length-1,cur+1));
+
+/* Motor de preguntas (sirve para la escalera y el diagnóstico) */
+function fieldHTML(f,id){if(f.k==='choice')return `<fieldset class="fld"><legend>${f.label}</legend><div class="choices">${f.opts.map((o,j)=>`<label class="opt"><input type="radio" name="${id}" value="${j}"><span>${f.plain?esc(o):E(o)}</span></label>`).join('')}</div></fieldset>`;
+  return `<div class="fld"><label for="${id}">${f.label}</label><div class="numrow"><input id="${id}" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="?"><button type="button" class="sgn" data-for="${id}" aria-label="Cambiar signo">+/−</button></div></div>`;}
+function parseNum(s){s=String(s).trim().replace(/[−–]/g,'-').replace(/\s+/g,'').replace(',','.');if(!s)return NaN;const f=s.match(/^([+-]?\d+(?:\.\d+)?)\/([+-]?\d+(?:\.\d+)?)$/);if(f)return parseFloat(f[1])/parseFloat(f[2]);if(/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);return NaN;}
+const near=(a,b)=>Math.abs(a-b)<1e-6;
+function ansTxt(f){if(f.k==='choice')return f.ans;const v=f.ans;if(Number.isInteger(v))return nm(v);for(let d=2;d<=12;d++){const n=v*d;if(Math.abs(n-Math.round(n))<1e-9)return frs(Math.round(n),d);}return nm(v);}
+function mountQ(box,Q,pre,onEnd,opts={}){let tries=0,done=false;const F=Q.fields;
+  box.innerHTML=`<div class="q">${Q.q}</div><form autocomplete="off">${F.map((f,i)=>fieldHTML(f,pre+i)).join('')}<div class="row"><button class="cta">Revisar</button>${opts.noGiveUp?'':'<button type="button" class="ghost giveup">Ver solución</button>'}</div></form><div class="fbx" aria-live="polite"></div>`;
+  const form=box.querySelector('form'),fb=box.querySelector('.fbx');
+  box.querySelectorAll('.sgn').forEach(b=>b.onclick=()=>{const inp=box.querySelector('#'+b.dataset.for);let v=inp.value.trim();v=/^[-−]/.test(v)?v.replace(/^[-−]\s*/,''):'−'+v;inp.value=v;inp.focus();});
+  const read=()=>F.map((f,i)=>{if(f.k==='choice'){const r=box.querySelector(`input[name="${pre+i}"]:checked`);return r?f.opts[+r.value]:null;}const raw=box.querySelector('#'+pre+i).value;return {raw,v:parseNum(raw)};});
+  function finish(correct,gave){done=true;form.querySelectorAll('input,button').forEach(x=>x.disabled=true);const vals=read();
+    const mine=F.map((f,i)=>`${f.label.replace(/<[^>]+>/g,'')}: ${f.k==='choice'?(vals[i]||'—'):(vals[i].raw||'—')}`).join(' · ');
+    const ok=F.map(f=>`${f.label.replace(/<[^>]+>/g,'')}: ${ansTxt(f)}`).join(' · ');
+    onEnd({correct,gave,mine,ok,steps:`<ol class="sol">${Q.steps.map(s=>`<li>${s}</li>`).join('')}</ol>`,fb});}
+  form.onsubmit=e=>{e.preventDefault();if(done)return;const vals=read();
+    for(let i=0;i<F.length;i++){if(F[i].k==='choice'&&vals[i]===null){fb.innerHTML=`<p class="fb warn">Elige una opción en «${F[i].label.replace(/<[^>]+>/g,'')}».</p>`;return;}if(F[i].k==='num'&&isNaN(vals[i].v)){fb.innerHTML=`<p class="fb warn">Escribe un número en «${F[i].label.replace(/<[^>]+>/g,'')}». Puedes usar fracciones como 3/2.</p>`;box.querySelector('#'+pre+i).focus();return;}}
+    const good=F.map(()=>false),groups={};
+    F.forEach((f,i)=>{if(f.k==='choice')good[i]=vals[i]===f.ans;else if(!f.group)good[i]=near(vals[i].v,f.ans);else(groups[f.group]=groups[f.group]||[]).push(i);});
+    for(const g in groups){const left=groups[g].map(i=>F[i].ans);groups[g].forEach(i=>{const j=left.findIndex(a=>near(a,vals[i].v));if(j>=0){good[i]=true;left.splice(j,1);}});}
+    F.forEach((f,i)=>{const el=(f.k==='choice'?box.querySelector(`input[name="${pre+i}"]`):box.querySelector('#'+pre+i)).closest('.fld');el.classList.remove('good','bad');el.classList.add(good[i]?'good':'bad');});
+    if(good.every(Boolean))return finish(true);
+    tries++;if(tries===1&&!opts.oneTry){fb.innerHTML=`<div class="fb warn"><b>Casi.</b> Revisa lo que está en rojo e inténtalo otra vez.<br><b>Pista:</b> ${Q.hint}</div>`;}else finish(false);};
+  const gu=box.querySelector('.giveup');if(gu)gu.onclick=()=>finish(false,true);}
+
+let Q=null;
+function newQ(){const l=LV[cur];Q=l.gen();mountQ($('#qbox'),Q,'f',r=>{
+  if(r.correct){PROG.streak[l.id]=(PROG.streak[l.id]||0)+1;const s=PROG.streak[l.id],just=!PROG.passed[l.id]&&s>=l.need;if(s>=l.need)PROG.passed[l.id]=true;
+    r.fb.innerHTML=(just?`<div class="fb good big"><b>¡Escalón aprobado!</b> Acertaste ${l.need} seguidos. Ya puedes subir.</div>`:`<div class="fb good"><b>¡Correcto!</b> ${PROG.passed[l.id]?'Este escalón ya está aprobado; sigue practicando si quieres.':`Llevas ${s} de ${l.need} seguidos.`}</div>`)+`<details class="solbox"><summary>Ver cómo se resuelve</summary>${r.steps}</details>`;}
+  else{PROG.streak[l.id]=0;PROG.errs.unshift({id:l.id,q:Q.q.slice(0,700),mine:r.gave?'(Pediste ver la solución)':r.mine,ok:r.ok,t:Date.now()});PROG.errs=PROG.errs.slice(0,40);
+    r.fb.innerHTML=`<div class="fb bad"><b>${r.gave?'Solución':'Esta vez no salió.'}</b> ${r.gave?'':'El contador vuelve a 0. '}Lee la solución con calma; quedó guardada en tu cuaderno de errores.</div><div class="solbox"><b>Solución paso a paso</b>${r.steps}</div>`;}
+  const up=cur<LV.length-1&&PROG.passed[l.id];
+  r.fb.insertAdjacentHTML('beforeend',`<div class="row"><button class="cta" id="another">${r.correct?'Otro ejercicio':'Intentar otro'}</button>${up?'<button class="ghost" id="up">Subir al siguiente escalón ↑</button>':''}</div>`);
+  $('#another').onclick=newQ;if(up)$('#up').onclick=()=>openLv(cur+1);save();renderStair();renderHead();renderNBCount();});}
+
+/* Errores comunes */
+function renderErrors(){let h='',blk=0;MALS.forEach(({i,m})=>{const l=LV[i];if(l.blk!==blk){if(blk)h+='</div>';blk=l.blk;h+=`<h3 class="blkh">${blk}. ${BLK[blk]}</h3><div class="errgrid">`;}
+  h+=malHTML(m).replace('</div>'+`<p>`,'</div><p>').replace(/<\/p><\/div>$/,`</p><button class="lk" data-i="${i}">Practicar: ${i+1}. ${esc(l.name)}</button></div>`);});
+  $('#errList').innerHTML=h+'</div>';$('#errList').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{setView('escalera');openLv(+b.dataset.i);});}
+
+/* Cuaderno de errores */
+function renderNBCount(){const n=PROG.errs.length,el=$('#nbCount');el.hidden=!n;el.textContent=n;}
+function renderNB(){renderNBCount();const box=$('#nb');if(!PROG.errs.length){box.innerHTML='<div class="card empty">Todavía no hay errores guardados. Cuando falles un ejercicio, aparecerá aquí para que lo repases.</div>';$('#nbClear').hidden=true;return;}
+  $('#nbClear').hidden=false;box.innerHTML=PROG.errs.map((e,k)=>{const i=LV.findIndex(l=>l.id===e.id);const d=new Date(e.t);return `<div class="card nbi"><span class="label">${i>=0?`Escalón ${i+1}: ${esc(LV[i].name)}`:''} · ${d.toLocaleDateString('es-EC',{day:'numeric',month:'short'})}</span><div class="q">${e.q}</div><div class="mine">✗ Tu respuesta: ${esc(e.mine)}</div><div class="ok">✓ Correcta: ${esc(e.ok)}</div><div class="row">${i>=0?`<button class="lk" data-i="${i}">Practicar este escalón</button>`:''}<button class="lk" data-del="${k}">Ya lo entendí</button></div></div>`;}).join('');
+  box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{setView('escalera');openLv(+b.dataset.i);});
+  box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{PROG.errs.splice(+b.dataset.del,1);save();renderNB();});}
+let clrArm=0;$('#nbClear').onclick=()=>{const b=$('#nbClear');if(Date.now()-clrArm<3500){PROG.errs=[];save();renderNB();b.textContent='Borrar el cuaderno';clrArm=0;return;}clrArm=Date.now();b.textContent='¿Seguro? Toca otra vez para borrar';setTimeout(()=>{if(clrArm&&Date.now()-clrArm>=3400){b.textContent='Borrar el cuaderno';clrArm=0;}},3600);};
+
+/* Diagnóstico */
+const DIAG=['suma','jerarquia','fr-suma','distributiva','cuad-binomio','trinomio-simple','ec-ambos','cuad-factor','sl-sustitucion','que-es-log'];
+const DG={started:false,k:0,res:[]};
+function renderDiagIntro(){$('#diag').innerHTML=`<h2>¿Por dónde empiezo?</h2><p>Son ${DIAG.length} preguntas, una de cada tema, de lo más fácil a lo más difícil. Tienes un solo intento por pregunta y no hay pistas. Al final te digo en qué escalón conviene empezar.</p><p class="hint">Si no sabes una, elige «No sé»: es mejor que adivinar.</p><div class="row"><button class="cta" id="dgo">Empezar</button></div>`;$('#dgo').onclick=()=>{DG.started=true;DG.k=0;DG.res=[];diagQ();};}
+function diagQ(){const id=DIAG[DG.k],i=LV.findIndex(l=>l.id===id),Qd=LV[i].gen();
+  $('#diag').innerHTML=`<span class="label">Pregunta ${DG.k+1} de ${DIAG.length} · ${esc(BLK[LV[i].blk])}</span><div id="dq"></div><div class="row"><button class="ghost" id="dskip">No sé</button></div>`;
+  const next=ok=>{DG.res.push({i,ok});DG.k++;if(DG.k<DIAG.length)diagQ();else diagEnd();};
+  mountQ($('#dq'),Qd,'d',r=>{r.fb.innerHTML=r.correct?'<div class="fb good"><b>¡Bien!</b></div>':`<div class="fb bad"><b>No era así.</b></div><div class="solbox"><b>Solución</b>${r.steps}</div>`;r.fb.insertAdjacentHTML('beforeend','<div class="row"><button class="cta" id="dnext">Siguiente</button></div>');$('#dskip').hidden=true;$('#dnext').onclick=()=>next(r.correct);},{noGiveUp:true,oneTry:true});
+  $('#dskip').onclick=()=>next(false);}
+function diagEnd(){const first=DG.res.find(r=>!r.ok);let start=0;if(first){const b=LV[first.i].blk;start=Math.min(first.i,LV.findIndex(l=>l.blk===b));}else start=LV.findIndex(l=>l.blk===6);
+  $('#diag').innerHTML=`<h2>Tu resultado</h2><p>Acertaste <b>${DG.res.filter(r=>r.ok).length} de ${DIAG.length}</b>.</p><ul class="res">${DG.res.map(r=>`<li>${r.ok?'✓':'✗'} ${esc(LV[r.i].name)}</li>`).join('')}</ul><p>${first?`Te recomiendo empezar en el <b>escalón ${start+1}: ${esc(LV[start].name)}</b>. Desde ahí, sube en orden.`:'¡Excelente base! Puedes ir directo a sistemas y logaritmos, y repasar factoreo cuando lo necesites.'}</p><div class="row"><button class="cta" id="dstart">Ir al escalón ${start+1}</button><button class="ghost" id="dagain">Repetir la prueba</button></div>`;
+  $('#dstart').onclick=()=>{setView('escalera');openLv(start);};$('#dagain').onclick=()=>{DG.k=0;DG.res=[];diagQ();};}
+
+/* Escuchar la lección */
+const hasTTS='speechSynthesis' in window;let VOICE=null,lessonOn=false;
+function pickVoice(){if(!hasTTS)return;const vs=speechSynthesis.getVoices();VOICE=vs.find(v=>/^es[-_](EC|419|MX|CO|PE|US)/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null;}
+if(hasTTS){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function stopLesson(){if(lessonOn&&hasTTS)try{speechSynthesis.cancel();}catch(e){}lessonOn=false;$('#listen').textContent='Escuchar la lección';}
+const toSpeech=t=>t.replace(/✗/g,'Incorrecto: ').replace(/✓/g,'Correcto: ').replace(/²/g,' al cuadrado').replace(/³/g,' al cubo').replace(/⁴/g,' a la cuarta').replace(/√/g,' raíz de ').replace(/±/g,' más o menos ').replace(/·/g,' por ').replace(/−/g,' menos ').replace(/÷/g,' entre ').replace(/⇔/g,' equivale a ').replace(/→/g,', entonces ').replace(/\//g,' sobre ').replace(/\bx\b/g,'equis').replace(/\by\b(?=\s*[=+−²)])/g,'ye');
+$('#listen').onclick=async()=>{if(!hasTTS){$('#listen').textContent='Tu navegador no tiene voz';return;}if(lessonOn){stopLesson();return;}lessonOn=true;$('#listen').textContent='Detener';$('#lessonBox').open=true;
+  const parts=(toSpeech($('#lesson').innerText.replace(/\n+/g,'. ')).match(/[^.!?:]+[.!?:]+|[^.!?:]+$/g)||[]).map(s=>s.trim()).filter(s=>s.length>1);
+  for(const p of parts){if(!lessonOn)break;await new Promise(res=>{const u=new SpeechSynthesisUtterance(p);u.lang=VOICE?VOICE.lang:'es-ES';if(VOICE)u.voice=VOICE;u.rate=.95;u.onend=res;u.onerror=res;setTimeout(res,4000+p.length*140);try{speechSynthesis.speak(u);}catch(e){res();}});}
+  stopLesson();};
+
+/* Pregúntale al profe */
+let ASK=null;(async()=>{try{if(window.claude&&typeof window.claude.use==='function')ASK=await window.claude.use('sample');}catch(e){}if(ASK)$('#ask').hidden=false;})();
+async function askProf(){const q=$('#askIn').value.trim();if(!q||!ASK)return;const l=LV[cur],btn=$('#askGo'),out=$('#askOut');btn.disabled=true;out.innerHTML='<p class="hint">El profe está pensando…</p>';
+  const tmp=document.createElement('div');tmp.innerHTML=l.lesson;const lesson=tmp.innerText.slice(0,2500);tmp.innerHTML=Q?Q.q:'';const ex=tmp.innerText;
+  const prompt=`Eres un profesor de matemáticas muy paciente. Tu alumno es un adulto en Ecuador que está repasando desde cero: no supongas que sabe nada. Explica en español sencillo, paso a paso, con un ejemplo con números. Máximo 12 oraciones. Usa notación x², √, ±, · y fracciones con /. No uses títulos con #; puedes usar una lista numerada simple.
+
+Tema del escalón: ${l.name}
+Lección que está leyendo:
+${lesson}
+
+Ejercicio que tiene en pantalla: ${ex}
+
+Pregunta del alumno: ${q}`;
+  try{const r=await ASK(prompt,{modelTier:'default',cache:false,onText:({text})=>{out.innerHTML=fmtAns(text);}});out.innerHTML=fmtAns(r.text||'');$('#askIn').value='';}
+  catch(e){if(e&&e.code==='not_granted'){$('#ask').hidden=true;}else out.innerHTML=`<p class="hint">${e&&e.code==='rate_limited'?'Hiciste varias preguntas seguidas. Espera un momento y vuelve a intentar.':'No llegó la respuesta. Revisa tu conexión e intenta otra vez.'}</p>`;}
+  finally{btn.disabled=false;}}
+function fmtAns(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
+$('#askGo').onclick=askProf;$('#askIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();askProf();}});
+
+/* Inicio */
+renderErrors();if(matchMedia('(min-width:921px)').matches)$('#listBox').open=true;openLv(cur);renderNBCount();
+let v0='escalera';try{v0=localStorage.getItem('escalera-mat-view')||'escalera';}catch(e){}setView(['escalera','errores','tips','cuaderno','diag'].includes(v0)?v0:'escalera');
+</script>
+
+</body></html>
