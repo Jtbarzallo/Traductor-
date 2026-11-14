@@ -110,7 +110,7 @@ ol.orden{font-size:1.05rem}
 .fb.warn{background:var(--hl);color:var(--hl-ink)}.fb.good{background:var(--green-soft)}.fb.bad{background:var(--red-soft)}
 .fb.big{font-size:1.1rem}
 .sol{padding-left:1.4em;display:grid;gap:7px;margin:8px 0 0;line-height:1.6}
-.solbox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
+.helpbox{background:var(--paper);border:1px dashed var(--line);border-radius:6px;padding:10px 12px;margin:10px 0}.helpbox ol{margin:6px 0 6px 20px}.bk{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.solbox{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:10px}
 .solbox summary{cursor:pointer;font-weight:700}
 .nav{justify-content:space-between}
 .ask{padding:14px 16px;display:grid;gap:8px}
@@ -193,7 +193,7 @@ textarea{font:400 1.05rem/1.5 var(--f-body);width:100%;padding:10px;border:1.5px
 <section id="v-escalera" class="views">
   <div class="card top">
     <div class="viz" id="viz" role="group" aria-label="Escalones"></div>
-    <div class="stat"><span><b id="nPass">0</b> de <span id="nTot"></span> escalones aprobados</span><span><b id="nBlk">0</b> de 7 bloques</span><span id="nextUp"></span></div>
+    <div class="stat"><span><b id="nPass">0</b> de <span id="nTot"></span> escalones aprobados</span><span><b id="nBlk">0</b> de 8 bloques</span><span id="nextUp"></span></div>
     <p class="hint" id="sync">Cada escalón se abre cuando apruebas el examen del anterior. Si ya sabes un bloque completo, rinde su examen de bloque y te lo saltas.</p>
   </div>
   <div class="grid">
@@ -276,6 +276,7 @@ textarea{font:400 1.05rem/1.5 var(--f-body);width:100%;padding:10px;border:1.5px
   <div><h2>Mi cuaderno de errores</h2><p class="hint">Aquí se guardan los ejercicios que fallaste en la práctica y en los exámenes, con tu respuesta y la correcta. Repásalos al día siguiente: vuelve a practicar ese escalón sin mirar.</p></div>
   <div class="nb" id="nb"></div>
   <div class="row"><button class="ghost" id="nbClear">Borrar el cuaderno</button></div>
+  <div class="card"><h3>Respaldo de tu progreso</h3><p class="hint">Guarda un archivo con todo tu avance. Si algún día se borran los datos del navegador, vuelves a cargar ese archivo y recuperas todo.</p><div class="bk"><button class="cta" id="bkSave">Guardar respaldo (archivo)</button><label class="ghost" style="cursor:pointer;padding:8px 14px;border:1px solid var(--line);border-radius:6px">Restaurar desde archivo<input type="file" id="bkLoad" accept=".json,application/json" hidden></label></div><p class="hint" id="bkMsg" aria-live="polite"></p></div>
 </section>
 
 <section id="v-diag" class="views" hidden>
@@ -332,6 +333,178 @@ function LS(o){LSMAL.push(o.mal||[]);let h=`<section class="ls-idea"><h4>La idea
 const malHTML=([w,r,why])=>`<div class="mal"><div class="no"><b aria-label="Mal">✗</b> ${E(w)}</div><div class="si"><b aria-label="Bien">✓</b> ${E(r)}</div><p>${why}</p></div>`;
 
 const RECTA=`<svg class="recta" viewBox="0 0 420 60" role="img" aria-label="Recta numérica de −5 a 5"><line x1="10" y1="25" x2="410" y2="25" stroke="currentColor" stroke-width="2"/>${[-5,-4,-3,-2,-1,0,1,2,3,4,5].map((n,i)=>{const x=30+i*36;return `<line x1="${x}" y1="18" x2="${x}" y2="32" stroke="currentColor" stroke-width="${n===0?3:1.5}"/><text x="${x}" y="52" text-anchor="middle" fill="currentColor" font-size="14">${n<0?'−'+(-n):n}</text>`;}).join('')}<text x="20" y="12" fill="currentColor" font-size="12">← menores</text><text x="400" y="12" text-anchor="end" fill="currentColor" font-size="12">mayores →</text></svg>`;
+
+/* ===== Ayudas del bloque 8: ejercicios de ALEKS ===== */
+const numT=(label,ans,tol,show)=>({k:'num',label,ans,tol,show});
+const r2=v=>Math.round(v*100)/100;
+const f4=v=>String(Math.round(v*10000)/10000).replace('.',',');
+const CNK=(n,k)=>{let r=1;for(let i=1;i<=k;i++)r=r*(n-k+i)/i;return Math.round(r);};
+const fxr=r=>r===0?'x':`(x ${r<0?'+':'−'} ${Math.abs(r)})`;
+const ptxt=(x,y)=>`(${nm(x)}, ${nm(y)})`;
+const parTxt=(a,c)=>poly([[a,'x²'],[c,'']]);
+const linTxt=(m,b)=>poly([[m,'x'],[b,'']]);
+let PLOTN=0;
+function plotSVG(o){const cv=o.cv||[],pts=o.pts||[];let X=6,Y=8;
+  pts.forEach(p=>{X=Math.max(X,Math.ceil(Math.abs(p[0]))+2);Y=Math.max(Y,Math.ceil(Math.abs(p[1]))+2);});
+  if(o.X)X=o.X;if(o.Y)Y=o.Y;
+  const w=340,h=300,L=26,B=20,T=8,Rt=10,id='pl'+(PLOTN++);
+  const sx=v=>L+(v+X)/(2*X)*(w-L-Rt),sy=v=>T+(Y-v)/(2*Y)*(h-T-B);
+  const stx=Math.max(1,Math.ceil(X/6)),sty=Math.max(1,Math.ceil(Y/6));let g='';
+  for(let i=-X;i<=X;i+=stx){g+=`<line x1="${sx(i)}" y1="${sy(-Y)}" x2="${sx(i)}" y2="${sy(Y)}" style="stroke:var(--grid)" stroke-width="1"/>`;if(i!==0)g+=`<text x="${sx(i)}" y="${h-6}" text-anchor="middle" font-size="10" style="fill:var(--muted)">${nm(i)}</text>`;}
+  for(let j=-Y;j<=Y;j+=sty){g+=`<line x1="${sx(-X)}" y1="${sy(j)}" x2="${sx(X)}" y2="${sy(j)}" style="stroke:var(--grid)" stroke-width="1"/>`;if(j!==0)g+=`<text x="${L-3}" y="${sy(j)+3}" text-anchor="end" font-size="10" style="fill:var(--muted)">${nm(j)}</text>`;}
+  g+=`<line x1="${sx(-X)}" y1="${sy(0)}" x2="${sx(X)}" y2="${sy(0)}" style="stroke:var(--ink)" stroke-width="1.6"/><line x1="${sx(0)}" y1="${sy(-Y)}" x2="${sx(0)}" y2="${sy(Y)}" style="stroke:var(--ink)" stroke-width="1.6"/>`;
+  const cols=['var(--blue)','var(--red)','var(--green)'];
+  cv.forEach((c,k)=>{let d='',pen=false;for(let i=0;i<=240;i++){const x=-X+2*X*i/240,y=c.f(x);if(!isFinite(y)||Math.abs(y)>1e4){pen=false;continue;}d+=(pen?'L':'M')+sx(x).toFixed(1)+' '+sy(y).toFixed(1)+' ';pen=true;}
+    g+=`<path d="${d}" fill="none" style="stroke:${c.col||cols[k%3]}" stroke-width="2.4" ${c.dash?'stroke-dasharray="7 4"':''} clip-path="url(#${id})"/>`;});
+  pts.forEach(p=>{const right=sx(p[0])<w*0.65;g+=`<circle cx="${sx(p[0])}" cy="${sy(p[1])}" r="4.6" style="fill:var(--green);stroke:var(--surface)" stroke-width="1.5"/><text x="${sx(p[0])+(right?8:-8)}" y="${sy(p[1])-7}" text-anchor="${right?'start':'end'}" font-size="11" font-weight="700" style="fill:var(--ink)">${ptxt(p[0],p[1])}</text>`;});
+  return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Gráfico de las dos ecuaciones y sus puntos de cruce" style="width:100%;max-width:380px;height:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px"><defs><clipPath id="${id}"><rect x="${sx(-X)}" y="${sy(Y)}" width="${sx(X)-sx(-X)}" height="${sy(-Y)-sy(Y)}"/></clipPath></defs>${g}</svg>`;}
+/* Recta y parábola con cruces enteros */
+function grafSteps(a,c,m,b,x1,x2){const y1=m*x1+b,y2=m*x2+b,par=parTxt(a,c),lin=linTxt(m,b),S=[];
+  S.push(`<b>Parábola</b> ${E('y = '+par)}: el vértice está en ${E(ptxt(0,c))}. Un paso a la derecha cambia ${nm(a)} en y: punto ${E(ptxt(1,a+c))}. Con la herramienta en forma de U marca el vértice y ese punto.`);
+  S.push(`<b>Recta</b> ${E('y = '+lin)}: corta el eje y en ${E(ptxt(0,b))}. Un paso a la derecha cambia ${nm(m)} en y: punto ${E(ptxt(1,m+b))}. Con la herramienta de la línea marca esos dos puntos.`);
+  S.push(`Así se ve (los puntos verdes son los cruces):<br>${plotSVG({cv:[{f:x=>a*x*x+c},{f:x=>m*x+b,dash:1}],pts:[[x1,y1],[x2,y2]]})}`);
+  S.push(`Para las coordenadas exactas igualo las dos ecuaciones: ${E(par+' = '+lin)}.`);
+  S.push(`Paso todo a un lado: ${E(poly([[a,'x²'],[-m,'x'],[c-b,'']])+' = 0')}.`);
+  if(Math.abs(a)!==1)S.push(`Divido todo entre ${nm(a)}: ${E(poly([[1,'x²'],[-(x1+x2),'x'],[x1*x2,'']])+' = 0')}.`);
+  S.push(`Factorizo: ${E(fxr(x1)+fxr(x2)+' = 0')}, así que ${E('x = '+nm(x1))} o ${E('x = '+nm(x2))}.`);
+  S.push(`Hallo la y reemplazando en la recta: ${E(`y = ${nm(m)}·${pa(x1)}${tm(b)} = ${nm(y1)}`)} y ${E(`y = ${nm(m)}·${pa(x2)}${tm(b)} = ${nm(y2)}`)}.`);
+  S.push(`Solución: <b>${E(ptxt(x1,y1))} o ${E(ptxt(x2,y2))}</b>. En ALEKS usa el botón «o» para escribir las dos.`);
+  return S;}
+/* Recta y parábola con cruces decimales (calculadora gráfica) */
+function lpData(m,b,a,p,q){const A=a,B=p-m,C=q-b,D=B*B-4*A*C;if(D<=0)return null;const s=Math.sqrt(D);let xs=[(-B-s)/(2*A),(-B+s)/(2*A)].sort((u,v)=>u-v);return {A,B,C,D,x:xs,y:xs.map(x=>m*x+b)};}
+function calcSteps(m,b,a,p,q){const d=lpData(m,b,a,p,q),par=poly([[a,'x²'],[p,'x'],[q,'']]),lin=linTxt(m,b),S=[];
+  S.push(`En la calculadora gráfica de ALEKS escribe ${E('y₁ = '+par)} y ${E('y₂ = '+lin)}. Aparecen la parábola y la recta.`);
+  S.push(`Así se ven:<br>${plotSVG({cv:[{f:x=>a*x*x+p*x+q},{f:x=>m*x+b,dash:1}],pts:d.x.map((x,i)=>[r2(x),r2(d.y[i])])})}`);
+  S.push(`Toca cada punto donde se cruzan y lee x e y. Si quieres comprobarlo con álgebra: igualo ${E(par+' = '+lin)} y paso todo a un lado: ${E(poly([[d.A,'x²'],[d.B,'x'],[d.C,'']])+' = 0')}.`);
+  S.push(`Fórmula general: ${E(`x = (${nm(-d.B)} ± √${d.D}) / ${nm(2*d.A)}`)}, con discriminante ${E(`${d.B}² − 4·${pa(d.A)}·${pa(d.C)} = ${d.D}`)}.`);
+  S.push(`Las dos x: ${E('x ≈ '+nm(r2(d.x[0])))} y ${E('x ≈ '+nm(r2(d.x[1])))} (redondeadas a la centésima).`);
+  S.push(`La y se halla en la recta: ${E(`y = ${nm(m)}·${pa(d.x[0])}${tm(b)} ≈ ${nm(r2(d.y[0]))}`)} y ${E(`y = ${nm(m)}·${pa(d.x[1])}${tm(b)} ≈ ${nm(r2(d.y[1]))}`)}.`);
+  S.push(`Solución: <b>${E(ptxt(r2(d.x[0]),r2(d.y[0])))} o ${E(ptxt(r2(d.x[1]),r2(d.y[1])))}</b>. Escríbela con coma decimal.`);
+  return S;}
+/* Ecuaciones con exponencial o logaritmo (cruce de dos gráficas) */
+function ecSpec(sp){const lg10=Math.log10;let f,g,tl,tr;
+  g=x=>sp.p*x+sp.q;tr=poly([[sp.p,'x'],[sp.q,'']]);
+  if(sp.t==='e'){f=x=>Math.exp(x);tl='e<sup>x</sup>';}
+  else{f=x=>sp.n*lg10(sp.a*x+sp.s);tl=`${sp.n} log(${poly([[sp.a,'x'],[sp.s,'']])})`;}
+  return {f,g,tl,tr};}
+function ecRoots(sp){const {f,g}=ecSpec(sp),h=x=>f(x)-g(x),out=[];let px=-12,py=h(px);
+  for(let x=-11.998;x<=12;x+=0.002){const y=h(x);if(isFinite(py)&&isFinite(y)&&py*y<0){let lo=px,hi=x;for(let k=0;k<60;k++){const mid=(lo+hi)/2;const hm=h(mid);if(!isFinite(hm)){break;}if(h(lo)*hm<=0)hi=mid;else lo=mid;}const r=(lo+hi)/2;if(Math.abs(h(r))<1e-6)out.push(r);}px=x;py=y;}
+  return out;}
+function ecSteps(sp,roots){const {f,g,tl,tr}=ecSpec(sp),S=[];
+  S.push(`En la calculadora gráfica escribe ${E('y₁ = '+tl)} y ${E('y₂ = '+tr)}. «log» es el logaritmo en base 10 y ${E('e ≈ 2,718')}.`);
+  S.push(`Así se ven (los puntos verdes son los cruces):<br>${plotSVG({cv:[{f},{f:g,dash:1}],pts:roots.map(r=>[r2(r),r2(g(r))]),X:7,Y:8})}`);
+  S.push(`Toca cada cruce y lee la <b>x</b>. Esa x es la solución de ${E(tl+' = '+tr)}. Redondea a la centésima.`);
+  roots.forEach(r=>S.push(`Comprobación con ${E('x ≈ '+nm(r2(r)))}: lado izquierdo ≈ ${nm(Math.round(f(r2(r))*100)/100)} y lado derecho ≈ ${nm(Math.round(g(r2(r))*100)/100)}. Casi iguales, ¡bien!`));
+  S.push(roots.length===2?`Solución: <b>${E('x = '+nm(r2(roots[0]))+' ; '+nm(r2(roots[1])))}</b>. Son dos soluciones: la ecuación tiene dos cruces.`:`Solución: <b>${E('x = '+nm(r2(roots[0])))}</b>. Solo hay un cruce.`);
+  return S;}
+function expSteps(a,p,b,q,r){const x=r*Math.log10(b)/(p*Math.log10(a)-q*Math.log10(b)),S=[],L=poly([[q,'x'],[r,'']]);
+  S.push(`Saco logaritmo (base 10) a los dos lados: ${E(`log(${a}<sup>${kxs(p)}</sup>) = log(${b}<sup>${L}</sup>)`)}.`);
+  S.push(`Propiedad: el exponente baja multiplicando. ${E(`${kxs(p)}·log ${a} = (${L})·log ${b}`)}.`);
+  S.push(`Multiplico y paso lo que lleva x al lado izquierdo: ${E(`${kxs(p)}·log ${a} ${q<0?'+':'−'} ${Math.abs(q)===1?'':Math.abs(q)}x·log ${b} = ${nm(r)}·log ${b}`)}.`);
+  S.push(`Saco x como factor común: ${E(`x·(${nm(p)}·log ${a} ${q<0?'+':'−'} ${Math.abs(q)}·log ${b}) = ${nm(r)}·log ${b}`)}.`);
+  S.push(`Despejo: <b>${E(`x = ${nm(r)}·log ${b} / (${nm(p)}·log ${a} ${q<0?'+':'−'} ${Math.abs(q)}·log ${b})`)}</b>. Esa es la respuesta exacta con logaritmos base 10.`);
+  S.push(`Con calculadora: ${E(`log ${a} ≈ ${f4(Math.log10(a))}`)} y ${E(`log ${b} ≈ ${f4(Math.log10(b))}`)}. Entonces ${E('x ≈ '+nm(r2(x)))}.`);
+  return S;}
+function seqTxt(t){return t.map(v=>nm(v)).join(', ')+', …';}
+function vtxt(a,b){return poly([[a,'<b>i</b>'],[b,'<b>j</b>']]);}
+const WAYS=[0,0,1,2,3,4,5,6,5,4,3,2,1];
+function diceEv(ev){const sums=[];for(let s=2;s<=12;s++)if(ev.f(s))sums.push(s);const n=sums.reduce((t,s)=>t+WAYS[s],0);return {sums,n};}
+
+function cxSteps(a,b,c){const D=b*b-4*a*c,N=-D,S=[];
+  S.push(`Identifico ${E(`a = ${nm(a)}, b = ${nm(b)}, c = ${nm(c)}`)}.`);
+  S.push(`Discriminante: ${E(`D = ${pa(b)}² − 4·${pa(a)}·${pa(c)} = ${b*b} − ${nm(4*a*c)} = ${nm(D)}`)}. Es negativo, así que no hay soluciones reales.`);
+  S.push(`Como ${E('D < 0')}: ${E(`√${nm(D)} = i√${N}`)}. (${N} no tiene cuadrados perfectos adentro, no se simplifica.)`);
+  S.push(`Fórmula general: ${E(`x = (−b ± i√${N}) / (2a) = (${nm(-b)} ± i√${N}) / ${2*a}`)}.`);
+  S.push(`Las dos soluciones: <b>${E(`x = (${nm(-b)} + i√${N}) / ${2*a}`)}</b> y <b>${E(`x = (${nm(-b)} − i√${N}) / ${2*a}`)}</b>. Si prefieres separar: ${E(`${frs(-b,2*a)} ± (√${N}/${2*a})i`)}.`);
+  return S;}
+function pfSteps(p,q,k){const kk=k===1?'':String(k),A=p,B=q,C=-k*p,Dd=-k*q,S=[];
+  S.push(`Forma: ${E(`(${poly([[p,'x³'],[q,'x²']])}) / (x² + ${k})² = (Ax + B)/(x² + ${k}) + (Cx + D)/(x² + ${k})²`)}.`);
+  S.push(`Multiplico por ${E(`(x² + ${k})²`)} para quitar denominadores: ${E(`${poly([[p,'x³'],[q,'x²']])} = (Ax + B)(x² + ${k}) + (Cx + D)`)}.`);
+  S.push(`Desarrollo y agrupo por potencias de x: ${E(`Ax³ + Bx² + (${kk}A + C)x + (${kk}B + D)`)}.`);
+  S.push(`Comparo con el original (que no tiene x ni número solo): ${E('x³: A = '+nm(p))}; ${E('x²: B = '+nm(q))}.`);
+  S.push(`Coeficiente de x: ${E(`${kk}A + C = 0 → ${k}·${pa(p)} + C = 0 → C = ${nm(C)}`)}.`);
+  S.push(`Número solo: ${E(`${kk}B + D = 0 → ${k}·${pa(q)} + D = 0 → D = ${nm(Dd)}`)}.`);
+  S.push(`Respuesta: <b>${E(`(${poly([[A,'x'],[B,'']])}) / (x² + ${k}) + (${poly([[C,'x'],[Dd,'']])}) / (x² + ${k})²`)}</b>.`);
+  return S;}
+function seqSteps(a1,dr,type){const S=[];
+  if(type==='a'){const t=[0,1,2,3].map(i=>a1+i*dr);
+    S.push(`Resto términos seguidos: ${E(`${nm(t[1])} − ${pa(t[0])} = ${nm(dr)}`)} y ${E(`${nm(t[2])} − ${pa(t[1])} = ${nm(dr)}`)}. La diferencia es siempre la misma: es <b>aritmética</b> con ${E('d = '+nm(dr))}.`);
+    S.push(`Fórmula: ${E(`aₙ = a₁ + (n − 1)·d = ${nm(a1)} + (n − 1)·${pa(dr)}`)}.`);
+    S.push(`Simplifico: ${E(`aₙ = ${poly([[dr,'n'],[a1-dr,'']])}`)}. Comprueba con n = 1: ${E(`${nm(dr)}·1 ${tm(a1-dr)} = ${nm(a1)}`)} ✓.`);
+    S.push(`Décimo término: ${E(`a₁₀ = ${nm(a1)} + 9·${pa(dr)} = ${nm(a1+9*dr)}`)}.`);}
+  else{const t=[0,1,2,3].map(i=>a1*dr**i);
+    S.push(`Resto: ${E(`${nm(t[1])} − ${pa(t[0])} = ${nm(t[1]-t[0])}`)} y ${E(`${nm(t[2])} − ${pa(t[1])} = ${nm(t[2]-t[1])}`)}: no es constante, así que no es aritmética. Divido: ${E(`${nm(t[1])} ÷ ${pa(t[0])} = ${nm(dr)}`)} y ${E(`${nm(t[2])} ÷ ${pa(t[1])} = ${nm(dr)}`)}. Es <b>geométrica</b> con ${E('r = '+nm(dr))}.`);
+    S.push(`Fórmula: ${E(`aₙ = a₁·rⁿ⁻¹ = ${nm(a1)}·${pa(dr)}<sup>n−1</sup>`)}.`);
+    S.push(`Comprueba con n = 1: ${E(`${nm(a1)}·${pa(dr)}⁰ = ${nm(a1)}`)} ✓ y con n = 2: ${E(`${nm(a1)}·${pa(dr)} = ${nm(a1*dr)}`)} ✓.`);
+    S.push(`Décimo término: ${E(`a₁₀ = ${nm(a1)}·${pa(dr)}⁹ = ${nm(a1*dr**9)}`)}.`);}
+  return S;}
+const VEX={'v − w':(a,b)=>`${nm(a)} − ${pa(b)}`,'v + w':(a,b)=>`${nm(a)} + ${pa(b)}`,'w − v':(a,b)=>`${nm(b)} − ${pa(a)}`,'2v + w':(a,b)=>`2·${pa(a)} + ${pa(b)}`,'v − 2w':(a,b)=>`${nm(a)} − 2·${pa(b)}`,'3w − v':(a,b)=>`3·${pa(b)} − ${pa(a)}`};
+function vecSteps(v,w,A,o){const r1=A.f(v,w),r2v=o.f(v,w),S=[];
+  S.push(`${E(A.txt)}: multiplico cada componente: ${E(`${nm(A.k)}·${pa(v[0])} = ${nm(r1[0])}`)} y ${E(`${nm(A.k)}·${pa(v[1])} = ${nm(r1[1])}`)}. Resultado: <b>${E(A.txt+' = '+vtxt(r1[0],r1[1]))}</b>.`);
+  S.push(`${E(o.txt)}: opero i con i: ${E((VEX[o.txt]||(()=>'?'))(v[0],w[0])+' = '+nm(r2v[0]))}.`);
+  S.push(`Y j con j: ${E((VEX[o.txt]||(()=>'?'))(v[1],w[1])+' = '+nm(r2v[1]))}. Cuidado: restar un número negativo es sumarlo.`);
+  S.push(`Resultado: <b>${E(o.txt+' = '+vtxt(r2v[0],r2v[1]))}</b>.`);
+  return S;}
+function cntSteps(L){const S=[],vals=[];
+  L.forEach(([n,k,nmb])=>{const up=[],dn=[];for(let i=0;i<k;i++)up.push(n-i);for(let i=k;i>=1;i--)dn.push(i);const v=CNK(n,k);vals.push(v);
+    S.push(`${nmb}: elijo ${k} de ${n}. ${E(`C(${n}, ${k}) = (${up.join('·')}) / (${dn.join('·')}) = ${v}`)}.`);});
+  const tot=vals.reduce((t,v)=>t*v,1);
+  S.push(`Elijo en las tres listas, así que multiplico: ${E(vals.join(' · ')+' = '+tot)}.`);
+  S.push(`Respuesta: <b>${tot}</b> maneras.`);return S;}
+function diceTable(){return `<table style="border-collapse:collapse;font-size:.92rem;margin:6px 0"><tr><th style="border:1px solid var(--line);padding:2px 6px">Suma</th>${[2,3,4,5,6,7,8,9,10,11,12].map(s=>`<td style="border:1px solid var(--line);padding:2px 6px;text-align:center">${s}</td>`).join('')}</tr><tr><th style="border:1px solid var(--line);padding:2px 6px">Formas</th>${[2,3,4,5,6,7,8,9,10,11,12].map(s=>`<td style="border:1px solid var(--line);padding:2px 6px;text-align:center">${WAYS[s]}</td>`).join('')}</tr></table>`;}
+function diceSteps(evs){const S=[`Hay 6 × 6 = 36 resultados posibles. Cuántas formas hay de obtener cada suma:<br>${diceTable()}`];
+  evs.forEach((e,i)=>{const d=diceEv(e);S.push(`${E('P('+'AB'[i]+')')}: ${e.txt.toLowerCase()}. Sumas que cumplen: ${d.sums.join(', ')}. Formas: ${d.sums.map(s=>WAYS[s]).join(' + ')} = ${d.n}. Entonces ${E(`P(${'AB'[i]}) = ${d.n}/36 = ${frs(d.n,36)}`)}.`);});
+  S.push('Respuesta como fracción exacta (puedes escribir la simplificada o la de /36: las dos valen).');return S;}
+function volSteps(p,q){const f=(1+p/100)**2*(1+(q||0)/100),pct=(f-1)*100,S=[];
+  S.push(`El volumen de una lata cilíndrica es ${E('V = π·(d/2)²·h')}: depende del diámetro <b>al cuadrado</b>.`);
+  S.push(`Si el diámetro aumenta ${p} %, se multiplica por ${f4(1+p/100)}. Al estar al cuadrado, el volumen se multiplica por ${E(`${f4(1+p/100)}² = ${f4((1+p/100)**2)}`)}.`);
+  if(q)S.push(`La altura también aumenta ${q} %: se multiplica por ${f4(1+q/100)}. Factor total: ${E(`${f4((1+p/100)**2)} · ${f4(1+q/100)} = ${f4(f)}`)}.`);
+  else S.push('La altura no cambia, así que no aporta ningún factor.');
+  S.push(`El volumen nuevo es ${f4(f)} veces el anterior: aumentó ${E(`${f4(f)} − 1 = ${f4(f-1)}`)}, es decir ${f4(pct)} %.`);
+  S.push(`Redondeado al porcentaje más cercano: <b>${Math.round(pct)} %</b>.`);return S;}
+function ivTxt(s){if(s.dir)return s.dir==='r'?`${s.c?'[':'('}${nm(s.v)}, ∞)`:`(−∞, ${nm(s.v)}${s.c?']':')'}`;return `${s.loC?'[':'('}${nm(s.lo)}, ${nm(s.hi)}${s.hiC?']':')'}`;}
+function ivIneq(s){if(s.dir)return `x ${s.dir==='r'?(s.c?'≥':'>'):(s.c?'≤':'<')} ${nm(s.v)}`;return `${nm(s.lo)} ${s.loC?'≤':'<'} x ${s.hiC?'≤':'<'} ${nm(s.hi)}`;}
+function ivSteps(s){const S=[],dot=c=>c?'punto <b>lleno ●</b> (el número sí está incluido)':'punto <b>vacío ○</b> (el número no está incluido)';
+  if(s.dir){S.push(`${E(ivIneq(s))}: ${s.dir==='r'?'todos los números mayores':'todos los números menores'}${s.c?' o iguales':''} que ${nm(s.v)}.`);
+   S.push(`En ${nm(s.v)} va un ${dot(s.c)}.`);S.push(`La línea sale de ese punto hacia la ${s.dir==='r'?'<b>derecha</b>':'<b>izquierda</b>'} y llega hasta el final con flecha (no se acaba nunca).`);
+   S.push(`Intervalo: <b>${E(ivTxt(s))}</b>. El infinito siempre lleva paréntesis, nunca corchete.`);}
+  else{S.push(`${E(ivIneq(s))}: x va de ${nm(s.lo)} a ${nm(s.hi)}.`);S.push(`En ${nm(s.lo)}: ${s.loC?'hay ≤, así que':'hay <, así que'} ${dot(s.loC)}.`);S.push(`En ${nm(s.hi)}: ${s.hiC?'hay ≤, así que':'hay <, así que'} ${dot(s.hiC)}.`);S.push('Une los dos puntos con el segmento.');
+   S.push(`Intervalo: <b>${E(ivTxt(s))}</b>. Corchete ${E('[ ]')} = incluye; paréntesis ${E('( )')} = no incluye.`);}
+  S.push(`En ALEKS pulsa el botón del intervalo que tenga esos mismos corchetes o paréntesis y escribe solo los números dentro de los cuadritos. No escribas tú los paréntesis ni la coma.`);return S;}
+function pbSteps(kind,pA,pB,v){const a=pA/100,b=pB/100,S=[];
+  if(kind==='both'){const u=v/100,both=(pA+pB-v)/100;
+   S.push(`En decimales: ${E(`P(A) = ${nm(a)}`)}, ${E(`P(B) = ${nm(b)}`)} y ${E(`P(A o B) = ${nm(u)}`)}.`);
+   S.push(`Regla de la suma: ${E('P(A o B) = P(A) + P(B) − P(A y B)')}.`);
+   S.push(`Reemplazo: ${E(`${nm(u)} = ${nm(a)} + ${nm(b)} − P(A y B)`)}.`);
+   S.push(`Despejo: ${E(`P(A y B) = ${nm(a)} + ${nm(b)} − ${nm(u)} = ${nm(Math.round((a+b)*100)/100)} − ${nm(u)} = ${nm(both)}`)}.`);
+   S.push(`Respuesta: <b>${nm(both)}</b> (es el ${nm(both*100)} %).`);}
+  else{const both=v/100,u=(pA+pB-v)/100;
+   S.push(`En decimales: ${E(`P(A) = ${nm(a)}`)}, ${E(`P(B) = ${nm(b)}`)} y ${E(`P(A y B) = ${nm(both)}`)}.`);
+   S.push(`Regla de la suma: ${E('P(A o B) = P(A) + P(B) − P(A y B)')}.`);
+   S.push(`Reemplazo: ${E(`P(A o B) = ${nm(a)} + ${nm(b)} − ${nm(both)} = ${nm(u)}`)}.`);
+   S.push(`Respuesta: <b>${nm(u)}</b> (es el ${nm(u*100)} %).`);}
+  return S;}
+function trSteps(a,b,c,d,e,f,k){const bb=b+k*e,cc=c+k*f,m=1/bb,S=[];
+  S.push(`En [A1] la x tiene ${nm(a)} y en [A2] tiene ${nm(d)}. Busco k para anularla: ${E(`k·${pa(d)} + ${pa(a)} = 0 → k = ${nm(k)}`)}.`);
+  S.push(`Transformación A → B: <b>${E(`${nm(k)} × Ecuación [A2] + Ecuación [A1] → Ecuación [B1]`)}</b>. [A2] no cambia (queda [B2]).`);
+  S.push(`Compruebo: ${E(`${nm(k)}·(${poly([[d,'x'],[e,'y']])}) = ${poly([[k*d,'x'],[k*e,'y']])}`)} y ${E(`${poly([[k*d,'x'],[k*e,'y']])} + (${poly([[a,'x'],[b,'y']])}) = ${nm(bb)}y`)}; al lado derecho: ${E(`${nm(k)}·${pa(f)} + ${pa(c)} = ${nm(cc)}`)}. Queda ${E(`[B1] ${nm(bb)}y = ${nm(cc)}`)}.`);
+  S.push(`Para dejar la y sola: multiplico por ${E(`1/${nm(bb)}`)}. Transformación B → C: <b>${E(`${frs(1,bb)} × Ecuación [B1] → Ecuación [C1]`)}</b>, y queda ${E(`y = ${nm(cc/bb)}`)}.`);
+  S.push(`Respuesta: k = <b>${nm(k)}</b> en la primera, y <b>${frs(1,bb)}</b> en la segunda. En ALEKS usa el botón de fracción.`);return S;}
+function eq3(S){const x=[S.a1,S.a2,S.e1*S.a1+S.e2*S.a2],y=[S.b1,S.b2,S.e1*S.b1+S.e2*S.b2],z=[1,-1,S.e1-S.e2],d=[S.d1,S.d2,S.e1*S.d1+S.e2*S.d2];
+  return [0,1,2].map(i=>E(poly([[x[i],'x'],[y[i],'y'],[z[i],'z']])+' = '+nm(d[i])));}
+function s3Steps(S){const sx=S.a1+S.a2,sy=S.b1+S.b2,sd=S.d1+S.d2,p=sd,q=-sy,r=S.d1-S.a1*p,t=-S.a1*q-S.b1,eqs=eq3(S),St=[];
+  St.push(`Las ecuaciones:<br>${eqs.join('<br>')}`);
+  St.push(`Sumo la 1.ª y la 2.ª para eliminar z: ${E(`${poly([[sx,'x'],[sy,'y']])} = ${nm(sd)}`)}.`);
+  St.push(`Compruebo la 3.ª: es ${E(`${nm(S.e1)}·(1.ª) + ${pa(S.e2)}·(2.ª)`)}, o sea una combinación de las otras. Al eliminarla queda ${E('0 = 0')}: sobra una ecuación y hay <b>infinitas soluciones</b>.`);
+  St.push(`Dejo y libre. De la suma despejo x: ${E(`x = ${poly([[p,''],[q,'y']])}`)}.`);
+  St.push(`En la 1.ª ecuación despejo z: ${E(`z = ${nm(S.d1)} − ${pa(S.a1)}x − ${pa(S.b1)}y`)}. Reemplazo x: ${E(`z = ${nm(S.d1)} − ${pa(S.a1)}(${poly([[p,''],[q,'y']])}) − ${pa(S.b1)}y = ${poly([[r,''],[t,'y']])}`)}.`);
+  St.push(`Respuesta: <b>${E(`(x, y, z) = (${poly([[p,''],[q,'y']])}, y, ${poly([[r,''],[t,'y']])})`)}</b>. En ALEKS marca la opción del medio, ${E('(□, y, □)')}, y escribe los dos cuadritos.`);return St;}
+function cmpSteps(b,k){const h=b/2,rhs=h*h-k,S=[];
+  S.push(`Paso el número solo a la derecha: ${E(`x² ${tm(b,'x')} = ${nm(-k)}`)}.`);
+  S.push(`La mitad de ${nm(b)} es ${E('h = '+nm(h))}, y ${E(`h² = ${pa(h)}² = ${h*h}`)}. Sumo ${h*h} a los dos lados: ${E(`x² ${tm(b,'x')} + ${h*h} = ${nm(-k)} + ${h*h}`)}.`);
+  S.push(`El lado izquierdo es un cuadrado perfecto: <b>${E(`(x ${h<0?'−':'+'} ${Math.abs(h)})² = ${nm(rhs)}`)}</b>.`);
+  S.push(`En ALEKS: el primer cuadrito lleva <b>${nm(h)}</b> y el segundo <b>${nm(rhs)}</b>.`);
+  S.push(`Para resolver: ${E(`x ${h<0?'−':'+'} ${Math.abs(h)} = ±√${rhs}`)}, entonces ${E(`x = ${nm(-h)} ± √${rhs}`)}.`);return S;}
 
 /* ===================== ESCALONES ===================== */
 const LV=[
@@ -904,14 +1077,217 @@ const LV=[
  gen(){const [b,ns]=pk([[2,[1,2]],[2,[1,3]],[2,[1,2,3]],[3,[1,2]],[2,[1,4]],[2,[2,3]]]),t=R(1,4);let L=1;ns.forEach(n=>L=lcm(L,n));const S=ns.reduce((s,n)=>s+L/n,0);
   return {q:`Resuelve: ${E(`${ns.map(n=>lg(b**n,'x')).join(' + ')} = ${frs(S*t,L)}`)}`,fields:[num('x =',b**t)],hint:`Cambia todo a base ${b} y llama t = log de x en base ${b}.`,
    steps:[`Cambio de base: ${E(ns.map(n=>n===1?'t':`t/${n}`).join(' + ')+' = '+frs(S*t,L))}.`,`Factor común: ${E(`t·${frs(S,L)} = ${frs(S*t,L)}`)}.`,`${E(`t = ${t}`)}.`,`Regreso: ${E(`x = ${b}<sup>${t}</sup>`)} = <b>${b**t}</b>.`]};}},
+/* ---------- BLOQUE 8: práctica ALEKS (ejercicios de tu curso) ---------- */
+{id:'al-graf',blk:8,name:'Graficar recta y parábola y hallar la solución',need:3,
+ lesson:LS({idea:`<p>Un <b>sistema</b> es un par de ecuaciones que se cumplen a la vez. Si una es una recta y la otra una parábola, la solución son los puntos donde las gráficas se <b>cruzan</b>. Pueden ser 2 puntos, 1 punto (la recta solo roza) o ninguno.</p><p>ALEKS te pide dos cosas: <b>dibujar</b> las dos gráficas y <b>escribir</b> los puntos de cruce.</p>`,
+  pasos:[`<b>Parábola</b> ${E('y = ax² + c')}: el vértice está en ${E('(0, c)')}. Un paso a la derecha sube (o baja) ${E('a')}: ${E('(1, a + c)')}. La herramienta en forma de U se dibuja con esos dos puntos.`,`<b>Recta</b> ${E('y = mx + b')}: marca ${E('(0, b)')} y avanza 1 a la derecha moviéndote ${E('m')} en y: ${E('(1, m + b)')}.`,`Para las coordenadas exactas, <b>iguala</b> las dos ecuaciones: ${E('ax² + c = mx + b')}.`,`Pasa todo a un lado, divide entre el coeficiente de x² y factoriza.`,`Cada raíz es una x. Reemplázala en la <b>recta</b> (es más fácil) para hallar su y.`,`No dejes puntos sueltos en la gráfica: ALEKS los cuenta como error.`],
+  ej:[['Del ALEKS: resuelve el sistema '+E('y = x − 5')+' y '+E('y = x² − 7')+'.',...grafSteps(1,-7,1,-5,-1,2)],['Otra versión del ALEKS: '+E('y = −2x')+' y '+E('y = 2x² − 4')+'.',...grafSteps(2,-4,-2,0,-2,1)],['Otra más: '+E('y = −x + 6')+' y '+E('y = x²')+'.',...grafSteps(1,0,-1,6,-3,2)]],
+  mal:[['(x − 2)(x + 1) = 0 → x = −2','(x − 2)(x + 1) = 0 → x = 2','Cada paréntesis se iguala a 0 y se despeja: (x − 2) = 0 da x = 2, no −2.'],['y = x² − 7 → vértice (0, 7)','y = x² − 7 → vértice (0, −7)','El número suelto es la altura del vértice, con su signo.'],['x = 2 → y = 2² − 7 → solución x = 2','x = 2 → y = −3 → solución (2, −3)','Una solución de un sistema es un punto (x, y), no solo la x.']],
+  tip:'Reemplaza siempre la x en la ecuación de la recta para hallar la y: es mucho más fácil que en la parábola. Para comprobar, prueba el punto en las dos ecuaciones.'}),
+ gen(){let a,c,x1,x2,m,b,y1,y2,g=0,ok=false;
+  do{a=pk([1,1,2,-1,-2]);x1=R(-4,2);x2=R(x1+1,Math.min(x1+5,4));c=R(-7,3);m=a*(x1+x2);b=c-a*x1*x2;y1=m*x1+b;y2=m*x2+b;g++;ok=m!==0&&Math.abs(m)<=5&&Math.abs(b)<=9&&Math.abs(y1)<=9&&Math.abs(y2)<=9;}while(!ok&&g<300);
+  if(!ok){a=1;c=-7;x1=-1;x2=2;m=1;b=-5;y1=-6;y2=-3;}
+  return {q:`Resuelve el sistema (recta y parábola):<div class="stmt">${E('y = '+linTxt(m,b))}<br>${E('y = '+parTxt(a,c))}</div>Escribe las dos soluciones. La primera es la de x menor.`,
+   fields:[num('Solución 1: x =',x1),num('Solución 1: y =',y1),num('Solución 2: x =',x2),num('Solución 2: y =',y2)],
+   hint:'Iguala las dos ecuaciones, pasa todo a un lado y factoriza. Después reemplaza cada x en la recta.',steps:grafSteps(a,c,m,b,x1,x2)};}},
+
+{id:'al-calc-sist',blk:8,name:'Calculadora gráfica: recta y parábola con decimales',need:3,
+ lesson:LS({idea:`<p>A veces los cruces no caen en números enteros. Entonces ALEKS te pide usar su <b>calculadora gráfica</b> y <b>redondear a la centésima</b> (dos decimales). Se escribe con coma decimal, por ejemplo ${E('−2,62')}.</p>`,
+  pasos:[`Escribe las dos ecuaciones en la calculadora: una por línea, con ${E('y =')} delante.`,`Mira la gráfica: ¿cuántas veces se cruzan? Eso te dice cuántas soluciones esperar.`,`Toca cada cruce y lee x e y.`,`Si quieres comprobar con álgebra: iguala, pasa todo a un lado y usa la fórmula general ${E('x = (−B ± √D) / 2A')}.`,`Redondea: mira la tercera cifra decimal. Si es 5 o más, sube la segunda.`,`Escribe las dos soluciones con el botón «o».`],
+  ej:[['Del ALEKS: '+E('y = 2x + 1')+' y '+E('y = −2x² − 4x − 1')+'.',...calcSteps(2,1,-2,-4,-1)]],
+  mal:[['−2,618 ≈ −2,61','−2,618 ≈ −2,62','Para redondear a la centésima mira la tercera cifra: el 8 es mayor que 5, así que el 1 sube a 2.'],['−0,382 ≈ −0,3','−0,382 ≈ −0,38','Dos decimales significa redondear a la centésima: −0,38, no −0,3.'],['(x, y) = (−0,38 ; 0,24)','(x, y) = (−2,62 ; −4,24) o (−0,38 ; 0,24)','Si la gráfica tiene dos cruces hay dos soluciones. Usa el botón «o».']],
+  tip:'Antes de escribir, comprueba el punto en las dos ecuaciones: si los dos lados salen casi iguales (diferencia menor que 0,02), estás bien.'}),
+ gen(){let m,b,a,p,q,d,g=0;
+  do{a=pk([-3,-2,-1,1,2,3]);p=R(-6,6);q=R(-5,5);m=RNZ(-3,3);b=R(-4,4);d=lpData(m,b,a,p,q);g++;}while((!d||Number.isInteger(Math.sqrt(d.D))||Math.abs(d.x[0])>8||Math.abs(d.x[1])>8||r2(d.x[0])===r2(d.x[1]))&&g<400);
+  if(!d||g>=400){m=2;b=1;a=-2;p=-4;q=-1;d=lpData(m,b,a,p,q);}
+  const X=d.x.map(r2),Yv=d.y.map(r2);
+  return {q:`Usa la calculadora gráfica para resolver el sistema. Redondea a la centésima (dos decimales):<div class="stmt">${E('y = '+linTxt(m,b))}<br>${E('y = '+poly([[a,'x²'],[p,'x'],[q,'']]))}</div>Escribe las dos soluciones; la primera es la de x menor.`,
+   fields:[numT('Solución 1: x ≈',X[0],0.0051),numT('Solución 1: y ≈',Yv[0],0.0101),numT('Solución 2: x ≈',X[1],0.0051),numT('Solución 2: y ≈',Yv[1],0.0101)],
+   hint:'Iguala las dos ecuaciones y usa la fórmula general; después reemplaza en la recta. Redondea a dos decimales.',steps:calcSteps(m,b,a,p,q)};}},
+
+{id:'al-calc-ec',blk:8,name:'Calculadora gráfica: ecuaciones con eˣ y logaritmos',need:3,
+ lesson:LS({idea:`<p>Ecuaciones como ${E('e<sup>x</sup> = x + 2')} o ${E('2 log(x + 1) = 2 − x')} mezclan una función especial con una recta, y no se despejan con álgebra normal. La salida es <b>graficar cada lado</b> y buscar dónde se cruzan: la <b>x</b> de cada cruce es la solución.</p><p>Aquí ${E('log')} es el logaritmo en base 10 y ${E('e ≈ 2,718')}.</p>`,
+  pasos:[`Escribe el lado izquierdo como ${E('y₁')} y el derecho como ${E('y₂')} en la calculadora gráfica.`,`Cuenta los cruces: pueden ser 1, 2 o ninguno.`,`Toca cada cruce y lee su <b>x</b> (la y no se pide).`,`Redondea a la centésima.`,`Comprueba: reemplaza la x en los dos lados; deben dar casi lo mismo.`,`Si hay dos soluciones, escríbelas con el botón de varias soluciones.`],
+  ej:[['Del ALEKS: '+E('e<sup>x</sup> = x + 2'),...ecSteps({t:'e',p:1,q:2},ecRoots({t:'e',p:1,q:2}))],['Del ALEKS: '+E('2 log(x + 1) = −x + 2'),...ecSteps({t:'l',n:2,a:1,s:1,p:-1,q:2},ecRoots({t:'l',n:2,a:1,s:1,p:-1,q:2}))],['Del ALEKS: '+E('3 log(2x + 6) = x + 2'),...ecSteps({t:'l',n:3,a:2,s:6,p:1,q:2},ecRoots({t:'l',n:3,a:2,s:6,p:1,q:2}))]],
+  mal:[['log(2x) = log 2 · log x','log(2x) = log 2 + log x','El logaritmo de un producto es la suma de logaritmos, no el producto.'],['x = 1,146 ≈ 1,14','x = 1,146 ≈ 1,15','Redondeo: la tercera cifra (6) es mayor que 5, así que el 4 sube a 5.'],['log(−3) = −0,48','log(−3) no existe','No se puede sacar logaritmo de un número negativo: la x debe estar en el dominio.']],
+  tip:'Si la calculadora solo te muestra un cruce, aleja el zoom: el segundo puede estar fuera de la pantalla.'}),
+ gen(){let sp,r,g=0,ok=false;
+  do{g++;if(Math.random()<.35)sp={t:'e',p:pk([1,2,-1,-2]),q:R(1,6)};else sp={t:'l',n:pk([2,3]),a:pk([1,2,-1]),s:pk([-2,-1,1,2,3,4,6]),p:pk([-1,1,2]),q:R(-7,5)};
+   r=ecRoots(sp);ok=r.length>=1&&r.length<=2&&r.every(v=>Math.abs(v)<10)&&(r.length<2||Math.abs(r[0]-r[1])>.3)&&r.every(v=>sp.t==='e'||sp.a*v+sp.s>0.05);}while(!ok&&g<300);
+  if(!ok){sp={t:'e',p:1,q:2};r=ecRoots(sp);}
+  const {tl,tr}=ecSpec(sp),rr=r.map(r2);
+  return {q:`Usa la calculadora gráfica para resolver. Redondea a la centésima:<div class="stmt">${E(tl+' = '+tr)}</div>${r.length===2?'Hay dos soluciones (puedes escribirlas en cualquier orden).':'Hay una solución.'}`,
+   fields:r.length===2?[numT('Una solución: x ≈',rr[0],0.0051),numT('La otra solución: x ≈',rr[1],0.0051)].map(f=>({...f,group:'sol'})):[numT('x ≈',rr[0],0.0051)],
+   hint:'Grafica el lado izquierdo y el derecho; la x de cada cruce es una solución.',steps:ecSteps(sp,r)};}},
+
+{id:'al-exp-bases',blk:8,name:'Exponenciales con bases distintas (con logaritmos)',need:3,
+ lesson:LS({idea:`<p>En ${E('3<sup>−10x</sup> = 5<sup>−x+3</sup>')} no puedes igualar las bases, porque 3 y 5 no son potencias del mismo número. La x está en el <b>exponente</b>, así que usamos logaritmos para <b>bajarla</b>.</p>`,
+  pasos:[`Saca logaritmo base 10 a los dos lados.`,`Propiedad: ${E('log(a<sup>n</sup>) = n·log a')}. El exponente baja multiplicando.`,`Multiplica todo y pasa los términos con x a un lado.`,`Saca x como factor común.`,`Divide para despejar x. Esa es la <b>respuesta exacta</b> con logaritmos.`,`Con calculadora la conviertes a decimal.`],
+  ej:[['Del ALEKS: resuelve '+E('3<sup>−10x</sup> = 5<sup>−x+3</sup>')+' con logaritmos base 10.',...expSteps(3,-10,5,-1,3)]],
+  mal:[['log(aⁿ) = log a ⁿ','log(aⁿ) = n·log a','El exponente baja a multiplicar al logaritmo; no se queda arriba.'],['log 3 + log 5 = log 8','log 3 + log 5 = log 15','Sumar logaritmos es multiplicar lo de adentro: log 3 + log 5 = log(3·5).'],['x·log 3 − x·log 5 = x','x·log 3 − x·log 5 = x·(log 3 − log 5)','Es factor común: la x sale multiplicando a toda la resta de logaritmos.']],
+  tip:'La respuesta exacta no se redondea: déjala con log. En esta práctica te pedimos el valor decimal para comprobar que la fórmula está bien.'}),
+ gen(){const bs=[2,3,5,7];let a,b,p,q,r,x,g=0;
+  do{a=pk(bs);do{b=pk(bs);}while(b===a);p=pk([-10,-6,-5,-4,-3,-2,2,3,4,5]);q=pk([-3,-2,-1,1,2,3]);r=pk([-4,-3,-2,2,3,4,5]);x=r*Math.log10(b)/(p*Math.log10(a)-q*Math.log10(b));g++;}while((!isFinite(x)||Math.abs(x)>8||Math.abs(p*Math.log10(a)-q*Math.log10(b))<.2)&&g<300);
+  return {q:`Resuelve para x:<div class="stmt">${E(`${a}<sup>${kxs(p)}</sup> = ${b}<sup>${poly([[q,'x'],[r,'']])}</sup>`)}</div>Escribe el valor decimal redondeado a la centésima. (La respuesta exacta usa logaritmos base 10.)`,
+   fields:[numT('x ≈',r2(x),0.0051)],hint:'Saca log a los dos lados, baja los exponentes, junta los términos con x y saca factor común.',steps:expSteps(a,p,b,q,r)};}},
+
+
+{id:'al-complejas',blk:8,name:'Soluciones complejas de una cuadrática',need:3,
+ lesson:LS({idea:`<p>Si en la fórmula general el discriminante ${E('D = b² − 4ac')} sale <b>negativo</b>, no existe raíz real, porque ningún número real al cuadrado da negativo. Entonces usamos el número imaginario ${E('i = √−1')}, con ${E('i² = −1')}. Así ${E('√−71 = i√71')}.</p><p>Las dos soluciones son <b>complejas</b> y siempre vienen en pareja: una con ${E('+i')} y otra con ${E('−i')}.</p>`,
+  pasos:[`Identifica ${E('a')}, ${E('b')} y ${E('c')} en ${E('ax² + bx + c = 0')}.`,`Calcula el discriminante ${E('D = b² − 4ac')}.`,`Si ${E('D < 0')}, escribe ${E('√D = i√(−D)')}.`,`Reemplaza en ${E('x = (−b ± i√(−D)) / (2a)')}.`,`Escribe las dos soluciones separadas por coma.`,`Revisa el signo de −b: si b es negativo, −b es positivo.`],
+  ej:[['Del ALEKS: '+E('6x² − 5x + 4 = 0'),...cxSteps(6,-5,4)],['Otro ejemplo: '+E('2x² − 3x + 5 = 0'),...cxSteps(2,-3,5)]],
+  mal:[['√(−71) = −√71','√(−71) = i√71','La raíz de un negativo no es un negativo: es un número imaginario con i.'],['−(−5) = −5','−(−5) = 5','Menos por menos es más: si b = −5, entonces −b = 5.'],['x = (5 ± i√71) / 6','x = (5 ± i√71) / 12','El denominador es 2a = 2·6 = 12, no 6.']],
+  tip:'En ALEKS usa el botón de fracción y el botón i. La i va antes de la raíz o después; lo importante es que la raíz no incluya la i.'}),
+ gen(){let a,b,c,D,N,g=0;do{a=R(2,7);b=RNZ(-9,9);c=R(1,9);D=b*b-4*a*c;N=-D;g++;}while((D>=0||N<=1||rad(N).a!==1)&&g<400);
+  if(g>=400){a=6;b=-5;c=4;D=-71;N=71;}
+  return {q:`Halla todas las soluciones complejas de <div class="stmt">${E(poly([[a,'x²'],[b,'x'],[c,'']])+' = 0')}</div>Las soluciones son ${E('x = (□ ± i√□) / □')}. Completa los tres números.`,
+   fields:[num('Número antes de ± (es −b)',-b),num('Número dentro de la raíz (es −D)',N),num('Denominador (es 2a)',2*a)],
+   hint:'Calcula D = b² − 4ac. Como sale negativo, la raíz de −D lleva i. El denominador es 2a.',steps:cxSteps(a,b,c)};}},
+
+{id:'al-parciales',blk:8,name:'Fracciones parciales con denominador (x² + k)²',need:3,
+ lesson:LS({idea:`<p>Descomponer en fracciones parciales es lo <b>contrario de sumar fracciones</b>: partimos una fracción grande en fracciones pequeñas que, al sumarlas, la reconstruyen.</p><p>Cuando el denominador es ${E('(x² + k)²')} (un cuadrado que no se puede factorizar más y está repetido), hacen falta <b>dos</b> fracciones, y cada numerador lleva una x:</p><p>${E('(Ax + B) / (x² + k) + (Cx + D) / (x² + k)²')}</p>`,
+  pasos:[`Escribe la forma con ${E('A, B, C, D')}.`,`Multiplica toda la igualdad por ${E('(x² + k)²')} para quitar denominadores: ${E('numerador = (Ax + B)(x² + k) + (Cx + D)')}.`,`Multiplica y ordena por potencias de x.`,`Compara los coeficientes de ${E('x³')}, ${E('x²')}, ${E('x')} y el número solo.`,`Resuelve: de ${E('x³')} sale A, de ${E('x²')} sale B, y con ellos C y D.`,`Reemplaza en la forma y escribe las dos fracciones.`],
+  ej:[['Del ALEKS: '+E('(−3x³ − x²) / (x² + 2)²'),...pfSteps(-3,-1,2)],['Otro ejemplo: '+E('(2x³ + 5x²) / (x² + 3)²'),...pfSteps(2,5,3)]],
+  mal:[['(Ax + B)(x² + k) = Ax³ + Bx² + k','(Ax + B)(x² + k) = Ax³ + Bx² + Akx + Bk','Al multiplicar hay que repartir A y B con los dos términos de (x² + k).'],['−(−3)(2) = −6','−(−3)(2) = 6','Dos negativos juntos dan positivo: C = −A·k = −(−3)(2) = 6.'],['Numerador de arriba = A','Numerador de arriba = Ax + B','Como el denominador tiene x², arriba va una expresión con x, no un número solo.']],
+  tip:'Para comprobar, suma tus dos fracciones: tienes que volver a obtener el numerador original.'}),
+ gen(){const p=RNZ(-5,5),q=RNZ(-6,6),k=R(1,4);
+  return {q:`Halla la descomposición en fracciones parciales:<div class="stmt">${E(`(${poly([[p,'x³'],[q,'x²']])}) / (x² + ${k})²`)}</div>Forma: ${E('(Ax + B)/(x² + '+k+') + (Cx + D)/(x² + '+k+')²')}. Escribe A, B, C y D.`,
+   fields:[num('A =',p),num('B =',q),num('C =',-p*k),num('D =',-q*k)],hint:'A y B salen de x³ y x². Luego C = −A·k y D = −B·k, porque x y el número solo deben quedar en 0.',steps:pfSteps(p,q,k)};}},
+
+{id:'al-sucesiones',blk:8,name:'Sucesión aritmética o geométrica y su fórmula',need:3,
+ lesson:LS({idea:`<p>Una <b>sucesión</b> es una lista de números con una regla. Hay dos reglas famosas:</p><p><b>Aritmética:</b> siempre <b>sumas</b> lo mismo, la diferencia ${E('d')}. Ej.: 17, 24, 31, … (sumas 7).</p><p><b>Geométrica:</b> siempre <b>multiplicas</b> por lo mismo, la razón ${E('r')}. Ej.: 8, 24, 72, … (multiplicas por 3).</p>`,
+  pasos:[`Resta términos seguidos: si la diferencia es siempre igual, es <b>aritmética</b>.`,`Divide términos seguidos: si el cociente es siempre igual, es <b>geométrica</b>.`,`Aritmética: ${E('aₙ = a₁ + (n − 1)·d')}.`,`Geométrica: ${E('aₙ = a₁ · rⁿ⁻¹')}.`,`Simplifica la fórmula.`,`Comprueba con n = 1, 2, 3: deben salir los primeros términos.`],
+  ej:[['Del ALEKS: '+E('17, 24, 31, …'),...seqSteps(17,7,'a')],['Del ALEKS: '+E('8, 24, 72, …'),...seqSteps(8,3,'g')]],
+  mal:[['aₙ = a₁ + n·d','aₙ = a₁ + (n − 1)·d','Al primer término no se le suma d: el término 1 es a₁ solo. Por eso es (n − 1).'],['aₙ = 8 · 3ⁿ','aₙ = 8 · 3ⁿ⁻¹','Con n = 1 debe salir 8: 8·3⁰ = 8. Con 3ⁿ saldría 24.'],['8, 24, 72: 24 − 8 = 16 y 72 − 24 = 48 → aritmética','8, 24, 72: 24 ÷ 8 = 3 y 72 ÷ 24 = 3 → geométrica','Si la resta no es constante, prueba dividir.']],
+  tip:`En ALEKS, para ${E("3ⁿ⁻¹")} usa el botón de potencia y escribe n − 1 en el exponente.`}),
+ gen(){const geo=Math.random()<.5;let a1,d,r,t=[],a10,type;
+  if(geo){a1=R(1,9);r=pk([2,3,4,-2,-3]);for(let i=0;i<4;i++)t.push(a1*r**i);a10=a1*r**9;type='Geométrica';d=r;}
+  else{a1=R(-10,20);d=RNZ(-9,9);for(let i=0;i<4;i++)t.push(a1+i*d);a10=a1+9*d;type='Aritmética';}
+  return {q:`Sucesión: <div class="stmt">${E(seqTxt(t))}</div>Decide el tipo y completa. (Si es aritmética, d es lo que se suma; si es geométrica, r es por lo que se multiplica.)`,
+   fields:[ch('Tipo de sucesión',type,['Aritmética','Geométrica'],1),num('Lo que se suma o por lo que se multiplica (d o r)',d),num('Primer término a₁ =',a1),num('Décimo término a₁₀ =',a10)],
+   hint:'Resta dos términos seguidos; si no es constante, divide. Luego usa la fórmula con n = 10.',steps:seqSteps(a1,d,geo?'g':'a')};}},
+
+{id:'al-vectores',blk:8,name:'Vectores en forma ai + bj',need:3,
+ lesson:LS({idea:`<p>Un vector en el plano se escribe ${E('v = a<b>i</b> + b<b>j</b>')}: ${E('a')} es cuánto se mueve a la derecha (eje x) y ${E('b')} cuánto sube (eje y). Con vectores se opera <b>componente por componente</b>.</p>`,
+  pasos:[`Multiplicar por un número: multiplica <b>las dos</b> componentes. ${E('k(a<b>i</b> + b<b>j</b>) = ka<b>i</b> + kb<b>j</b>')}.`,`Sumar o restar: suma o resta las <b>i</b> con las <b>i</b> y las <b>j</b> con las <b>j</b>.`,`Si hay resta, pon el segundo vector entre paréntesis y cambia los dos signos.`,`Escribe el resultado como ${E('a<b>i</b> + b<b>j</b>')}.`],
+  ej:[['Del ALEKS: '+E('v = '+vtxt(2,-3))+' y '+E('w = '+vtxt(5,-1))+'. Halla '+E('−4v')+' y '+E('v − w')+'.',...vecSteps([2,-3],[5,-1],{k:-4,txt:'−4v',f:(v,w)=>[-4*v[0],-4*v[1]]},{txt:'v − w',f:(v,w)=>[v[0]-w[0],v[1]-w[1]]})]],
+  mal:[['−4(2i − 3j) = −8i − 12j','−4(2i − 3j) = −8i + 12j','Multiplicas las dos componentes: −4·(−3) = +12.'],['(2i − 3j) − (5i − j) = −3i − 4j','(2i − 3j) − (5i − j) = −3i − 2j','Restar −j es sumar j: −3j + j = −2j.'],['i + j = 2ij','i + j se queda como i + j','Las componentes i y j no se juntan: son direcciones distintas.']],
+  tip:'En ALEKS usa los botones i y j del panel; los coeficientes se escriben delante: −8i + 12j.'}),
+ gen(){const v=[RNZ(-6,6),RNZ(-6,6)],w=[RNZ(-6,6),RNZ(-6,6)],k=pk([-4,-3,-2,2,3,4,5]);
+  const ops=[{txt:'v − w',f:(v,w)=>[v[0]-w[0],v[1]-w[1]]},{txt:'v + w',f:(v,w)=>[v[0]+w[0],v[1]+w[1]]},{txt:'w − v',f:(v,w)=>[w[0]-v[0],w[1]-v[1]]},{txt:'2v + w',f:(v,w)=>[2*v[0]+w[0],2*v[1]+w[1]]},{txt:'v − 2w',f:(v,w)=>[v[0]-2*w[0],v[1]-2*w[1]]},{txt:'3w − v',f:(v,w)=>[3*w[0]-v[0],3*w[1]-v[1]]}];
+  const o=pk(ops),A={k,txt:nm(k)+'v',f:(v,w)=>[k*v[0],k*v[1]]},r1=A.f(v,w),r2v=o.f(v,w);
+  return {q:`Dados los vectores ${E('v = '+vtxt(v[0],v[1]))} y ${E('w = '+vtxt(w[0],w[1]))}, halla ${E(A.txt)} y ${E(o.txt)}. Escribe cada respuesta en la forma ${E('a<b>i</b> + b<b>j</b>')}.`,
+   fields:[num(`${A.txt}: número que multiplica a i`,r1[0]),num(`${A.txt}: número que multiplica a j`,r1[1]),num(`${o.txt}: número que multiplica a i`,r2v[0]),num(`${o.txt}: número que multiplica a j`,r2v[1])],
+   hint:'Opera i con i y j con j. Cuidado con los signos al restar.',steps:vecSteps(v,w,A,o)};}},
+
+{id:'al-conteo',blk:8,name:'Contar combinaciones: elegir entre varias listas',need:3,
+ lesson:LS({idea:`<p>Cuando eliges cosas y <b>el orden no importa</b> (un menú: el grupo de aperitivos, no la fila en que los sirves), se usan <b>combinaciones</b>: ${E('C(n, k) = n! / (k!·(n − k)!)')} maneras de elegir ${E('k')} entre ${E('n')}.</p><p>Si haces varias elecciones independientes (aperitivos <b>y</b> platillos <b>y</b> postres), las maneras se <b>multiplican</b>.</p>`,
+  pasos:[`Para cada lista identifica cuántos hay (${E('n')}) y cuántos eliges (${E('k')}).`,`Calcula ${E('C(n, k)')}: multiplica k números hacia abajo desde n y divide entre ${E('k!')}.`,`Multiplica los resultados de todas las listas.`,`Revisa que cada ${E('k')} sea menor o igual que ${E('n')}.`],
+  ej:[['Del ALEKS: 6 aperitivos, 5 platillos principales y 12 postres. Se eligen 4 aperitivos, 2 platillos y 3 postres. ¿De cuántas maneras?',...cntSteps([[6,4,'aperitivos'],[5,2,'platillos'],[12,3,'postres']])]],
+  mal:[['C(6, 4) = 6·5·4·3','C(6, 4) = (6·5·4·3) / (4·3·2·1) = 15','Hay que dividir entre k! porque el orden no importa.'],['Total = 15 + 10 + 220','Total = 15 · 10 · 220','Elegir en una lista Y en otra: se multiplica, no se suma.'],['C(5, 2) = 5 · 2 = 10','C(5, 2) = (5·4) / (2·1) = 10','Se multiplican 2 números hacia abajo desde 5 (5 y 4), no 5 por 2. Da lo mismo aquí, pero no siempre.']],
+  tip:'Usa la simetría: C(12, 3) = C(12, 9). Siempre calcula con el k más pequeño para trabajar con menos números.'}),
+ gen(){const sets=[['aperitivos','platillos principales','postres'],['camisas','pantalones','pares de zapatos'],['frutas','verduras','tipos de carne']];const nm3=pk(sets);let L,g=0;
+  do{L=nm3.map(()=>{const n=R(4,12),k=R(1,Math.min(4,n-1));return [n,k];});g++;}while(L.reduce((t,[n,k])=>t*CNK(n,k),1)>2000000&&g<200);
+  const tot=L.reduce((t,[n,k])=>t*CNK(n,k),1);
+  return {q:`Una tienda ofrece ${L[0][0]} ${nm3[0]}, ${L[1][0]} ${nm3[1]} y ${L[2][0]} ${nm3[2]}. Se deben elegir ${L[0][1]} ${nm3[0]}, ${L[1][1]} ${nm3[1]} y ${L[2][1]} ${nm3[2]}. ¿De cuántas maneras se puede hacer?`,
+   fields:[num('Número de maneras =',tot)],hint:'Calcula una combinación por cada lista y multiplica los tres resultados.',steps:cntSteps(L.map(([n,k],i)=>[n,k,nm3[i]]))};}},
+
+
+{id:'al-prob-union',blk:8,name:'Probabilidad: regla de la suma (A o B)',need:3,
+ lesson:LS({idea:`<p>Si un porcentaje de clientes pide A, otro pide B y algunos piden <b>los dos</b>, al sumar los porcentajes de A y de B los que piden ambos se cuentan <b>dos veces</b>. La regla corrige eso:</p><p>${E('P(A o B) = P(A) + P(B) − P(A y B)')}</p><p>Los porcentajes se convierten a decimal dividiendo entre 100: ${E('45 % = 0,45')}.</p>`,
+  pasos:[`Escribe lo que te dan como decimales.`,`Identifica cuál es ${E('P(A o B)')} (la palabra «o» o «al menos uno») y cuál es ${E('P(A y B)')} (la palabra «ambos»).`,`Reemplaza en la regla de la suma.`,`Despeja lo que falta.`,`Responde en decimal si lo piden así (0,1) o como porcentaje (10 %).`],
+  ej:[['Del ALEKS: el 45 % de los clientes pide pollo, el 38 % pide papas y el 73 % pide pollo o papas (o ambos). ¿Probabilidad de que pida ambos?',...pbSteps('both',45,38,73)],['Al revés: el 40 % pide A, el 30 % pide B y el 10 % pide ambos. ¿Probabilidad de A o B?',...pbSteps('union',40,30,10)]],
+  mal:[['P(A o B) = P(A) + P(B)','P(A o B) = P(A) + P(B) − P(A y B)','Sin restar «ambos», se cuenta dos veces a los que piden los dos.'],['P(ambos) = 0,73 − 0,45 − 0,38','P(ambos) = 0,45 + 0,38 − 0,73','Despeja bien: P(A y B) = P(A) + P(B) − P(A o B).'],['10 % = 10','10 % = 0,10','Para pasar de porcentaje a decimal se divide entre 100.']],
+  tip:'Dibuja dos círculos que se cruzan: la parte del medio es «ambos». Al sumar los dos círculos esa parte entra dos veces.'}),
+ gen(){const both=R(5,18),pA=R(both+8,60),pB=R(both+8,50),uni=pA+pB-both;const askBoth=Math.random()<.6||uni>95;
+  if(askBoth&&uni<=95)return {q:`En un restaurante, el ${pA} % de los clientes pide un plato A, el ${pB} % pide un plato B y el ${uni} % pide A o B (o ambos). ¿Cuál es la probabilidad de que un cliente al azar pida <b>ambos</b>? Escribe el decimal.`,fields:[num('Probabilidad (decimal, por ejemplo 0,25) =',both/100)],hint:'P(A y B) = P(A) + P(B) − P(A o B). Usa decimales.',steps:pbSteps('both',pA,pB,uni)};
+  return {q:`En un restaurante, el ${pA} % de los clientes pide un plato A, el ${pB} % pide un plato B y el ${both} % pide <b>ambos</b>. ¿Cuál es la probabilidad de que un cliente al azar pida A o B? Escribe el decimal.`,fields:[num('Probabilidad (decimal, por ejemplo 0,25) =',uni/100)],hint:'P(A o B) = P(A) + P(B) − P(A y B).',steps:pbSteps('union',pA,pB,both)};}},
+
+{id:'al-dados',blk:8,name:'Probabilidad con dos dados (suma)',need:3,
+ lesson:LS({idea:`<p>Al lanzar un dado <b>dos veces</b> y sumar, hay ${E('6 × 6 = 36')} resultados igual de probables. Pero las sumas <b>no</b> son igual de probables: la suma 7 se forma de 6 maneras (1+6, 2+5, 3+4, …) y la suma 2 solo de 1 (1+1).</p><p>${E('P(suceso) = formas favorables / 36')}.</p>`,
+  pasos:[`Haz la tabla de cuántas formas hay de cada suma: 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1 (de la suma 2 a la 12).`,`Marca las sumas que cumplen el suceso.`,`Suma sus formas.`,`Divide entre 36 y simplifica la fracción.`],
+  ej:[['Del ALEKS: dos lanzamientos, sumas los valores. Suceso A: la suma es mayor que 8. Suceso B: la suma es divisible entre 3.',...diceSteps([{txt:'La suma es mayor que 8',f:s=>s>8},{txt:'La suma es divisible entre 3',f:s=>s%3===0}])]],
+  mal:[['P(suma = 7) = 1/11','P(suma = 7) = 6/36 = 1/6','Hay 11 sumas posibles, pero no son igual de probables; cuenta las formas.'],['Mayor que 8 incluye al 8','Mayor que 8 empieza en 9','«Mayor que» no incluye al número; «mayor o igual» sí.'],['P = 10/36 queda 10/36','P = 10/36 = 5/18','Si piden fracción exacta, simplifica (aunque ALEKS acepta equivalentes, conviene hacerlo).']],
+  tip:'Memoriza la fila de formas: 1-2-3-4-5-6-5-4-3-2-1. Es como una montaña con la cima en el 7.'}),
+ gen(){const mk=[()=>{const k=R(5,10);return {txt:`La suma es mayor que ${k}`,f:s=>s>k};},()=>{const k=R(4,9);return {txt:`La suma es menor que ${k}`,f:s=>s<k};},()=>{const m=pk([2,3,4,5,6]);return {txt:`La suma es divisible entre ${m}`,f:s=>s%m===0};},()=>{const k=R(3,11);return {txt:`La suma es igual a ${k}`,f:s=>s===k};},()=>({txt:'La suma es un número par',f:s=>s%2===0}),()=>({txt:'La suma es un número primo',f:s=>[2,3,5,7,11].includes(s)})];
+  let evs,g=0;do{const i=R(0,mk.length-1);let j;do{j=R(0,mk.length-1);}while(j===i);evs=[mk[i](),mk[j]()];g++;}while(evs.some(e=>{const n=diceEv(e).n;return n===0||n===36;})&&g<50);
+  const n=evs.map(e=>diceEv(e).n);
+  return {q:`Se lanza un dado ordinario dos veces y se suman las caras.<div class="stmt">Suceso A: ${evs[0].txt}.<br>Suceso B: ${evs[1].txt}.</div>Escribe cada probabilidad como fracción (por ejemplo 5/18).`,
+   fields:[num('P(A) =',n[0]/36),num('P(B) =',n[1]/36)],hint:'Cuenta las formas de cada suma con la fila 1-2-3-4-5-6-5-4-3-2-1 y divide entre 36.',steps:diceSteps(evs)};}},
+
+{id:'al-porc-vol',blk:8,name:'Aumento porcentual del volumen',need:3,
+ lesson:LS({idea:`<p>«Aumentó 15 %» significa <b>multiplicar por 1,15</b>. Pero el volumen de una lata cilíndrica, ${E('V = π(d/2)²h')}, depende del diámetro <b>al cuadrado</b>. Entonces si el diámetro sube 15 %, el volumen no sube 15 %: sube más.</p>`,
+  pasos:[`Convierte el aumento en factor: ${E('15 % → 1,15')}.`,`Eleva al cuadrado el factor del diámetro: ${E('1,15² = 1,3225')}.`,`Si la altura también cambia, multiplica por su factor.`,`Resta 1 y pasa a porcentaje: ${E('1,3225 − 1 = 0,3225 = 32,25 %')}.`,`Redondea como pide el problema.`],
+  ej:[['Del ALEKS: el diámetro de la lata grande aumentó 15 % y la altura se mantiene igual. ¿En qué porcentaje aumentó el volumen? (al porcentaje más cercano)',...volSteps(15,0)]],
+  mal:[['Diámetro +15 % → volumen +15 %','Diámetro +15 % → volumen +32 %','El volumen depende del diámetro al cuadrado, no del diámetro solo.'],['1,15² = 1,15 · 2 = 2,3','1,15² = 1,15 · 1,15 = 1,3225','Elevar al cuadrado es multiplicar el número por sí mismo, no por 2.'],['Factor 1,3225 → aumento 132 %','Factor 1,3225 → aumento 32 %','Al factor hay que restarle 1: lo que sube es la parte que pasa de 1.']],
+  tip:'Regla rápida: si todas las medidas de largo suben p %, el área sube casi 2p % y el volumen casi 3p % (para p chico).'}),
+ gen(){let p,q,f,pct,g=0;do{p=pk([5,8,10,12,15,18,20,25,30,40,50]);q=Math.random()<.4?pk([10,20,25,50]):0;f=(1+p/100)**2*(1+q/100);pct=(f-1)*100;g++;}while(Math.abs(pct-Math.floor(pct)-.5)<.06&&g<100);
+  return {q:`El diámetro de una lata más grande aumentó un ${p} %${q?` y su altura aumentó un ${q} %`:', y la altura se mantiene igual'}. ¿En qué porcentaje aumentó el volumen de la lata pequeña para obtener la grande? Redondea al porcentaje más cercano.`,
+   fields:[num('Aumento del volumen (%) =',Math.round(pct))],hint:'El volumen depende del diámetro al cuadrado: eleva el factor al cuadrado y réstale 1.',steps:volSteps(p,q)};}},
+
+{id:'al-intervalos',blk:8,name:'Notación de conjuntos, recta numérica e intervalos',need:4,
+ lesson:LS({idea:`<p>Una desigualdad como ${E('−3 < x ≤ 1')} describe un conjunto de números. Se puede mostrar de tres maneras: con la <b>desigualdad</b>, dibujada en la <b>recta numérica</b> y en <b>notación de intervalos</b>.</p><p>Todo se decide por el extremo: si el número <b>sí</b> está incluido (≤ o ≥) va un punto lleno ● y un <b>corchete</b> ${E('[ ]')}. Si <b>no</b> está incluido (< o >) va un punto vacío ○ y un <b>paréntesis</b> ${E('( )')}.</p>`,
+  pasos:[`Mira cada extremo y su símbolo: ≤ y ≥ incluyen; < y > no incluyen.`,`En la recta: punto lleno ● si incluye, punto vacío ○ si no incluye.`,`Une con el segmento. Si no tiene extremo (infinito), sigue hasta la flecha.`,`En intervalos: corchete si incluye, paréntesis si no.`,`El infinito ${E('∞')} y ${E('−∞')} siempre llevan paréntesis.`,`En ALEKS pulsa el botón correcto y escribe solo los números en los cuadritos.`],
+  ej:[['Del ALEKS: '+E('{x | −7 ≤ x < 0}'),...ivSteps({lo:-7,hi:0,loC:1,hiC:0})],['Del ALEKS: '+E('{x | −3 < x ≤ 1}'),...ivSteps({lo:-3,hi:1,loC:0,hiC:1})],['Del ALEKS: '+E('{x | −5 ≤ x < −2}'),...ivSteps({lo:-5,hi:-2,loC:1,hiC:0})],['Del ALEKS: '+E('{x | x ≥ 3}'),...ivSteps({dir:'r',v:3,c:1})],['Del ALEKS: '+E('{x | −6 < x ≤ −4}'),...ivSteps({lo:-6,hi:-4,loC:0,hiC:1})]],
+  mal:[['−3 < x ≤ 1 → [−3, 1]','−3 < x ≤ 1 → (−3, 1]','El −3 no está incluido (<), así que lleva paréntesis; el 1 sí (≤), lleva corchete.'],['x ≥ 3 → [3, ∞]','x ≥ 3 → [3, ∞)','El infinito no es un número que se pueda alcanzar: siempre va con paréntesis.'],['(−3,1] escrito con el teclado = −3,1','(−3, 1] se arma con el botón del panel','El teclado puede leer la coma como decimal. Usa el botón del intervalo y rellena los cuadritos.']],
+  tip:'Truco de memoria: el corchete «abraza» al número (lo incluye) y el paréntesis lo deja afuera.'}),
+ gen(){const ray=Math.random()<.4;let s;
+  if(ray){s={dir:pk(['r','l']),v:R(-8,8),c:Math.random()<.5?1:0};}else{const lo=R(-8,2);s={lo,hi:lo+R(2,7),loC:Math.random()<.5?1:0,hiC:Math.random()<.5?1:0};}
+  const dotOpts=['Punto lleno ● (incluye el número)','Punto vacío ○ (no incluye el número)'],dot=c=>c?dotOpts[0]:dotOpts[1];let fields;
+  if(ray){const o=[{dir:'r',v:s.v,c:1},{dir:'r',v:s.v,c:0},{dir:'l',v:s.v,c:1},{dir:'l',v:s.v,c:0}].map(ivTxt);
+   fields=[ch('Punto en '+nm(s.v),dot(s.c),dotOpts,1),ch('La línea sigue hacia',s.dir==='r'?'la derecha →':'la izquierda ←',['la derecha →','la izquierda ←'],1),ch('Notación de intervalos',ivTxt(s),o,1)];}
+  else{const o=[[1,1],[1,0],[0,1],[0,0]].map(([a,b])=>ivTxt({lo:s.lo,hi:s.hi,loC:a,hiC:b}));
+   fields=[ch('Punto en '+nm(s.lo),dot(s.loC),dotOpts,1),ch('Punto en '+nm(s.hi),dot(s.hiC),dotOpts,1),ch('Notación de intervalos',ivTxt(s),o,1)];}
+  return {q:`Para el conjunto <div class="stmt">${E('{x | '+ivIneq(s)+'}')}</div>decide cómo se dibuja en la recta numérica y escribe el intervalo.`,fields,hint:'≤ y ≥ incluyen (punto lleno, corchete). < y > no incluyen (punto vacío, paréntesis).',steps:ivSteps(s)};}},
+
+{id:'al-transf',blk:8,name:'Transformar un sistema de ecuaciones (reducción)',need:3,
+ lesson:LS({idea:`<p>El método de <b>reducción</b> transforma un sistema en otro más sencillo que tiene la <b>misma solución</b>. Se permite: multiplicar una ecuación por un número distinto de cero, o sumarle a una ecuación un múltiplo de la otra.</p><p>Cada paso se dice como «${E('k × Ecuación [A2] + Ecuación [A1] → Ecuación [B1]')}»: la flecha significa «se convierte en».</p>`,
+  pasos:[`Mira los números que acompañan a la x en las dos ecuaciones: ¿cómo anularla?`,`Busca k tal que ${E('k·(coef. de x en la 2.ª) + (coef. de x en la 1.ª) = 0')}.`,`Esa ecuación nueva ya no tiene x y queda ${E('número · y = número')}.`,`Para dejar la y sola, multiplica por ${E('1 / número')}.`,`Las ecuaciones que no cambian se copian igual.`],
+  ej:[['Del ALEKS: '+E('A1: 6x + 5y = −9')+' y '+E('A2: −2x − 4y = 10')+'.',...trSteps(6,5,-9,-2,-4,10,3)]],
+  mal:[['3 × [A2] + [A1] → [B2]','3 × [A2] + [A1] → [B1]','La ecuación que cambia es la que se reemplaza: aquí se reemplaza [A1] por la suma, así que el resultado es [B1].'],['−1/7 × (−7y = 21) → y = −21','−1/7 × (−7y = 21) → y = −3','Hay que dividir también el 21: 21 ÷ (−7) = −3.'],['3·(−2x) + 6x = −12x','3·(−2x) + 6x = 0','−6x + 6x = 0: justo lo que buscamos para eliminar la x.']],
+  tip:'Para anular la x, el multiplicador es −(coef. de x en la que cambia) ÷ (coef. de x en la otra). Revisa que la suma dé 0x.'}),
+ gen(){let a,b,c,d,e,f,k,x0,y0,g=0,ok=false;
+  do{d=pk([-3,-2,-1,1,2,3]);k=pk([2,3,4]);a=-k*d;b=RNZ(-7,7);e=RNZ(-6,6);x0=R(-5,5);y0=R(-5,5);c=a*x0+b*y0;f=d*x0+e*y0;g++;ok=Math.abs(a)<=9&&b+k*e!==0&&Math.abs(b+k*e)<=14;}while(!ok&&g<300);
+  if(!ok){a=6;b=5;c=-9;d=-2;e=-4;f=10;k=3;}
+  const m=1/(b+k*e),T1=['k × Ecuación [A1] → Ecuación [B1]','k × Ecuación [A2] → Ecuación [B2]','k × Ecuación [A1] + Ecuación [A2] → Ecuación [B2]','k × Ecuación [A2] + Ecuación [A1] → Ecuación [B1]'],T2=['k × Ecuación [B1] → Ecuación [C1]','k × Ecuación [B2] → Ecuación [C2]','k × Ecuación [B1] + Ecuación [B2] → Ecuación [C2]','k × Ecuación [B2] + Ecuación [B1] → Ecuación [C1]'];
+  return {q:`Sistema A: <div class="stmt">[A1] ${E(poly([[a,'x'],[b,'y']])+' = '+nm(c))}<br>[A2] ${E(poly([[d,'x'],[e,'y']])+' = '+nm(f))}</div>Sistema B: <div class="stmt">[B1] ${E(nm(b+k*e)+'y = '+nm(c+k*f))}<br>[B2] ${E(poly([[d,'x'],[e,'y']])+' = '+nm(f))}</div>Sistema C: <div class="stmt">[C1] ${E('y = '+nm(y0))}<br>[C2] ${E(poly([[d,'x'],[e,'y']])+' = '+nm(f))}</div>`,
+   fields:[ch('¿Cómo transformamos A en B?',T1[3],T1,1),num('El número k de esa transformación =',k),ch('¿Cómo transformamos B en C?',T2[0],T2,1),num('El número k de esa otra transformación (fracción, por ejemplo −1/7) =',m)],
+   hint:'Para anular la x busca k tal que k·(coef. de x en [A2]) + (coef. de x en [A1]) = 0. Para dejar y sola multiplica por 1/(número que la acompaña).',steps:trSteps(a,b,c,d,e,f,k)};}},
+
+{id:'al-sistema3',blk:8,name:'Sistema de tres ecuaciones con infinitas soluciones',need:3,
+ lesson:LS({idea:`<p>Un sistema de 3 ecuaciones con 3 incógnitas puede tener <b>una</b> solución, <b>ninguna</b> o <b>infinitas</b>. Pasa lo último cuando una ecuación es <b>combinación de las otras</b>: no aporta información nueva, así que sobra una variable que puedes elegir libremente.</p>`,
+  pasos:[`Suma o resta dos ecuaciones para eliminar una variable (por ejemplo z).`,`Comprueba si la tercera es combinación de las otras dos: al eliminarla te queda ${E('0 = 0')} (infinitas) o ${E('0 = número ≠ 0')} (ninguna).`,`Si es ${E('0 = 0')}, deja una variable libre (por ejemplo y).`,`Despeja x en función de y con la ecuación que ya no tiene z.`,`Reemplaza en una ecuación original y despeja z en función de y.`,`Escribe ${E('(x, y, z) = (□, y, □)')}.`],
+  ej:[['Del ALEKS: '+E('2x − 3y + z = 4')+', '+E('−x + 5y − z = −1')+', '+E('5x − 4y + 2z = 11')+'.',...s3Steps({a1:2,b1:-3,d1:4,a2:-1,b2:5,d2:-1,e1:3,e2:1})]],
+  mal:[['(x, y, z) = (x, 3, −2y)','(x, y, z) = (3 − 2y, y, 7y − 2)','Marcaste la opción equivocada: la variable libre es y, y x y z se escriben en función de y.'],['2x + 3y... → una sola solución','Si sobra una ecuación (0 = 0): infinitas soluciones','No intentes forzar un número único: cuando una ecuación sobra, hay infinitas.'],['x + 2y = 3 → x = 3 + 2y','x + 2y = 3 → x = 3 − 2y','Al pasar 2y al otro lado cambia de signo.']],
+  tip:'Para comprobar, elige un y cualquiera (por ejemplo 0), calcula x y z y reemplaza en las tres ecuaciones originales.'}),
+ gen(){let a1,b1,b2,d1,s,sy,e1,e2,g=0,ok=false,S;
+  do{a1=pk([2,3,4,-1]);b1=RNZ(-5,5);sy=pk([-3,-2,-1,1,2,3]);b2=sy-b1;s=R(-6,6);d1=R(-6,8);e1=pk([2,3,-2]);e2=pk([1,-1,2]);g++;
+   const C3=[e1*a1+e2*(1-a1),e1*b1+e2*b2,e1-e2];ok=C3[2]!==0&&b2!==0&&Math.abs(b2)<=8&&C3.every(v=>Math.abs(v)<=20);}while(!ok&&g<400);
+  if(!ok){a1=2;b1=-3;sy=2;b2=5;s=3;d1=4;e1=3;e2=1;}
+  S={a1,b1,d1,a2:1-a1,b2,d2:s-d1,e1,e2};const p=s,q=-sy,r=d1-a1*p,t=-a1*q-b1,eqs=eq3(S);
+  return {q:`Considera el sistema:<div class="stmt">${eqs.join('<br>')}</div>Elige qué describe mejor la solución y, si hay infinitas, escribe la solución con y libre: ${E('(x, y, z) = (□ + □·y, y, □ + □·y)')}.`,
+   fields:[ch('El sistema tiene…','Infinitas soluciones',['No tiene solución','Una solución única','Infinitas soluciones'],1),num('x: número solo =',p),num('x: número que multiplica a y =',q),num('z: número solo =',r),num('z: número que multiplica a y =',t)],
+   hint:'Suma las dos primeras ecuaciones para eliminar z: te da x en función de y. La tercera es combinación de las otras (0 = 0).',steps:s3Steps(S)};}},
+
+{id:'al-completar',blk:8,name:'Completar el cuadrado',need:3,
+ lesson:LS({idea:`<p>Completar el cuadrado es convertir ${E('x² + bx + k = 0')} en algo de la forma ${E('(x + h)² = número')}, que se resuelve sacando raíz cuadrada. Funciona porque ${E('(x + h)² = x² + 2hx + h²')}: el término del medio es 2h·x, así que ${E('h = b/2')}.</p>`,
+  pasos:[`Pasa el número solo al lado derecho.`,`Calcula ${E('h = b ÷ 2')} (la mitad del número que acompaña a x).`,`Suma ${E('h²')} a <b>los dos lados</b>.`,`El lado izquierdo es ${E('(x + h)²')}.`,`Calcula el lado derecho.`,`Para resolver: ${E('x + h = ±√(derecha)')}, así que ${E('x = −h ± √(derecha)')}.`],
+  ej:[['Del ALEKS: completa el cuadrado en '+E('x² + 14x + 36 = 0')+'.',...cmpSteps(14,36)]],
+  mal:[['x² + 14x = 36','x² + 14x = −36','Al pasar el 36 al otro lado cambia de signo.'],['x² + 14x + 14 = −36 + 14','x² + 14x + 49 = −36 + 49','Se suma h² = 7² = 49, no la mitad de 14 ni 14.'],['(x + 14)² = 13','(x + 7)² = 13','Dentro del paréntesis va la mitad de b: 14 ÷ 2 = 7.']],
+  tip:'Siempre suma lo mismo a los dos lados para que la igualdad no se rompa. Comprueba desarrollando ${E("(x + h)²")}: debes volver a ver el x² + bx del principio.'}),
+ gen(){let h,k,rhs,g=0;do{h=RNZ(-9,9);k=R(-12,h*h-1);rhs=h*h-k;g++;}while((rhs<=0||Number.isInteger(Math.sqrt(rhs)))&&g<300);
+  if(g>=300){h=7;k=36;rhs=13;}
+  return {q:`Completa el cuadrado en <div class="stmt">${E(poly([[1,'x²'],[2*h,'x'],[k,'']])+' = 0')}</div>y escríbela como ${E('(x + □)² = □')}. Puedes usar un número negativo dentro del paréntesis.`,
+   fields:[num('El número dentro del paréntesis (x + □)² =',h),num('El número de la derecha =',rhs)],hint:'El número del paréntesis es la mitad del que acompaña a x. El de la derecha es h² menos el número solo.',steps:cmpSteps(2*h,k)};}},
+
 ];
 
-const BLK={1:'Aritmética: los cimientos',2:'Lenguaje algebraico',3:'Productos notables',4:'Casos de factoreo',5:'Ecuaciones',6:'Sistemas de ecuaciones',7:'Logaritmos'};
+const BLK={1:'Aritmética: los cimientos',2:'Lenguaje algebraico',3:'Productos notables',4:'Casos de factoreo',5:'Ecuaciones',6:'Sistemas de ecuaciones',7:'Logaritmos',8:'Práctica ALEKS (ejercicios de tu curso)'};
 const MALS=LV.flatMap((l,i)=>(LSMAL[i]||[]).map(m=>({i,m})));
 
 /* ===================== UI ===================== */
 const $=s=>document.querySelector(s);
-const NB=7,LOCK='<svg class="lock" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1.5A1.5 1.5 0 0 1 20 11.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20.5v-9A1.5 1.5 0 0 1 5.5 10zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
+const NB=8,LOCK='<svg class="lock" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1.5A1.5 1.5 0 0 1 20 11.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20.5v-9A1.5 1.5 0 0 1 5.5 10zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>';
 let PROG={exam:{},blk:{},need:{},streak:{},errs:[]},cur=0;
 try{const p=JSON.parse(localStorage.getItem('escalera-mat2')||'null');if(p){PROG.exam=p.exam||{};PROG.blk=p.blk||{};PROG.need=p.need||{};PROG.streak=p.streak||{};PROG.errs=p.errs||[];if(p.cur>=0&&p.cur<LV.length)cur=p.cur;}
   else{const o=JSON.parse(localStorage.getItem('escalera-mat')||'null');if(o&&o.errs)PROG.errs=o.errs;}}catch(e){}
@@ -928,8 +1304,8 @@ async function push(d){if(!DOC)return;if(writing){again=true;return;}writing=tru
 /* Reglas de avance */
 const blkOf=b=>LV.map((l,i)=>l.blk===b?i:-1).filter(i=>i>=0);
 const isPassed=i=>!!(PROG.blk[LV[i].blk]||(PROG.exam[LV[i].id]&&PROG.exam[LV[i].id].ok));
-const blkUnlocked=b=>b===1||!!PROG.blk[b-1];
-function isUnlocked(i){if(isPassed(i))return true;const b=LV[i].blk;if(!blkUnlocked(b))return false;return i===blkOf(b)[0]||isPassed(i-1);}
+const blkUnlocked=b=>b===1||b===8||!!PROG.blk[b-1];
+function isUnlocked(i){if(isPassed(i))return true;const b=LV[i].blk;if(b===8)return true;if(!blkUnlocked(b))return false;return i===blkOf(b)[0]||isPassed(i-1);}
 function nextTarget(){for(let b=1;b<=NB;b++){if(PROG.blk[b])continue;const p=blkOf(b).find(i=>!isPassed(i));return p===undefined?{blk:b}:{lv:p};}return null;}
 const tgtName=t=>t.blk?`Examen del bloque ${t.blk}: ${BLK[t.blk]}`:`${t.lv+1}. ${LV[t.lv].name}`;
 const goTarget=t=>{if(t.blk){setView('diag');startBlock(t.blk);}else{setView('escalera');openLv(t.lv);}};
@@ -962,11 +1338,12 @@ $('#prev').onclick=()=>openLv(Math.max(0,cur-1));$('#next').onclick=()=>openLv(M
 function fieldHTML(f,id){if(f.k==='choice')return `<fieldset class="fld"><legend>${f.label}</legend><div class="choices">${f.opts.map((o,j)=>`<label class="opt"><input type="radio" name="${id}" value="${j}"><span>${f.plain?esc(o):E(o)}</span></label>`).join('')}</div></fieldset>`;
   return `<div class="fld"><label for="${id}">${f.label}</label><div class="numrow"><input id="${id}" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="?"><button type="button" class="sgn" data-for="${id}" aria-label="Cambiar signo">+/−</button></div></div>`;}
 function parseNum(s){s=String(s).trim().replace(/[−–]/g,'-').replace(/\s+/g,'').replace(',','.');if(!s)return NaN;const f=s.match(/^([+-]?\d+(?:\.\d+)?)\/([+-]?\d+(?:\.\d+)?)$/);if(f)return parseFloat(f[1])/parseFloat(f[2]);if(/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);return NaN;}
-const near=(a,b)=>Math.abs(a-b)<1e-6;
-function ansTxt(f){if(f.k==='choice')return f.ans;const v=f.ans;if(Number.isInteger(v))return nm(v);for(let d=2;d<=12;d++){const n=v*d;if(Math.abs(n-Math.round(n))<1e-9)return frs(Math.round(n),d);}return nm(v);}
+const near=(a,b,t)=>Math.abs(a-b)<(t||1e-6);
+function ansTxt(f){if(f.k==='choice')return f.ans;if(f.show)return f.show;const v=f.ans;if(Number.isInteger(v))return nm(v);for(let d=2;d<=40;d++){const n=v*d;if(Math.abs(n-Math.round(n))<1e-9)return frs(Math.round(n),d);}return nm(v);}
+function Q2steps(q){return q.steps.length>1?q.steps:[...q.steps,'—'];}
 const lbl=f=>f.label.replace(/<[^>]+>/g,'');
 function mountQ(box,Q,pre,onEnd,opts={}){let tries=0,done=false;const F=Q.fields;
-  box.innerHTML=`<div class="q">${Q.q}</div><form autocomplete="off">${F.map((f,i)=>fieldHTML(f,pre+i)).join('')}<div class="row"><button class="cta">${opts.exam?'Responder':'Revisar'}</button>${opts.noGiveUp?'':'<button type="button" class="ghost giveup">Ver solución</button>'}${opts.exam?'<button type="button" class="ghost skip">No sé</button>':''}</div></form><div class="fbx" aria-live="polite"></div>`;
+  box.innerHTML=`<div class="q">${Q.q}</div><form autocomplete="off">${F.map((f,i)=>fieldHTML(f,pre+i)).join('')}<div class="row"><button class="cta">${opts.exam?'Responder':'Revisar'}</button>${opts.exam?'':'<button type="button" class="ghost helpb">Ayúdame paso a paso</button>'}${opts.noGiveUp?'':'<button type="button" class="ghost giveup">Ver solución</button>'}${opts.exam?'<button type="button" class="ghost skip">No sé</button>':''}</div></form><div class="fbx" aria-live="polite"></div>`;
   const form=box.querySelector('form'),fb=box.querySelector('.fbx');
   box.querySelectorAll('.sgn').forEach(b=>b.onclick=()=>{const inp=box.querySelector('#'+b.dataset.for);let v=inp.value.trim();v=/^[-−]/.test(v)?v.replace(/^[-−]\s*/,''):'−'+v;inp.value=v;inp.focus();});
   const read=()=>F.map((f,i)=>{if(f.k==='choice'){const r=box.querySelector(`input[name="${pre+i}"]:checked`);return r?f.opts[+r.value]:null;}const raw=box.querySelector('#'+pre+i).value;return {raw,v:parseNum(raw)};});
@@ -975,12 +1352,14 @@ function mountQ(box,Q,pre,onEnd,opts={}){let tries=0,done=false;const F=Q.fields
   form.onsubmit=e=>{e.preventDefault();if(done)return;const vals=read();
     for(let i=0;i<F.length;i++){if(F[i].k==='choice'&&vals[i]===null){fb.innerHTML=`<p class="fb warn">Elige una opción en «${lbl(F[i])}».</p>`;return;}if(F[i].k==='num'&&isNaN(vals[i].v)){fb.innerHTML=`<p class="fb warn">Escribe un número en «${lbl(F[i])}». Puedes usar fracciones como 3/2.</p>`;box.querySelector('#'+pre+i).focus();return;}}
     const good=F.map(()=>false),groups={};
-    F.forEach((f,i)=>{if(f.k==='choice')good[i]=vals[i]===f.ans;else if(!f.group)good[i]=near(vals[i].v,f.ans);else(groups[f.group]=groups[f.group]||[]).push(i);});
+    F.forEach((f,i)=>{if(f.k==='choice')good[i]=vals[i]===f.ans;else if(!f.group)good[i]=near(vals[i].v,f.ans,f.tol);else(groups[f.group]=groups[f.group]||[]).push(i);});
     for(const g in groups){const left=groups[g].map(i=>F[i].ans);groups[g].forEach(i=>{const j=left.findIndex(a=>near(a,vals[i].v));if(j>=0){good[i]=true;left.splice(j,1);}});}
     const all=good.every(Boolean);
     if(!opts.exam)F.forEach((f,i)=>{const el=(f.k==='choice'?box.querySelector(`input[name="${pre+i}"]`):box.querySelector('#'+pre+i)).closest('.fld');el.classList.remove('good','bad');el.classList.add(good[i]?'good':'bad');});
     if(all)return finish(true);
     tries++;if(tries===1&&!opts.oneTry){fb.innerHTML=`<div class="fb warn"><b>Casi.</b> Revisa lo que está en rojo e inténtalo otra vez.<br><b>Pista:</b> ${Q.hint}</div>`;}else finish(false);};
+  const hb=box.querySelector('.helpb');if(hb){let k=0;hb.onclick=()=>{if(done)return;const n=Q2steps(Q);if(k<n.length-1){k++;}let hbx=box.querySelector('.helpbox');if(!hbx){hbx=document.createElement('div');hbx.className='helpbox';fb.before(hbx);}
+    hbx.innerHTML='<b>Ayuda (paso '+k+' de '+(n.length-1)+')</b><ol>'+n.slice(0,k).map(x=>'<li>'+x+'</li>').join('')+'</ol><p class="hint">'+(k<n.length-1?'Pulsa de nuevo para ver el siguiente paso. El último paso (la respuesta) no se muestra: ese lo escribes tú.':'Ya viste todo menos la respuesta final. Ahora inténtalo tú.')+'</p>';if(k>=n.length-1)hb.disabled=true;};}
   const gu=box.querySelector('.giveup');if(gu)gu.onclick=()=>finish(false,true);const sk=box.querySelector('.skip');if(sk)sk.onclick=()=>finish(false,true);}
 function logErr(i,Qx,mine,ok){PROG.errs.unshift({id:LV[i].id,q:Qx.q.slice(0,700),mine,ok,t:Date.now()+Math.random()});PROG.errs=PROG.errs.slice(0,40);}
 
@@ -1088,6 +1467,8 @@ function renderNB(){renderNBCount();const box=$('#nb');if(!PROG.errs.length){box
   $('#nbClear').hidden=false;box.innerHTML=PROG.errs.map((e,k)=>{const i=LV.findIndex(l=>l.id===e.id),d=new Date(e.t);return `<div class="card nbi"><span class="label">${i>=0?`Escalón ${i+1}: ${esc(LV[i].name)}`:''} · ${d.toLocaleDateString('es-EC',{day:'numeric',month:'short'})}</span><div class="q">${e.q}</div><div class="mine">✗ Tu respuesta: ${esc(e.mine)}</div><div class="okk">✓ Correcta: ${esc(e.ok)}</div><div class="row">${i>=0?`<button class="lk-btn" data-i="${i}">Practicar este escalón</button>`:''}<button class="lk-btn" data-del="${k}">Ya lo entendí</button></div></div>`;}).join('');
   box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{setView('escalera');openLv(+b.dataset.i);});
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{PROG.errs.splice(+b.dataset.del,1);save();renderNB();});}
+$('#bkSave').onclick=()=>{const d=snapshot();d.errs=PROG.errs;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='escalera-respaldo-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();$('#bkMsg').textContent='Respaldo guardado en tu carpeta de descargas.';};
+$('#bkLoad').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=='object'||!d.exam)throw 0;for(const k in d.exam){const a=PROG.exam[k],b=d.exam[k];if(!a||(b&&b.ok&&!a.ok))PROG.exam[k]=b;}for(const k in d.blk||{})if(d.blk[k])PROG.blk[k]=true;for(const k in d.need||{})if(PROG.need[k]===undefined)PROG.need[k]=d.need[k];const seen=new Set(PROG.errs.map(x=>x.t));(d.errs||[]).forEach(x=>{if(!seen.has(x.t))PROG.errs.push(x);});PROG.errs.sort((a,b)=>b.t-a.t);PROG.errs=PROG.errs.slice(0,40);save();renderStair();renderHead();renderNB();$('#bkMsg').textContent='Respaldo restaurado: tu progreso volvió.';}catch(x){$('#bkMsg').textContent='Ese archivo no es un respaldo válido.';}};r.readAsText(f);e.target.value='';};
 let clrArm=0;$('#nbClear').onclick=()=>{const b=$('#nbClear');if(Date.now()-clrArm<3500){PROG.errs=[];save();renderNB();b.textContent='Borrar el cuaderno';clrArm=0;return;}clrArm=Date.now();b.textContent='¿Seguro? Toca otra vez para borrar';setTimeout(()=>{if(clrArm&&Date.now()-clrArm>=3400){b.textContent='Borrar el cuaderno';clrArm=0;}},3600);};
 
 /* Escuchar la lección */
